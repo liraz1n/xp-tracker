@@ -1,0 +1,554 @@
+import { useEffect, useMemo, useState } from "react";
+
+interface FarmRunsCardProps {
+  currentXP: number;
+  totalXP: number;
+  theme: {
+    card: string;
+    input: string;
+    muted: string;
+    text: string;
+  };
+  onApplyFarmProgress: (values: {
+    xpGained: number;
+    source: string;
+  }) => void;
+}
+
+interface FarmActivity {
+  id: string;
+  category: "Cripta" | "Masmorra" | "Especial" | "Solo" | "Duo";
+  name: string;
+  detail: string;
+  xp: number;
+}
+
+interface FarmPlanItem {
+  activity: FarmActivity;
+  runs: number;
+}
+
+const FARM_ACTIVITIES: FarmActivity[] = [
+  {
+    id: "cripta-n1-30",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 30",
+    detail: "Base provisória",
+    xp: 49000,
+  },
+  {
+    id: "planicie-4",
+    category: "Masmorra",
+    name: "Planície",
+    detail: "4 jogadores",
+    xp: 1262,
+  },
+  {
+    id: "planicie-5",
+    category: "Masmorra",
+    name: "Planície",
+    detail: "5 jogadores",
+    xp: 1010,
+  },
+  {
+    id: "floresta-4",
+    category: "Masmorra",
+    name: "Floresta",
+    detail: "4 jogadores",
+    xp: 2000,
+  },
+  {
+    id: "floresta-5",
+    category: "Masmorra",
+    name: "Floresta",
+    detail: "5 jogadores",
+    xp: 1600,
+  },
+  {
+    id: "pantano-4",
+    category: "Masmorra",
+    name: "Pântano",
+    detail: "4 jogadores",
+    xp: 2937,
+  },
+  {
+    id: "pantano-5",
+    category: "Masmorra",
+    name: "Pântano",
+    detail: "5 jogadores",
+    xp: 2350,
+  },
+  {
+    id: "cemiterio-4",
+    category: "Masmorra",
+    name: "Cemitério",
+    detail: "4 jogadores",
+    xp: 8537,
+  },
+  {
+    id: "cemiterio-5",
+    category: "Masmorra",
+    name: "Cemitério",
+    detail: "5 jogadores",
+    xp: 6830,
+  },
+  {
+    id: "deserto-4",
+    category: "Masmorra",
+    name: "Deserto",
+    detail: "4 jogadores",
+    xp: 9737,
+  },
+  {
+    id: "deserto-5",
+    category: "Masmorra",
+    name: "Deserto",
+    detail: "5 jogadores",
+    xp: 7890,
+  },
+  {
+    id: "altheryn-4",
+    category: "Especial",
+    name: "Templo de Altheryn",
+    detail: "4 jogadores",
+    xp: 2150,
+  },
+  {
+    id: "hydra-4",
+    category: "Especial",
+    name: "Covil da Hydra Maior",
+    detail: "4 jogadores",
+    xp: 3000,
+  },
+  {
+    id: "zul-gor-4",
+    category: "Especial",
+    name: "Covil de Zul'Gor",
+    detail: "4 jogadores",
+    xp: 14875,
+  },
+  {
+    id: "zul-gor-5",
+    category: "Especial",
+    name: "Covil de Zul'Gor",
+    detail: "5 jogadores",
+    xp: 11900,
+  },
+  {
+    id: "fenda-magia",
+    category: "Solo",
+    name: "Fenda Solar",
+    detail: "Guardião Solar da Magia",
+    xp: 852,
+  },
+  {
+    id: "fenda-forca",
+    category: "Solo",
+    name: "Fenda Solar",
+    detail: "Guardião Solar da Força",
+    xp: 864,
+  },
+  {
+    id: "fenda-combate",
+    category: "Solo",
+    name: "Fenda Solar",
+    detail: "Guardião Solar do Combate",
+    xp: 876,
+  },
+  {
+    id: "templo-oasis",
+    category: "Duo",
+    name: "Templo do Oásis",
+    detail: "Duo, média estimada",
+    xp: 10790,
+  },
+];
+
+const FARM_CATEGORIES = [
+  "Todas",
+  "Cripta",
+  "Masmorra",
+  "Especial",
+  "Solo",
+  "Duo",
+] as const;
+
+type FarmCategoryFilter = (typeof FARM_CATEGORIES)[number];
+
+function sanitizeRuns(value: number) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.max(1, Math.floor(value));
+}
+
+function formatInputValue(value: number) {
+  return value === 0 ? "" : value;
+}
+
+function formatXP(value: number) {
+  return value.toLocaleString("pt-BR");
+}
+
+function getActivityLabel(activity: FarmActivity) {
+  return `${activity.name} (${activity.detail})`;
+}
+
+function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number) {
+  const existingItem = plan.find((item) => item.activity.id === activity.id);
+
+  if (existingItem) {
+    existingItem.runs += runs;
+    return;
+  }
+
+  plan.push({ activity, runs });
+}
+
+function buildFarmPlan(currentXP: number, activities: FarmActivity[]) {
+  if (currentXP <= 0 || activities.length === 0) {
+    return {
+      items: [],
+      totalXP: 0,
+      totalRuns: 0,
+      overflowXP: 0,
+    };
+  }
+
+  const sortedActivities = [...activities].sort((a, b) => b.xp - a.xp);
+  const smallestActivity = [...activities].sort((a, b) => a.xp - b.xp)[0];
+  const plan: FarmPlanItem[] = [];
+  let remainingXP = currentXP;
+  let guard = 0;
+
+  while (remainingXP > 0 && guard < 30) {
+    const activity =
+      sortedActivities.find((candidate) => candidate.xp <= remainingXP) ??
+      smallestActivity;
+    const runs =
+      activity.xp <= remainingXP ? Math.max(1, Math.floor(remainingXP / activity.xp)) : 1;
+
+    addPlanItem(plan, activity, runs);
+    remainingXP = Math.max(0, remainingXP - activity.xp * runs);
+    guard += 1;
+  }
+
+  const totalXP = plan.reduce(
+    (sum, item) => sum + item.activity.xp * item.runs,
+    0
+  );
+  const totalRuns = plan.reduce((sum, item) => sum + item.runs, 0);
+
+  return {
+    items: plan,
+    totalXP,
+    totalRuns,
+    overflowXP: Math.max(0, totalXP - currentXP),
+  };
+}
+
+export function FarmRunsCard({
+  currentXP,
+  totalXP,
+  theme,
+  onApplyFarmProgress,
+}: FarmRunsCardProps) {
+  const [categoryFilter, setCategoryFilter] =
+    useState<FarmCategoryFilter>("Todas");
+  const [selectedActivityId, setSelectedActivityId] = useState(
+    FARM_ACTIVITIES[0].id
+  );
+  const [runs, setRuns] = useState(1);
+
+  const visibleActivities = useMemo(() => {
+    if (categoryFilter === "Todas") return FARM_ACTIVITIES;
+
+    return FARM_ACTIVITIES.filter(
+      (activity) => activity.category === categoryFilter
+    );
+  }, [categoryFilter]);
+
+  useEffect(() => {
+    if (visibleActivities.some((activity) => activity.id === selectedActivityId)) {
+      return;
+    }
+
+    setSelectedActivityId(visibleActivities[0]?.id ?? FARM_ACTIVITIES[0].id);
+  }, [selectedActivityId, visibleActivities]);
+
+  const selectedActivity =
+    FARM_ACTIVITIES.find((activity) => activity.id === selectedActivityId) ??
+    visibleActivities[0] ??
+    FARM_ACTIVITIES[0];
+
+  const xpTotal = selectedActivity.xp * runs;
+  const xpApplied = Math.min(currentXP, xpTotal);
+  const remainingAfterRun = Math.max(0, currentXP - xpTotal);
+  const canApply = totalXP > 0 && currentXP > 0 && xpApplied > 0;
+
+  const recommendedRuns = useMemo(() => {
+    if (currentXP <= 0) return [];
+
+    return [...visibleActivities]
+      .sort((a, b) => {
+        const runsA = Math.ceil(currentXP / a.xp);
+        const runsB = Math.ceil(currentXP / b.xp);
+
+        return runsA - runsB || b.xp - a.xp;
+      })
+      .slice(0, 5);
+  }, [currentXP, visibleActivities]);
+
+  const farmPlan = useMemo(
+    () => buildFarmPlan(currentXP, visibleActivities),
+    [currentXP, visibleActivities]
+  );
+
+  function applyFarmProgress() {
+    if (!canApply) return;
+
+    onApplyFarmProgress({
+      xpGained: xpTotal,
+      source: `${runs}x ${getActivityLabel(selectedActivity)}`,
+    });
+  }
+
+  function applyFarmPlan() {
+    if (farmPlan.totalXP <= 0) return;
+
+    const source = farmPlan.items
+      .map((item) => `${item.runs}x ${item.activity.name}`)
+      .join(" + ");
+
+    onApplyFarmProgress({
+      xpGained: farmPlan.totalXP,
+      source: `Plano de farm: ${source}`,
+    });
+  }
+
+  return (
+    <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8 shadow-[0_0_40px_rgba(234,179,8,0.12)]`}>
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        <div className="xl:max-w-sm">
+          <p className="text-yellow-400 text-sm font-black mb-2">
+            Runs e farm
+          </p>
+
+          <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
+            Calculadora de runs
+          </h2>
+
+          <p className={`${theme.muted} mt-3 leading-relaxed`}>
+            Escolha uma atividade, filtre por tipo ou use o plano sugerido para saber o caminho mais rápido até o próximo nível.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5 xl:flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr_120px] gap-4">
+            <label className="block">
+              <span className="block text-yellow-400 text-sm mb-2">
+                Tipo
+              </span>
+              <select
+                value={categoryFilter}
+                onChange={(event) =>
+                  setCategoryFilter(event.target.value as FarmCategoryFilter)
+                }
+                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+              >
+                {FARM_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="block text-yellow-400 text-sm mb-2">
+                Atividade
+              </span>
+              <select
+                value={selectedActivityId}
+                onChange={(event) => setSelectedActivityId(event.target.value)}
+                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+              >
+                {visibleActivities.map((activity) => (
+                  <option key={activity.id} value={activity.id}>
+                    {activity.category} - {getActivityLabel(activity)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="block text-yellow-400 text-sm mb-2">
+                Runs
+              </span>
+              <input
+                type="number"
+                min={1}
+                value={formatInputValue(runs)}
+                onChange={(event) =>
+                  setRuns(
+                    event.target.value === ""
+                      ? 0
+                      : sanitizeRuns(Number(event.target.value))
+                  )
+                }
+                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+              />
+            </label>
+
+            <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-3">
+                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                  XP por run
+                </p>
+                <p className="text-xl font-black text-yellow-300">
+                  {formatXP(selectedActivity.xp)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                  XP total
+                </p>
+                <p className="text-xl font-black text-emerald-400">
+                  {formatXP(xpTotal)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3">
+                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                  Restará
+                </p>
+                <p className="text-xl font-black text-red-300">
+                  {formatXP(remainingAfterRun)}
+                </p>
+              </div>
+            </div>
+
+            <div className="sm:col-span-3 flex flex-col sm:flex-row gap-3 sm:items-center">
+              <button
+                type="button"
+                onClick={applyFarmProgress}
+                disabled={!canApply}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-4 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                Adicionar XP ao progresso
+              </button>
+
+              <p className={`${theme.muted} text-sm`}>
+                O registro entra automaticamente no histórico.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
+              <p className="text-yellow-300 font-black mb-3">
+                Runs para upar
+              </p>
+
+              {recommendedRuns.length === 0 ? (
+                <p className={`${theme.muted} text-sm`}>
+                  Configure seu XP restante para calcular as melhores opções.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {recommendedRuns.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start justify-between gap-3 border-b border-yellow-500/10 pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <div>
+                        <p className={`${theme.text} text-sm font-bold`}>
+                          {activity.name}
+                        </p>
+                        <p className={`${theme.muted} text-xs`}>
+                          {activity.category} - {activity.detail}
+                        </p>
+                      </div>
+
+                      <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                        {Math.ceil(currentXP / activity.xp)}x
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <p className="text-emerald-300 font-black">
+                  Plano sugerido
+                </p>
+                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                  {farmPlan.totalRuns} runs
+                </span>
+              </div>
+
+              {farmPlan.items.length === 0 ? (
+                <p className={`${theme.muted} text-sm`}>
+                  Configure seu XP restante para montar um plano.
+                </p>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {farmPlan.items.map((item) => (
+                      <div
+                        key={item.activity.id}
+                        className="flex items-start justify-between gap-3 border-b border-emerald-500/10 pb-3 last:border-b-0 last:pb-0"
+                      >
+                        <div>
+                          <p className={`${theme.text} text-sm font-bold`}>
+                            {item.activity.name}
+                          </p>
+                          <p className={`${theme.muted} text-xs`}>
+                            {item.activity.category} - {item.activity.detail}
+                          </p>
+                        </div>
+
+                        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                          {item.runs}x
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div>
+                      <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                        XP do plano
+                      </p>
+                      <p className="text-lg font-black text-emerald-300">
+                        {formatXP(farmPlan.totalXP)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                        Sobra
+                      </p>
+                      <p className="text-lg font-black text-yellow-300">
+                        {formatXP(farmPlan.overflowXP)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={applyFarmPlan}
+                    className="mt-4 w-full bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-5 py-3 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all"
+                  >
+                    Aplicar plano
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

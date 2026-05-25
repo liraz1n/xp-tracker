@@ -1,0 +1,155 @@
+import { XpInputs } from "~/components/xp-tracker/XpInputs";
+import { formatXP, getXpForLevelRange } from "~/lib/xp-levels";
+
+interface SettingsPanelProps {
+  open: boolean;
+  totalXP: number;
+  currentXP: number;
+  dailyGoal: number;
+  currentLevel: number;
+  targetLevel: number;
+  theme: {
+    card: string;
+    input: string;
+    muted: string;
+    text: string;
+  };
+  onTotalXPChange: (value: number) => void;
+  onCurrentXPChange: (value: number) => void;
+  onDailyGoalChange: (value: number) => void;
+  onCurrentLevelChange: (value: number) => void;
+  onTargetLevelChange: (value: number) => void;
+  onClose: () => void;
+  onReset: () => void;
+}
+
+function sanitizeLevel(value: number) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.max(1, Math.floor(value));
+}
+
+export function SettingsPanel({
+  open,
+  totalXP,
+  currentXP,
+  dailyGoal,
+  currentLevel,
+  targetLevel,
+  theme,
+  onTotalXPChange,
+  onCurrentXPChange,
+  onDailyGoalChange,
+  onCurrentLevelChange,
+  onTargetLevelChange,
+  onClose,
+  onReset,
+}: SettingsPanelProps) {
+  if (!open) return null;
+
+  const levelRange = getXpForLevelRange(currentLevel, targetLevel);
+
+  function applyLevelTableXP() {
+    onTotalXPChange(levelRange.totalXP);
+    onCurrentXPChange(Math.min(currentXP, levelRange.totalXP));
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className={`${theme.card} border rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-black text-yellow-300">
+              Configurações
+            </h2>
+            <p className={`${theme.muted} mt-2`}>
+              Ajuste nível, XP restante, XP para upar e meta diária.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${theme.muted} border border-yellow-500/20 rounded-2xl px-4 py-2 font-bold hover:text-yellow-300 transition-all`}
+          >
+            Fechar
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
+            <label className="block text-yellow-400 text-sm mb-2">
+              Nível atual
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={currentLevel}
+              onChange={(event) =>
+                onCurrentLevelChange(sanitizeLevel(Number(event.target.value)))
+              }
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+            />
+          </div>
+
+          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
+            <label className="block text-yellow-400 text-sm mb-2">
+              Nível alvo
+            </label>
+            <input
+              type="number"
+              min={currentLevel + 1}
+              value={targetLevel}
+              onChange={(event) =>
+                onTargetLevelChange(sanitizeLevel(Number(event.target.value)))
+              }
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+            />
+          </div>
+
+          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
+            <p className="block text-yellow-400 text-sm mb-2">
+              XP da tabela
+            </p>
+            <p className="text-3xl font-black text-yellow-300">
+              {formatXP(levelRange.totalXP)}
+            </p>
+            <button
+              type="button"
+              onClick={applyLevelTableXP}
+              className="mt-4 w-full bg-gradient-to-r from-yellow-300 to-amber-600 text-black px-4 py-3 rounded-2xl font-black hover:scale-[1.02] transition-all"
+            >
+              Usar valor
+            </button>
+          </div>
+        </div>
+
+        <XpInputs
+          totalXP={totalXP}
+          currentXP={currentXP}
+          dailyGoal={dailyGoal}
+          theme={theme}
+          onTotalXPChange={onTotalXPChange}
+          onCurrentXPChange={onCurrentXPChange}
+          onDailyGoalChange={onDailyGoalChange}
+        />
+
+        <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-6">
+          <h3 className="text-xl font-black text-red-300">
+            Zona de reset
+          </h3>
+          <p className={`${theme.muted} mt-2 mb-5`}>
+            Volta para os valores padrão e apaga histórico, conquistas e progresso.
+          </p>
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white"
+          >
+            Resetar progresso
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
