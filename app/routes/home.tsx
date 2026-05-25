@@ -14,6 +14,7 @@ import { OnboardingCard } from "~/components/xp-tracker/OnboardingCard";
 import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
 import { LevelPlannerCard } from "~/components/xp-tracker/LevelPlannerCard";
+import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
 type SidebarTab = "historico" | "grafico";
@@ -256,6 +257,8 @@ export default function Home() {
               Configurações
             </button>
           </div>
+
+          <SiteFooter darkMode={tracker.darkMode} />
         </main>
       </div>
 
