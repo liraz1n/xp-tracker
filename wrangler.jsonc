@@ -7,7 +7,6 @@
 	"name": "xp-tracker",
 	"pages_build_output_dir": "build/client",
 	"compatibility_date": "2025-10-08",
-	"main": "./workers/app.ts",
 	"vars": {
 		"VALUE_FROM_CLOUDFLARE": "Hello from Hono/CF"
 	},

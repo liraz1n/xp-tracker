@@ -41,8 +41,9 @@
 	"scripts": {
 		"build": "react-router build",
 		"cf-typegen": "wrangler types",
-		"deploy": "npm run build && wrangler deploy",
+		"deploy": "npm run deploy:pages",
 		"deploy:pages": "npm run build && wrangler pages deploy build/client --project-name xp-tracker --branch main",
+		"deploy:worker": "npm run build && wrangler deploy --config build/server/wrangler.json",
 		"dev": "react-router dev",
 		"preview": "npm run build && vite preview",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
