@@ -3,6 +3,20 @@
 
 alter table public.xp_progress enable row level security;
 
+alter table public.xp_progress
+  alter column total_xp set default 0,
+  alter column current_xp set default 0,
+  alter column daily_goal set default 0,
+  alter column last_saved_xp set default 0;
+
+alter table public.xp_progress
+  add column if not exists current_level integer not null default 36,
+  add column if not exists target_level integer not null default 37;
+
+drop policy if exists "Users can read own progress" on public.xp_progress;
+drop policy if exists "Users can insert own progress" on public.xp_progress;
+drop policy if exists "Users can update own progress" on public.xp_progress;
+
 drop policy if exists "xp_progress_select_own" on public.xp_progress;
 drop policy if exists "xp_progress_insert_own" on public.xp_progress;
 drop policy if exists "xp_progress_update_own" on public.xp_progress;

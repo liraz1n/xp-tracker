@@ -28,6 +28,8 @@ interface XpProgressRow {
   reached_milestones: number[];
   last_saved_xp: number;
   dark_mode: boolean;
+  current_level: number;
+  target_level: number;
 }
 
 interface GuestProgressDraft {
@@ -212,6 +214,8 @@ export function useXpTracker() {
     setReachedMilestones(data.reached_milestones ?? []);
     setLastSavedXP(data.last_saved_xp);
     setDarkMode(data.dark_mode);
+    setCurrentLevel(sanitizeLevel(data.current_level ?? DEFAULT_CURRENT_LEVEL));
+    setTargetLevel(sanitizeLevel(data.target_level ?? DEFAULT_TARGET_LEVEL));
   }
 
   function applyGuestProgressDraft(draft: GuestProgressDraft) {
@@ -234,7 +238,7 @@ export function useXpTracker() {
     const { data, error } = await supabase
       .from("xp_progress")
       .select(
-        "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode"
+        "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level"
       )
       .eq("user_id", userId)
       .maybeSingle();
@@ -259,9 +263,11 @@ export function useXpTracker() {
           reached_milestones: [],
           last_saved_xp: DEFAULT_CURRENT_XP,
           dark_mode: true,
+          current_level: DEFAULT_CURRENT_LEVEL,
+          target_level: DEFAULT_TARGET_LEVEL,
         })
         .select(
-          "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode"
+          "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level"
         )
         .single();
 
@@ -282,12 +288,6 @@ export function useXpTracker() {
         applyProgress(created as XpProgressRow);
       }
 
-      const savedLevel = readLevelProgress(userId);
-      if (savedLevel) {
-        setCurrentLevel(savedLevel.currentLevel);
-        setTargetLevel(savedLevel.targetLevel);
-      }
-
       setProgressLoaded(true);
       setSaveStatus("saved");
       return;
@@ -300,12 +300,6 @@ export function useXpTracker() {
       clearGuestProgressDraft();
     } else {
       applyProgress(data as XpProgressRow);
-    }
-
-    const savedLevel = readLevelProgress(userId);
-    if (savedLevel) {
-      setCurrentLevel(savedLevel.currentLevel);
-      setTargetLevel(savedLevel.targetLevel);
     }
 
     setProgressLoaded(true);
@@ -365,6 +359,8 @@ export function useXpTracker() {
           reached_milestones: reachedMilestones,
           last_saved_xp: lastSavedXP,
           dark_mode: darkMode,
+          current_level: currentLevel,
+          target_level: targetLevel,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
@@ -395,6 +391,8 @@ export function useXpTracker() {
     reachedMilestones,
     lastSavedXP,
     darkMode,
+    currentLevel,
+    targetLevel,
   ]);
 
   useEffect(() => {
@@ -420,12 +418,6 @@ export function useXpTracker() {
       return;
     }
 
-    if (!user) return;
-
-    saveLevelProgress(user.id, {
-      currentLevel,
-      targetLevel,
-    });
   }, [currentLevel, targetLevel, guestMode, progressLoaded, user]);
 
   const completedXP = Math.max(0, totalXP - currentXP);
@@ -578,6 +570,8 @@ export function useXpTracker() {
         reached_milestones: [],
         last_saved_xp: DEFAULT_CURRENT_XP,
         dark_mode: true,
+        current_level: DEFAULT_CURRENT_LEVEL,
+        target_level: DEFAULT_TARGET_LEVEL,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id);
