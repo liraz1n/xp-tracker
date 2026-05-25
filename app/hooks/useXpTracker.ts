@@ -7,6 +7,8 @@ export const DEFAULT_CURRENT_XP = 0;
 export const DEFAULT_DAILY_GOAL = 0;
 export const DEFAULT_CURRENT_LEVEL = 36;
 export const DEFAULT_TARGET_LEVEL = 37;
+export const GUEST_CURRENT_LEVEL = 0;
+export const GUEST_TARGET_LEVEL = 1;
 
 const MILESTONES = [25, 50, 75, 100];
 const GUEST_PROGRESS_DRAFT_KEY = "xpTrackerGuestProgressDraft";
@@ -71,8 +73,8 @@ function clearGuestProgressDraft() {
 }
 
 function sanitizeLevel(value: number) {
-  if (!Number.isFinite(value)) return 1;
-  return Math.max(1, Math.floor(value));
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.floor(value));
 }
 
 function getLevelProgressStorageKey(id: string) {
@@ -188,10 +190,12 @@ export function useXpTracker() {
     setActiveMilestone(null);
     setBarPulsing(false);
     setDarkMode(true);
+    setCurrentLevel(GUEST_CURRENT_LEVEL);
+    setTargetLevel(GUEST_TARGET_LEVEL);
 
-    const savedGuestLevel = readLevelProgress("guest");
-    setCurrentLevel(savedGuestLevel?.currentLevel ?? DEFAULT_CURRENT_LEVEL);
-    setTargetLevel(savedGuestLevel?.targetLevel ?? DEFAULT_TARGET_LEVEL);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(getLevelProgressStorageKey("guest"));
+    }
   }
 
   async function logout() {
@@ -553,8 +557,8 @@ export function useXpTracker() {
     setActiveMilestone(null);
     setBarPulsing(false);
     setDarkMode(true);
-    setCurrentLevel(DEFAULT_CURRENT_LEVEL);
-    setTargetLevel(DEFAULT_TARGET_LEVEL);
+    setCurrentLevel(guestMode ? GUEST_CURRENT_LEVEL : DEFAULT_CURRENT_LEVEL);
+    setTargetLevel(guestMode ? GUEST_TARGET_LEVEL : DEFAULT_TARGET_LEVEL);
 
     if (guestMode || !user) return;
 

@@ -24,8 +24,8 @@ function sanitizeNumber(value: number) {
 }
 
 function sanitizeLevel(value: number) {
-  if (!Number.isFinite(value)) return 1;
-  return Math.max(1, Math.floor(value));
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.floor(value));
 }
 
 function formatInputValue(value: number) {
@@ -37,11 +37,14 @@ export function OnboardingCard({
   theme,
   onStart,
 }: OnboardingCardProps) {
-  const [currentLevel, setCurrentLevel] = useState(36);
-  const [targetLevel, setTargetLevel] = useState(37);
+  const initialCurrentLevel = guestMode ? 0 : 36;
+  const initialTargetLevel = guestMode ? 1 : 37;
+
+  const [currentLevel, setCurrentLevel] = useState(initialCurrentLevel);
+  const [targetLevel, setTargetLevel] = useState(initialTargetLevel);
   const levelRange = getXpForLevelRange(currentLevel, targetLevel);
   const lastTableXP = useRef(levelRange.totalXP);
-  const [totalXP, setTotalXP] = useState(levelRange.totalXP);
+  const [totalXP, setTotalXP] = useState(guestMode ? 0 : levelRange.totalXP);
   const [currentXP, setCurrentXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
@@ -49,6 +52,8 @@ export function OnboardingCard({
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
 
   useEffect(() => {
+    if (guestMode) return;
+
     setTotalXP((previousTotalXP) =>
       previousTotalXP === 0 || previousTotalXP === lastTableXP.current
         ? levelRange.totalXP
@@ -58,7 +63,7 @@ export function OnboardingCard({
       Math.min(previousCurrentXP, levelRange.totalXP)
     );
     lastTableXP.current = levelRange.totalXP;
-  }, [levelRange.totalXP]);
+  }, [guestMode, levelRange.totalXP]);
 
   function submitSetup() {
     if (!canStart) return;
@@ -85,26 +90,28 @@ export function OnboardingCard({
           </h2>
 
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Informe seu nível atual, o nível alvo e quanto XP ainda falta. O XP necessário é preenchido pela tabela, mas você pode ajustar se o bot mostrar outro valor.
+            Informe seu nível atual, o nível alvo e quanto XP ainda falta. Quem entra como visitante começa do zero e configura tudo manualmente.
           </p>
 
-          <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
-            <p className="text-xs font-black uppercase text-yellow-300">
-              Tabela do nível {levelRange.currentLevel} → {levelRange.targetLevel}
-            </p>
-            <p className="mt-1 text-2xl font-black text-yellow-200">
-              {formatXP(levelRange.totalXP)} XP
-            </p>
-            <p className={`${theme.muted} mt-1 text-sm`}>
-              {levelRange.hasEstimatedValues
-                ? "Valor estimado até você passar a tabela oficial."
-                : "Valor confirmado para este intervalo."}
-            </p>
-          </div>
+          {!guestMode && (
+            <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
+              <p className="text-xs font-black uppercase text-yellow-300">
+                Tabela do nível {levelRange.currentLevel} → {levelRange.targetLevel}
+              </p>
+              <p className="mt-1 text-2xl font-black text-yellow-200">
+                {formatXP(levelRange.totalXP)} XP
+              </p>
+              <p className={`${theme.muted} mt-1 text-sm`}>
+                {levelRange.hasEstimatedValues
+                  ? "Valor estimado até você passar a tabela oficial."
+                  : "Valor confirmado para este intervalo."}
+              </p>
+            </div>
+          )}
 
           {guestMode && (
             <p className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-              Você está testando como visitante. Se gostar, clique em Salvar no topo para levar esse progresso para sua conta Google.
+              Você está testando como visitante. O nível começa em 0 e nada será salvo na nuvem até você entrar com Google.
             </p>
           )}
         </div>
@@ -116,7 +123,7 @@ export function OnboardingCard({
             </span>
             <input
               type="number"
-              min={1}
+              min={0}
               value={currentLevel}
               onChange={(event) =>
                 setCurrentLevel(sanitizeLevel(Number(event.target.value)))
