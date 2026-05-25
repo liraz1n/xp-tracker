@@ -5,6 +5,8 @@ interface SiteFooterProps {
 const APP_VERSION = "1.0.0";
 const BUILD_LABEL = "Cloudflare Pages";
 const SITE_URL = "xp-tracker.pages.dev";
+const BRAND_NAME = "Lira Labs";
+const PRODUCT_NAME = "XP Tracker";
 
 export function SiteFooter({ darkMode = true }: SiteFooterProps) {
   const currentYear = 2026;
@@ -20,14 +22,17 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
       <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="font-black uppercase tracking-[0.2em] text-yellow-400">
-            XP Tracker
+            {BRAND_NAME}
           </p>
           <p className="mt-1">
-            Site registrado em produção para acompanhamento de progresso e runs.
+            {PRODUCT_NAME} registrado em produção por {BRAND_NAME} para acompanhamento de progresso e runs.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 md:justify-end">
+          <span className="rounded-full border border-yellow-500/20 px-3 py-1">
+            Produto: {PRODUCT_NAME}
+          </span>
           <span className="rounded-full border border-yellow-500/20 px-3 py-1">
             Build: {BUILD_LABEL}
           </span>
@@ -48,7 +53,7 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
           Dados protegidos por login Google, Supabase e Row Level Security.
         </p>
         <p>
-          © {currentYear} XP Tracker. Todos os direitos reservados.
+          © {currentYear} {BRAND_NAME}. Todos os direitos reservados.
         </p>
       </div>
     </footer>
