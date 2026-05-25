@@ -37,14 +37,11 @@ export function OnboardingCard({
   theme,
   onStart,
 }: OnboardingCardProps) {
-  const initialCurrentLevel = guestMode ? 0 : 36;
-  const initialTargetLevel = guestMode ? 1 : 37;
-
-  const [currentLevel, setCurrentLevel] = useState(initialCurrentLevel);
-  const [targetLevel, setTargetLevel] = useState(initialTargetLevel);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [targetLevel, setTargetLevel] = useState(1);
   const levelRange = getXpForLevelRange(currentLevel, targetLevel);
   const lastTableXP = useRef(levelRange.totalXP);
-  const [totalXP, setTotalXP] = useState(guestMode ? 0 : levelRange.totalXP);
+  const [totalXP, setTotalXP] = useState(0);
   const [currentXP, setCurrentXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
@@ -52,7 +49,7 @@ export function OnboardingCard({
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
 
   useEffect(() => {
-    if (guestMode) return;
+    if (currentLevel === 0) return;
 
     setTotalXP((previousTotalXP) =>
       previousTotalXP === 0 || previousTotalXP === lastTableXP.current
@@ -63,7 +60,7 @@ export function OnboardingCard({
       Math.min(previousCurrentXP, levelRange.totalXP)
     );
     lastTableXP.current = levelRange.totalXP;
-  }, [guestMode, levelRange.totalXP]);
+  }, [currentLevel, levelRange.totalXP]);
 
   function submitSetup() {
     if (!canStart) return;
@@ -90,13 +87,13 @@ export function OnboardingCard({
           </h2>
 
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Informe seu nível atual, o nível alvo e quanto XP ainda falta. Quem entra como visitante começa do zero e configura tudo manualmente.
+            Informe seu nível atual, o nível alvo e quanto XP ainda falta. No primeiro contato, seja visitante ou Google, o nível sempre começa em 0.
           </p>
 
-          {!guestMode && (
+          {currentLevel > 0 && (
             <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
               <p className="text-xs font-black uppercase text-yellow-300">
-                Tabela do nível {levelRange.currentLevel} → {levelRange.targetLevel}
+                Tabela do nível {levelRange.currentLevel} para {levelRange.targetLevel}
               </p>
               <p className="mt-1 text-2xl font-black text-yellow-200">
                 {formatXP(levelRange.totalXP)} XP
@@ -111,7 +108,7 @@ export function OnboardingCard({
 
           {guestMode && (
             <p className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-              Você está testando como visitante. O nível começa em 0 e nada será salvo na nuvem até você entrar com Google.
+              Você está testando como visitante. Nada será salvo na nuvem até você entrar com Google.
             </p>
           )}
         </div>
@@ -216,7 +213,7 @@ export function OnboardingCard({
             </button>
 
             <p className={`${theme.muted} text-sm`}>
-              Exemplo: nível 36 para 37, com o XP restante informado pelo bot.
+              Se já souber seu nível real, ajuste os campos antes de começar.
             </p>
           </div>
         </div>

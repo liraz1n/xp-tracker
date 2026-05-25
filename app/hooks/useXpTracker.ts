@@ -5,14 +5,13 @@ import { supabase } from "~/supabase";
 export const DEFAULT_TOTAL_XP = 0;
 export const DEFAULT_CURRENT_XP = 0;
 export const DEFAULT_DAILY_GOAL = 0;
-export const DEFAULT_CURRENT_LEVEL = 36;
-export const DEFAULT_TARGET_LEVEL = 37;
+export const DEFAULT_CURRENT_LEVEL = 0;
+export const DEFAULT_TARGET_LEVEL = 1;
 export const GUEST_CURRENT_LEVEL = 0;
 export const GUEST_TARGET_LEVEL = 1;
 
 const MILESTONES = [25, 50, 75, 100];
 const GUEST_PROGRESS_DRAFT_KEY = "xpTrackerGuestProgressDraft";
-const LEVEL_PROGRESS_STORAGE_KEY = "xpTrackerLevelProgress";
 
 export interface HistoryEntry {
   date: string;
@@ -77,49 +76,6 @@ function sanitizeLevel(value: number) {
   return Math.max(0, Math.floor(value));
 }
 
-function getLevelProgressStorageKey(id: string) {
-  return `${LEVEL_PROGRESS_STORAGE_KEY}:${id}`;
-}
-
-function readLevelProgress(id: string) {
-  if (typeof window === "undefined") return null;
-
-  const rawLevelProgress = window.localStorage.getItem(
-    getLevelProgressStorageKey(id)
-  );
-  if (!rawLevelProgress) return null;
-
-  try {
-    const parsed = JSON.parse(rawLevelProgress) as {
-      currentLevel?: number;
-      targetLevel?: number;
-    };
-
-    return {
-      currentLevel: sanitizeLevel(parsed.currentLevel ?? DEFAULT_CURRENT_LEVEL),
-      targetLevel: sanitizeLevel(parsed.targetLevel ?? DEFAULT_TARGET_LEVEL),
-    };
-  } catch {
-    window.localStorage.removeItem(getLevelProgressStorageKey(id));
-    return null;
-  }
-}
-
-function saveLevelProgress(
-  id: string,
-  values: {
-    currentLevel: number;
-    targetLevel: number;
-  }
-) {
-  if (typeof window === "undefined") return;
-
-  window.localStorage.setItem(
-    getLevelProgressStorageKey(id),
-    JSON.stringify(values)
-  );
-}
-
 export function useXpTracker() {
   const [totalXP, setTotalXP] = useState<number>(DEFAULT_TOTAL_XP);
   const [currentXP, setCurrentXP] = useState<number>(DEFAULT_CURRENT_XP);
@@ -165,6 +121,8 @@ export function useXpTracker() {
   async function loginWithGoogle() {
     if (guestMode) {
       saveGuestProgressDraft();
+    } else {
+      clearGuestProgressDraft();
     }
 
     await supabase.auth.signInWithOAuth({
@@ -192,10 +150,7 @@ export function useXpTracker() {
     setDarkMode(true);
     setCurrentLevel(GUEST_CURRENT_LEVEL);
     setTargetLevel(GUEST_TARGET_LEVEL);
-
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(getLevelProgressStorageKey("guest"));
-    }
+    clearGuestProgressDraft();
   }
 
   async function logout() {
@@ -410,19 +365,6 @@ export function useXpTracker() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (!progressLoaded) return;
-
-    if (guestMode) {
-      saveLevelProgress("guest", {
-        currentLevel,
-        targetLevel,
-      });
-      return;
-    }
-
-  }, [currentLevel, targetLevel, guestMode, progressLoaded, user]);
 
   const completedXP = Math.max(0, totalXP - currentXP);
   const percentageValue =
