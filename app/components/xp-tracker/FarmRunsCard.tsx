@@ -37,6 +37,13 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xp: 49000,
   },
   {
+    id: "cripta-n3-7",
+    category: "Cripta",
+    name: "Cripta Nível 3 até 7",
+    detail: "Dado parcial",
+    xp: 18832,
+  },
+  {
     id: "planicie-4",
     category: "Masmorra",
     name: "Planície",
