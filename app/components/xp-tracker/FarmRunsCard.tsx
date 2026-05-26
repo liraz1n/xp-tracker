@@ -328,7 +328,7 @@ export function FarmRunsCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5 items-start">
+        <div className="flex flex-col gap-4">
           <div className="self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
             <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
               <label className="block">
@@ -437,22 +437,27 @@ export function FarmRunsCard({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
-              <p className="text-yellow-300 font-black mb-3">
-                Runs para upar
-              </p>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-yellow-300 font-black">
+                  Runs para upar
+                </p>
+                <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                  {recommendedRuns.length} melhores
+                </span>
+              </div>
 
               {recommendedRuns.length === 0 ? (
                 <p className={`${theme.muted} text-sm`}>
                   Configure seu XP restante para calcular as melhores opções.
                 </p>
               ) : (
-                <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-2.5">
                   {recommendedRuns.map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start justify-between gap-3 border-b border-yellow-500/10 pb-2.5 last:border-b-0 last:pb-0"
+                      className="flex items-start justify-between gap-3 rounded-2xl border border-yellow-500/10 bg-yellow-500/[0.03] p-3"
                     >
                       <div>
                         <p className={`${theme.text} text-sm font-bold leading-tight`}>
@@ -488,11 +493,11 @@ export function FarmRunsCard({
                 </p>
               ) : (
                 <>
-                  <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-2.5">
                     {farmPlan.items.map((item) => (
                       <div
                         key={item.activity.id}
-                        className="flex items-start justify-between gap-3 border-b border-emerald-500/10 pb-2.5 last:border-b-0 last:pb-0"
+                        className="flex items-start justify-between gap-3 rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.04] p-3"
                       >
                         <div>
                           <p className={`${theme.text} text-sm font-bold leading-tight`}>
@@ -510,7 +515,7 @@ export function FarmRunsCard({
                     ))}
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-[1fr_1fr_auto] gap-3 md:items-end">
                     <div>
                       <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                         XP plano
@@ -528,15 +533,14 @@ export function FarmRunsCard({
                         {formatXP(farmPlan.overflowXP)}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={applyFarmPlan}
+                      className="col-span-2 md:col-span-1 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-5 py-3 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all"
+                    >
+                      Aplicar plano
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={applyFarmPlan}
-                    className="mt-4 w-full bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-5 py-3 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all"
-                  >
-                    Aplicar plano
-                  </button>
                 </>
               )}
             </div>
