@@ -1,0 +1,163 @@
+import type { HistoryEntry } from "~/hooks/useXpTracker";
+
+interface UsageAchievementsCardProps {
+  history: HistoryEntry[];
+  dailyGoal: number;
+  theme: {
+    card: string;
+    muted: string;
+    text: string;
+  };
+}
+
+function isSameDay(date: Date, reference: Date) {
+  return date.toDateString() === reference.toDateString();
+}
+
+function getRunCountFromSource(source?: string) {
+  if (!source) return 0;
+
+  const matches = [...source.matchAll(/(\d+)x/g)];
+  if (matches.length === 0) return 0;
+
+  return matches.reduce((sum, match) => sum + Number(match[1]), 0);
+}
+
+function isFarmEntry(entry: HistoryEntry) {
+  return /Cripta|Masmorra|Plano de farm/i.test(entry.source ?? "");
+}
+
+function formatXP(value: number) {
+  return value.toLocaleString("pt-BR");
+}
+
+export function UsageAchievementsCard({
+  history,
+  dailyGoal,
+  theme,
+}: UsageAchievementsCardProps) {
+  const today = new Date();
+  const todayXP = history
+    .filter((entry) => isSameDay(new Date(entry.date), today))
+    .reduce((sum, entry) => sum + entry.xpGained, 0);
+  const farmEntries = history.filter(isFarmEntry);
+  const farmXP = farmEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const farmRuns = farmEntries.reduce(
+    (sum, entry) => sum + getRunCountFromSource(entry.source),
+    0
+  );
+
+  const achievements = [
+    {
+      title: "Primeira run registrada",
+      description: "Registre qualquer cripta ou masmorra pela calculadora.",
+      current: farmRuns,
+      target: 1,
+      value: `${farmRuns}/1`,
+    },
+    {
+      title: "10 runs no histórico",
+      description: "Acumule runs registradas no histórico inteligente.",
+      current: farmRuns,
+      target: 10,
+      value: `${farmRuns}/10`,
+    },
+    {
+      title: "100k XP farmado",
+      description: "Some XP vindo de criptas, masmorras ou planos de farm.",
+      current: farmXP,
+      target: 100000,
+      value: `${formatXP(farmXP)}/100.000`,
+    },
+    {
+      title: "Meta diária batida",
+      description: "Alcance a meta diária usando registros de hoje.",
+      current: dailyGoal > 0 ? todayXP : 0,
+      target: dailyGoal > 0 ? dailyGoal : 1,
+      value:
+        dailyGoal > 0
+          ? `${formatXP(todayXP)}/${formatXP(dailyGoal)}`
+          : "Sem meta",
+    },
+  ];
+
+  return (
+    <section className={`${theme.card} border rounded-3xl p-5 md:p-6 mb-6 md:mb-8`}>
+      <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-yellow-400 text-sm font-black mb-1">
+            Conquistas de uso
+          </p>
+          <h2 className="text-2xl font-black text-yellow-300">
+            Marcos do seu farm
+          </h2>
+          <p className={`${theme.muted} mt-2 text-sm`}>
+            Objetivos automáticos baseados nas runs e no XP registrado.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2">
+          <p className="text-[11px] font-black uppercase text-emerald-300">
+            Runs registradas
+          </p>
+          <p className="text-xl font-black text-emerald-300">
+            {farmRuns}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {achievements.map((achievement) => {
+          const unlocked = achievement.current >= achievement.target;
+          const progress = Math.min(
+            100,
+            (achievement.current / achievement.target) * 100
+          );
+
+          return (
+            <div
+              key={achievement.title}
+              className={`rounded-2xl border p-4 transition-all ${
+                unlocked
+                  ? "border-emerald-500/30 bg-emerald-500/10"
+                  : "border-zinc-800/80 bg-black/20"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className={unlocked ? "text-emerald-300 font-black" : `${theme.text} font-black`}>
+                    {achievement.title}
+                  </p>
+                  <p className={`${theme.muted} mt-2 text-xs leading-relaxed`}>
+                    {achievement.description}
+                  </p>
+                </div>
+
+                <span
+                  className={`rounded-full border px-2 py-1 text-[11px] font-black ${
+                    unlocked
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                      : "border-zinc-700 bg-zinc-900 text-zinc-500"
+                  }`}
+                >
+                  {unlocked ? "Feita" : "Bloq."}
+                </span>
+              </div>
+
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-zinc-900">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-emerald-500 transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <p className={`${theme.muted} mt-2 text-xs font-bold`}>
+                {achievement.value}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

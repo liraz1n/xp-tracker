@@ -13,6 +13,7 @@ import { EditHistoryEntryModal } from "~/components/xp-tracker/EditHistoryEntryM
 import { OnboardingCard } from "~/components/xp-tracker/OnboardingCard";
 import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
+import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
@@ -214,6 +215,14 @@ export default function Home() {
             <SmartHistoryCard
               history={tracker.history}
               currentXP={tracker.currentXP}
+              theme={theme}
+            />
+          )}
+
+          {!shouldShowOnboarding && (
+            <UsageAchievementsCard
+              history={tracker.history}
+              dailyGoal={tracker.dailyGoal}
               theme={theme}
             />
           )}

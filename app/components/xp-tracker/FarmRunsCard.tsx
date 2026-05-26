@@ -242,6 +242,15 @@ const FARM_CATEGORIES = [
 
 type FarmCategoryFilter = (typeof FARM_CATEGORIES)[number];
 
+const FARM_PLAN_MODES = [
+  { id: "fewest-runs", label: "Menos runs" },
+  { id: "highest-xp", label: "Maior XP" },
+  { id: "only-cripta", label: "Só cripta" },
+  { id: "only-masmorra", label: "Só masmorra" },
+] as const;
+
+type FarmPlanMode = (typeof FARM_PLAN_MODES)[number]["id"];
+
 function sanitizeRuns(value: number) {
   if (!Number.isFinite(value)) return 1;
   return Math.max(1, Math.floor(value));
@@ -257,6 +266,25 @@ function formatXP(value: number) {
 
 function getActivityLabel(activity: FarmActivity) {
   return `${activity.name} (${activity.detail})`;
+}
+
+function getActivityStatus(activity: FarmActivity) {
+  if (activity.detail.includes("Base provisória")) return "Provisório";
+  if (activity.detail.includes("Dado parcial")) return "Parcial";
+
+  return "Confirmado";
+}
+
+function getStatusClass(status: string) {
+  if (status === "Confirmado") {
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  }
+
+  if (status === "Parcial") {
+    return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+  }
+
+  return "border-yellow-500/20 bg-yellow-500/10 text-yellow-300";
 }
 
 function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number) {
@@ -312,6 +340,35 @@ function buildFarmPlan(currentXP: number, activities: FarmActivity[]) {
   };
 }
 
+function buildSingleActivityPlan(currentXP: number, activities: FarmActivity[]) {
+  if (currentXP <= 0 || activities.length === 0) {
+    return {
+      items: [],
+      totalXP: 0,
+      totalRuns: 0,
+      overflowXP: 0,
+    };
+  }
+
+  const bestActivity = [...activities].sort((a, b) => {
+    const runsA = Math.ceil(currentXP / a.xp);
+    const runsB = Math.ceil(currentXP / b.xp);
+    const overflowA = runsA * a.xp - currentXP;
+    const overflowB = runsB * b.xp - currentXP;
+
+    return runsA - runsB || overflowA - overflowB || b.xp - a.xp;
+  })[0];
+  const runs = Math.ceil(currentXP / bestActivity.xp);
+  const totalXP = bestActivity.xp * runs;
+
+  return {
+    items: [{ activity: bestActivity, runs }],
+    totalXP,
+    totalRuns: runs,
+    overflowXP: Math.max(0, totalXP - currentXP),
+  };
+}
+
 export function FarmRunsCard({
   currentXP,
   totalXP,
@@ -324,6 +381,7 @@ export function FarmRunsCard({
     FARM_ACTIVITIES[0].id
   );
   const [runs, setRuns] = useState(1);
+  const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
 
   const visibleActivities = useMemo(() => {
     if (categoryFilter === "Todas") return FARM_ACTIVITIES;
@@ -351,23 +409,42 @@ export function FarmRunsCard({
   const remainingAfterRun = Math.max(0, currentXP - xpTotal);
   const canApply = totalXP > 0 && currentXP > 0 && xpApplied > 0;
 
+  const planActivities = useMemo(() => {
+    if (planMode === "only-cripta") {
+      return FARM_ACTIVITIES.filter((activity) => activity.category === "Cripta");
+    }
+
+    if (planMode === "only-masmorra") {
+      return FARM_ACTIVITIES.filter((activity) => activity.category === "Masmorra");
+    }
+
+    return visibleActivities;
+  }, [planMode, visibleActivities]);
+
   const recommendedRuns = useMemo(() => {
     if (currentXP <= 0) return [];
 
-    return [...visibleActivities]
+    return [...planActivities]
       .sort((a, b) => {
+        if (planMode === "highest-xp") return b.xp - a.xp;
+
         const runsA = Math.ceil(currentXP / a.xp);
         const runsB = Math.ceil(currentXP / b.xp);
 
         return runsA - runsB || b.xp - a.xp;
       })
       .slice(0, 5);
-  }, [currentXP, visibleActivities]);
+  }, [currentXP, planActivities, planMode]);
 
-  const farmPlan = useMemo(
-    () => buildFarmPlan(currentXP, visibleActivities),
-    [currentXP, visibleActivities]
-  );
+  const farmPlan = useMemo(() => {
+    if (planMode === "fewest-runs") {
+      return buildSingleActivityPlan(currentXP, planActivities);
+    }
+
+    return buildFarmPlan(currentXP, planActivities);
+  }, [currentXP, planActivities, planMode]);
+
+  const quickActivities = recommendedRuns.slice(0, 4);
 
   function applyFarmProgress() {
     if (!canApply) return;
@@ -375,6 +452,15 @@ export function FarmRunsCard({
     onApplyFarmProgress({
       xpGained: xpTotal,
       source: `${runs}x ${getActivityLabel(selectedActivity)}`,
+    });
+  }
+
+  function applyQuickActivity(activity: FarmActivity) {
+    if (!canApply) return;
+
+    onApplyFarmProgress({
+      xpGained: activity.xp,
+      source: `1x ${getActivityLabel(activity)}`,
     });
   }
 
@@ -409,14 +495,6 @@ export function FarmRunsCard({
             </p>
           </div>
 
-          <div className="hidden">
-            <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-black text-yellow-300">
-              {visibleActivities.length} opções
-            </span>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-black text-emerald-300">
-              {farmPlan.totalRuns} runs no plano
-            </span>
-          </div>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -445,7 +523,7 @@ export function FarmRunsCard({
                 <span className="mb-1.5 flex items-center justify-between gap-2 text-yellow-400 text-xs font-black">
                   <span>Atividade</span>
                   <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] text-yellow-300">
-                    {visibleActivities.length} opÃ§Ãµes
+                    {visibleActivities.length} opções
                   </span>
                 </span>
                 <select
@@ -531,6 +609,43 @@ export function FarmRunsCard({
             </div>
           </div>
 
+          {quickActivities.length > 0 && (
+            <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+              <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-emerald-300 font-black">
+                    Registro rápido de run
+                  </p>
+                  <p className={`${theme.muted} text-xs`}>
+                    Adicione 1 run das melhores opções sem mexer no seletor.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+                {quickActivities.map((activity) => (
+                  <button
+                    type="button"
+                    key={activity.id}
+                    onClick={() => applyQuickActivity(activity)}
+                    disabled={!canApply}
+                    className="rounded-2xl border border-emerald-500/15 bg-black/25 p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span className="block text-sm font-black text-white">
+                      +{formatXP(activity.xp)} XP
+                    </span>
+                    <span className="mt-1 block text-xs text-zinc-400">
+                      {activity.name}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-zinc-500">
+                      {activity.category} - {activity.detail}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
@@ -579,6 +694,23 @@ export function FarmRunsCard({
                 <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
                   {farmPlan.totalRuns} runs
                 </span>
+              </div>
+
+              <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
+                {FARM_PLAN_MODES.map((mode) => (
+                  <button
+                    type="button"
+                    key={mode.id}
+                    onClick={() => setPlanMode(mode.id)}
+                    className={`rounded-2xl border px-3 py-2 text-xs font-black transition-all ${
+                      planMode === mode.id
+                        ? "border-emerald-400 bg-emerald-500/15 text-emerald-200"
+                        : "border-emerald-500/10 bg-black/20 text-zinc-500 hover:text-emerald-200"
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
               </div>
 
               {farmPlan.items.length === 0 ? (
@@ -637,6 +769,64 @@ export function FarmRunsCard({
                   </div>
                 </>
               )}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
+            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-yellow-300 font-black">
+                  Tabela de dados do jogo
+                </p>
+                <p className={`${theme.muted} text-xs`}>
+                  Base atual de criptas e masmorras usada pela calculadora.
+                </p>
+              </div>
+
+              <span className="w-fit rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                {visibleActivities.length} registros
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[680px] border-separate border-spacing-y-2 text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase text-zinc-500">
+                    <th className="px-3 py-1 font-black">Tipo</th>
+                    <th className="px-3 py-1 font-black">Atividade</th>
+                    <th className="px-3 py-1 font-black">Detalhe</th>
+                    <th className="px-3 py-1 font-black">Status</th>
+                    <th className="px-3 py-1 text-right font-black">XP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleActivities.map((activity) => {
+                    const status = getActivityStatus(activity);
+
+                    return (
+                      <tr key={activity.id} className="bg-black/25">
+                        <td className="rounded-l-2xl border-y border-l border-yellow-500/10 px-3 py-3 text-xs font-black text-yellow-300">
+                          {activity.category}
+                        </td>
+                        <td className="border-y border-yellow-500/10 px-3 py-3 font-bold text-white">
+                          {activity.name}
+                        </td>
+                        <td className={`${theme.muted} border-y border-yellow-500/10 px-3 py-3 text-xs`}>
+                          {activity.detail}
+                        </td>
+                        <td className="border-y border-yellow-500/10 px-3 py-3">
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${getStatusClass(status)}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="rounded-r-2xl border-y border-r border-yellow-500/10 px-3 py-3 text-right font-black text-emerald-300">
+                          {formatXP(activity.xp)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
