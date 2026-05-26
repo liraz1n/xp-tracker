@@ -17,7 +17,7 @@ interface FarmRunsCardProps {
 
 interface FarmActivity {
   id: string;
-  category: "Cripta" | "Masmorra" | "Especial" | "Solo" | "Duo";
+  category: "Cripta" | "Masmorra";
   name: string;
   detail: string;
   xp: number;
@@ -106,71 +106,12 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     detail: "5 jogadores",
     xp: 7890,
   },
-  {
-    id: "altheryn-4",
-    category: "Especial",
-    name: "Templo de Altheryn",
-    detail: "4 jogadores",
-    xp: 2150,
-  },
-  {
-    id: "hydra-4",
-    category: "Especial",
-    name: "Covil da Hydra Maior",
-    detail: "4 jogadores",
-    xp: 3000,
-  },
-  {
-    id: "zul-gor-4",
-    category: "Especial",
-    name: "Covil de Zul'Gor",
-    detail: "4 jogadores",
-    xp: 14875,
-  },
-  {
-    id: "zul-gor-5",
-    category: "Especial",
-    name: "Covil de Zul'Gor",
-    detail: "5 jogadores",
-    xp: 11900,
-  },
-  {
-    id: "fenda-magia",
-    category: "Solo",
-    name: "Fenda Solar",
-    detail: "Guardião Solar da Magia",
-    xp: 852,
-  },
-  {
-    id: "fenda-forca",
-    category: "Solo",
-    name: "Fenda Solar",
-    detail: "Guardião Solar da Força",
-    xp: 864,
-  },
-  {
-    id: "fenda-combate",
-    category: "Solo",
-    name: "Fenda Solar",
-    detail: "Guardião Solar do Combate",
-    xp: 876,
-  },
-  {
-    id: "templo-oasis",
-    category: "Duo",
-    name: "Templo do Oásis",
-    detail: "Duo, média estimada",
-    xp: 10790,
-  },
 ];
 
 const FARM_CATEGORIES = [
   "Todas",
   "Cripta",
   "Masmorra",
-  "Especial",
-  "Solo",
-  "Duo",
 ] as const;
 
 type FarmCategoryFilter = (typeof FARM_CATEGORIES)[number];
@@ -337,7 +278,7 @@ export function FarmRunsCard({
           </h2>
 
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Escolha uma atividade, filtre por tipo ou use o plano sugerido para saber o caminho mais rápido até o próximo nível.
+            Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível.
           </p>
         </div>
 

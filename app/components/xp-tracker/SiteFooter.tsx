@@ -2,8 +2,9 @@ interface SiteFooterProps {
   darkMode?: boolean;
 }
 
-const APP_VERSION = "1.0.0";
-const BUILD_LABEL = "Cloudflare Pages";
+const APP_VERSION = "1.1.0";
+const BUILD_LABEL = "2026.05.26-01";
+const HOSTING_LABEL = "Cloudflare Pages";
 const SITE_URL = "xp-tracker.pages.dev";
 const BRAND_NAME = "Lira Labs";
 const PRODUCT_NAME = "XP Tracker";
@@ -35,6 +36,9 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
           </span>
           <span className="rounded-full border border-yellow-500/20 px-3 py-1">
             Build: {BUILD_LABEL}
+          </span>
+          <span className="rounded-full border border-yellow-500/20 px-3 py-1">
+            Hospedagem: {HOSTING_LABEL}
           </span>
           <span className="rounded-full border border-yellow-500/20 px-3 py-1">
             Versão: v{APP_VERSION}

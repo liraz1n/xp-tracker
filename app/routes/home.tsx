@@ -13,7 +13,6 @@ import { EditHistoryEntryModal } from "~/components/xp-tracker/EditHistoryEntryM
 import { OnboardingCard } from "~/components/xp-tracker/OnboardingCard";
 import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
-import { LevelPlannerCard } from "~/components/xp-tracker/LevelPlannerCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
@@ -73,13 +72,6 @@ export default function Home() {
     tracker.saveProgress();
     setSidebarOpen(true);
     setSidebarTab("historico");
-  }
-
-  function applyLevelTableXP(value: number) {
-    tracker.setTotalXP(value);
-    tracker.setCurrentXP((previousCurrentXP) =>
-      Math.min(previousCurrentXP, value)
-    );
   }
 
   const theme = {
@@ -182,6 +174,15 @@ export default function Home() {
             />
           )}
 
+          <ProgressCard
+            completedXP={tracker.completedXP}
+            percentageValue={tracker.percentageValue}
+            percentageDisplay={tracker.percentageDisplay}
+            activeMilestone={tracker.activeMilestone}
+            barPulsing={tracker.barPulsing}
+            theme={theme}
+          />
+
           <StatsCards
             totalXP={tracker.totalXP}
             currentXP={tracker.currentXP}
@@ -191,16 +192,14 @@ export default function Home() {
             theme={theme}
           />
 
-          {!shouldShowOnboarding && (
-            <LevelPlannerCard
-              currentLevel={tracker.currentLevel}
-              targetLevel={tracker.targetLevel}
-              totalXP={tracker.totalXP}
-              currentXP={tracker.currentXP}
-              theme={theme}
-              onApplyLevelXP={applyLevelTableXP}
-            />
-          )}
+          <EstimateCards
+            daysGoal={tracker.daysGoal}
+            daysAvg={tracker.daysAvg}
+            dailyGoal={tracker.dailyGoal}
+            averageDailyXP={tracker.averageDailyXP}
+            formatDate={formatDate}
+            theme={theme}
+          />
 
           {!shouldShowOnboarding && (
             <FarmRunsCard
@@ -218,24 +217,6 @@ export default function Home() {
               theme={theme}
             />
           )}
-
-          <ProgressCard
-            completedXP={tracker.completedXP}
-            percentageValue={tracker.percentageValue}
-            percentageDisplay={tracker.percentageDisplay}
-            activeMilestone={tracker.activeMilestone}
-            barPulsing={tracker.barPulsing}
-            theme={theme}
-          />
-
-          <EstimateCards
-            daysGoal={tracker.daysGoal}
-            daysAvg={tracker.daysAvg}
-            dailyGoal={tracker.dailyGoal}
-            averageDailyXP={tracker.averageDailyXP}
-            formatDate={formatDate}
-            theme={theme}
-          />
 
           <div className="flex gap-4 flex-wrap">
             <button

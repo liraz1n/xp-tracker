@@ -1,5 +1,4 @@
 import { XpInputs } from "~/components/xp-tracker/XpInputs";
-import { formatXP, getXpForLevelRange } from "~/lib/xp-levels";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -24,8 +23,8 @@ interface SettingsPanelProps {
 }
 
 function sanitizeLevel(value: number) {
-  if (!Number.isFinite(value)) return 1;
-  return Math.max(1, Math.floor(value));
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.floor(value));
 }
 
 export function SettingsPanel({
@@ -45,13 +44,6 @@ export function SettingsPanel({
   onReset,
 }: SettingsPanelProps) {
   if (!open) return null;
-
-  const levelRange = getXpForLevelRange(currentLevel, targetLevel);
-
-  function applyLevelTableXP() {
-    onTotalXPChange(levelRange.totalXP);
-    onCurrentXPChange(Math.min(currentXP, levelRange.totalXP));
-  }
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -75,14 +67,14 @@ export function SettingsPanel({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
             <label className="block text-yellow-400 text-sm mb-2">
               Nível atual
             </label>
             <input
               type="number"
-              min={1}
+              min={0}
               value={currentLevel}
               onChange={(event) =>
                 onCurrentLevelChange(sanitizeLevel(Number(event.target.value)))
@@ -104,22 +96,6 @@ export function SettingsPanel({
               }
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
-          </div>
-
-          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
-            <p className="block text-yellow-400 text-sm mb-2">
-              XP da tabela
-            </p>
-            <p className="text-3xl font-black text-yellow-300">
-              {formatXP(levelRange.totalXP)}
-            </p>
-            <button
-              type="button"
-              onClick={applyLevelTableXP}
-              className="mt-4 w-full bg-gradient-to-r from-yellow-300 to-amber-600 text-black px-4 py-3 rounded-2xl font-black hover:scale-[1.02] transition-all"
-            >
-              Usar valor
-            </button>
           </div>
         </div>
 

@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { formatXP, getXpForLevelRange } from "~/lib/xp-levels";
+import { useState } from "react";
 
 interface OnboardingCardProps {
   guestMode: boolean;
@@ -39,28 +38,12 @@ export function OnboardingCard({
 }: OnboardingCardProps) {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [targetLevel, setTargetLevel] = useState(1);
-  const levelRange = getXpForLevelRange(currentLevel, targetLevel);
-  const lastTableXP = useRef(levelRange.totalXP);
   const [totalXP, setTotalXP] = useState(0);
   const [currentXP, setCurrentXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
   const currentXPValue = Math.min(currentXP, totalXP);
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
-
-  useEffect(() => {
-    if (currentLevel === 0) return;
-
-    setTotalXP((previousTotalXP) =>
-      previousTotalXP === 0 || previousTotalXP === lastTableXP.current
-        ? levelRange.totalXP
-        : previousTotalXP
-    );
-    setCurrentXP((previousCurrentXP) =>
-      Math.min(previousCurrentXP, levelRange.totalXP)
-    );
-    lastTableXP.current = levelRange.totalXP;
-  }, [currentLevel, levelRange.totalXP]);
 
   function submitSetup() {
     if (!canStart) return;
@@ -89,22 +72,6 @@ export function OnboardingCard({
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
             Informe seu nível atual, o nível alvo e quanto XP ainda falta. No primeiro contato, seja visitante ou Google, o nível sempre começa em 0.
           </p>
-
-          {currentLevel > 0 && (
-            <div className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
-              <p className="text-xs font-black uppercase text-yellow-300">
-                Tabela do nível {levelRange.currentLevel} para {levelRange.targetLevel}
-              </p>
-              <p className="mt-1 text-2xl font-black text-yellow-200">
-                {formatXP(levelRange.totalXP)} XP
-              </p>
-              <p className={`${theme.muted} mt-1 text-sm`}>
-                {levelRange.hasEstimatedValues
-                  ? "Valor estimado até você passar a tabela oficial."
-                  : "Valor confirmado para este intervalo."}
-              </p>
-            </div>
-          )}
 
           {guestMode && (
             <p className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
