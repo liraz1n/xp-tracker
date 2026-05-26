@@ -266,125 +266,143 @@ export function FarmRunsCard({
   }
 
   return (
-    <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8 shadow-[0_0_40px_rgba(234,179,8,0.12)]`}>
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-        <div className="xl:max-w-sm">
-          <p className="text-yellow-400 text-sm font-black mb-2">
-            Runs e farm
-          </p>
+    <section className={`${theme.card} border rounded-3xl p-5 md:p-6 mb-6 md:mb-8 shadow-[0_0_40px_rgba(234,179,8,0.12)]`}>
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-yellow-400 text-sm font-black mb-1">
+              Runs e farm
+            </p>
 
-          <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
-            Calculadora de runs
-          </h2>
+            <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
+              Calculadora de runs
+            </h2>
 
-          <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível.
-          </p>
+            <p className={`${theme.muted} mt-2 leading-relaxed`}>
+              Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-black text-yellow-300">
+              {visibleActivities.length} opções
+            </span>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-black text-emerald-300">
+              {farmPlan.totalRuns} runs no plano
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5 xl:flex-1">
-          <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr_120px] gap-4">
-            <label className="block">
-              <span className="block text-yellow-400 text-sm mb-2">
-                Tipo
-              </span>
-              <select
-                value={categoryFilter}
-                onChange={(event) =>
-                  setCategoryFilter(event.target.value as FarmCategoryFilter)
-                }
-                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
-              >
-                {FARM_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </label>
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5">
+          <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
+              <label className="block">
+                <span className="block text-yellow-400 text-xs font-black mb-1.5">
+                  Tipo
+                </span>
+                <select
+                  value={categoryFilter}
+                  onChange={(event) =>
+                    setCategoryFilter(event.target.value as FarmCategoryFilter)
+                  }
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                >
+                  {FARM_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="block">
-              <span className="block text-yellow-400 text-sm mb-2">
-                Atividade
-              </span>
-              <select
-                value={selectedActivityId}
-                onChange={(event) => setSelectedActivityId(event.target.value)}
-                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
-              >
-                {visibleActivities.map((activity) => (
-                  <option key={activity.id} value={activity.id}>
-                    {activity.category} - {getActivityLabel(activity)}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <label className="block">
+                <span className="block text-yellow-400 text-xs font-black mb-1.5">
+                  Atividade
+                </span>
+                <select
+                  value={selectedActivityId}
+                  onChange={(event) => setSelectedActivityId(event.target.value)}
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                >
+                  {visibleActivities.map((activity) => (
+                    <option key={activity.id} value={activity.id}>
+                      {activity.category} - {getActivityLabel(activity)}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="block">
-              <span className="block text-yellow-400 text-sm mb-2">
-                Runs
-              </span>
-              <input
-                type="number"
-                min={1}
-                value={formatInputValue(runs)}
-                onChange={(event) =>
-                  setRuns(
-                    event.target.value === ""
-                      ? 0
-                      : sanitizeRuns(Number(event.target.value))
-                  )
-                }
-                className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
-              />
-            </label>
+              <label className="block">
+                <span className="block text-yellow-400 text-xs font-black mb-1.5">
+                  Runs
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  value={formatInputValue(runs)}
+                  onChange={(event) =>
+                    setRuns(
+                      event.target.value === ""
+                        ? 0
+                        : sanitizeRuns(Number(event.target.value))
+                    )
+                  }
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                />
+              </label>
+            </div>
 
-            <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-3">
-                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                   XP por run
                 </p>
-                <p className="text-xl font-black text-yellow-300">
+                <p className="text-2xl font-black text-yellow-300">
                   {formatXP(selectedActivity.xp)}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                   XP total
                 </p>
-                <p className="text-xl font-black text-emerald-400">
+                <p className="text-2xl font-black text-emerald-400">
                   {formatXP(xpTotal)}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3">
-                <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                   Restará
                 </p>
-                <p className="text-xl font-black text-red-300">
+                <p className="text-2xl font-black text-red-300">
                   {formatXP(remainingAfterRun)}
                 </p>
               </div>
             </div>
 
-            <div className="sm:col-span-3 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className={`${theme.text} text-sm font-black`}>
+                  {getActivityLabel(selectedActivity)}
+                </p>
+                <p className={`${theme.muted} text-xs`}>
+                  {selectedActivity.category} selecionada. O registro entra automaticamente no histórico.
+                </p>
+              </div>
+
               <button
                 type="button"
                 onClick={applyFarmProgress}
                 disabled={!canApply}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-4 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="md:min-w-56 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                Adicionar XP ao progresso
+                Adicionar XP
               </button>
-
-              <p className={`${theme.muted} text-sm`}>
-                O registro entra automaticamente no histórico.
-              </p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
               <p className="text-yellow-300 font-black mb-3">
                 Runs para upar
@@ -395,17 +413,17 @@ export function FarmRunsCard({
                   Configure seu XP restante para calcular as melhores opções.
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {recommendedRuns.map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start justify-between gap-3 border-b border-yellow-500/10 pb-3 last:border-b-0 last:pb-0"
+                      className="flex items-start justify-between gap-3 border-b border-yellow-500/10 pb-2.5 last:border-b-0 last:pb-0"
                     >
                       <div>
-                        <p className={`${theme.text} text-sm font-bold`}>
+                        <p className={`${theme.text} text-sm font-bold leading-tight`}>
                           {activity.name}
                         </p>
-                        <p className={`${theme.muted} text-xs`}>
+                        <p className={`${theme.muted} text-xs leading-tight`}>
                           {activity.category} - {activity.detail}
                         </p>
                       </div>
@@ -435,17 +453,17 @@ export function FarmRunsCard({
                 </p>
               ) : (
                 <>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {farmPlan.items.map((item) => (
                       <div
                         key={item.activity.id}
-                        className="flex items-start justify-between gap-3 border-b border-emerald-500/10 pb-3 last:border-b-0 last:pb-0"
+                        className="flex items-start justify-between gap-3 border-b border-emerald-500/10 pb-2.5 last:border-b-0 last:pb-0"
                       >
                         <div>
-                          <p className={`${theme.text} text-sm font-bold`}>
+                          <p className={`${theme.text} text-sm font-bold leading-tight`}>
                             {item.activity.name}
                           </p>
-                          <p className={`${theme.muted} text-xs`}>
+                          <p className={`${theme.muted} text-xs leading-tight`}>
                             {item.activity.category} - {item.activity.detail}
                           </p>
                         </div>
@@ -459,8 +477,8 @@ export function FarmRunsCard({
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div>
-                      <p className={`${theme.muted} text-xs font-bold uppercase`}>
-                        XP do plano
+                      <p className={`${theme.muted} text-[11px] font-black uppercase`}>
+                        XP plano
                       </p>
                       <p className="text-lg font-black text-emerald-300">
                         {formatXP(farmPlan.totalXP)}
@@ -468,7 +486,7 @@ export function FarmRunsCard({
                     </div>
 
                     <div>
-                      <p className={`${theme.muted} text-xs font-bold uppercase`}>
+                      <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                         Sobra
                       </p>
                       <p className="text-lg font-black text-yellow-300">
