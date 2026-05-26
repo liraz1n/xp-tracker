@@ -303,7 +303,7 @@ export function FarmRunsCard({
   return (
     <section className={`${theme.card} border rounded-3xl p-5 md:p-6 mb-6 md:mb-8 shadow-[0_0_40px_rgba(234,179,8,0.12)]`}>
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-3">
           <div className="max-w-2xl">
             <p className="text-yellow-400 text-sm font-black mb-1">
               Runs e farm
@@ -318,7 +318,7 @@ export function FarmRunsCard({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 text-xs">
+          <div className="hidden">
             <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-black text-yellow-300">
               {visibleActivities.length} opções
             </span>
@@ -351,8 +351,11 @@ export function FarmRunsCard({
               </label>
 
               <label className="block">
-                <span className="block text-yellow-400 text-xs font-black mb-1.5">
-                  Atividade
+                <span className="mb-1.5 flex items-center justify-between gap-2 text-yellow-400 text-xs font-black">
+                  <span>Atividade</span>
+                  <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] text-yellow-300">
+                    {visibleActivities.length} opÃ§Ãµes
+                  </span>
                 </span>
                 <select
                   value={selectedActivityId}
