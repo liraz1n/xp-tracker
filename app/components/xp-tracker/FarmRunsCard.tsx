@@ -328,8 +328,8 @@ export function FarmRunsCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5">
-          <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5 items-start">
+          <div className="self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
             <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
               <label className="block">
                 <span className="block text-yellow-400 text-xs font-black mb-1.5">
