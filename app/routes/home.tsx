@@ -265,13 +265,9 @@ export default function Home() {
         currentLevel={tracker.currentLevel}
         targetLevel={tracker.targetLevel}
         theme={theme}
-        onTotalXPChange={tracker.setTotalXP}
-        onCurrentXPChange={tracker.setCurrentXP}
-        onDailyGoalChange={tracker.setDailyGoal}
-        onCurrentLevelChange={tracker.setCurrentLevel}
-        onTargetLevelChange={tracker.setTargetLevel}
         onClose={() => setShowSettings(false)}
         onReset={() => setShowResetModal(true)}
+        onSave={tracker.updateProgressSettings}
       />
 
       <EditHistoryEntryModal

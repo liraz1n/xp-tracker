@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { XpInputs } from "~/components/xp-tracker/XpInputs";
 
 interface SettingsPanelProps {
@@ -13,13 +14,15 @@ interface SettingsPanelProps {
     muted: string;
     text: string;
   };
-  onTotalXPChange: (value: number) => void;
-  onCurrentXPChange: (value: number) => void;
-  onDailyGoalChange: (value: number) => void;
-  onCurrentLevelChange: (value: number) => void;
-  onTargetLevelChange: (value: number) => void;
   onClose: () => void;
   onReset: () => void;
+  onSave: (values: {
+    totalXP: number;
+    currentXP: number;
+    dailyGoal: number;
+    currentLevel: number;
+    targetLevel: number;
+  }) => void;
 }
 
 function sanitizeLevel(value: number) {
@@ -35,15 +38,38 @@ export function SettingsPanel({
   currentLevel,
   targetLevel,
   theme,
-  onTotalXPChange,
-  onCurrentXPChange,
-  onDailyGoalChange,
-  onCurrentLevelChange,
-  onTargetLevelChange,
   onClose,
   onReset,
+  onSave,
 }: SettingsPanelProps) {
+  const [draftTotalXP, setDraftTotalXP] = useState(totalXP);
+  const [draftCurrentXP, setDraftCurrentXP] = useState(currentXP);
+  const [draftDailyGoal, setDraftDailyGoal] = useState(dailyGoal);
+  const [draftCurrentLevel, setDraftCurrentLevel] = useState(currentLevel);
+  const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setDraftTotalXP(totalXP);
+    setDraftCurrentXP(currentXP);
+    setDraftDailyGoal(dailyGoal);
+    setDraftCurrentLevel(currentLevel);
+    setDraftTargetLevel(targetLevel);
+  }, [open, totalXP, currentXP, dailyGoal, currentLevel, targetLevel]);
+
   if (!open) return null;
+
+  function saveSettings() {
+    onSave({
+      totalXP: draftTotalXP,
+      currentXP: draftCurrentXP,
+      dailyGoal: draftDailyGoal,
+      currentLevel: draftCurrentLevel,
+      targetLevel: draftTargetLevel,
+    });
+    onClose();
+  }
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -75,9 +101,9 @@ export function SettingsPanel({
             <input
               type="number"
               min={0}
-              value={currentLevel}
+              value={draftCurrentLevel}
               onChange={(event) =>
-                onCurrentLevelChange(sanitizeLevel(Number(event.target.value)))
+                setDraftCurrentLevel(sanitizeLevel(Number(event.target.value)))
               }
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
@@ -89,10 +115,10 @@ export function SettingsPanel({
             </label>
             <input
               type="number"
-              min={currentLevel + 1}
-              value={targetLevel}
+              min={draftCurrentLevel + 1}
+              value={draftTargetLevel}
               onChange={(event) =>
-                onTargetLevelChange(sanitizeLevel(Number(event.target.value)))
+                setDraftTargetLevel(sanitizeLevel(Number(event.target.value)))
               }
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
@@ -100,14 +126,33 @@ export function SettingsPanel({
         </div>
 
         <XpInputs
-          totalXP={totalXP}
-          currentXP={currentXP}
-          dailyGoal={dailyGoal}
+          totalXP={draftTotalXP}
+          currentXP={draftCurrentXP}
+          dailyGoal={draftDailyGoal}
           theme={theme}
-          onTotalXPChange={onTotalXPChange}
-          onCurrentXPChange={onCurrentXPChange}
-          onDailyGoalChange={onDailyGoalChange}
+          onTotalXPChange={setDraftTotalXP}
+          onCurrentXPChange={setDraftCurrentXP}
+          onDailyGoalChange={setDraftDailyGoal}
         />
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border border-emerald-500/20 bg-emerald-500/5 rounded-3xl p-6 mb-8">
+          <div>
+            <h3 className="text-xl font-black text-emerald-300">
+              Salvar ajustes
+            </h3>
+            <p className={`${theme.muted} mt-2`}>
+              Se o XP restante diminuir, o avanço entra automaticamente no histórico inteligente de hoje.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={saveSettings}
+            className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white"
+          >
+            Salvar alterações
+          </button>
+        </div>
 
         <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-6">
           <h3 className="text-xl font-black text-red-300">

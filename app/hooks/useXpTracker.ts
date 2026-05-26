@@ -489,6 +489,42 @@ export function useXpTracker() {
     setBarPulsing(false);
   }
 
+  function updateProgressSettings({
+    totalXP: nextTotalXP,
+    currentXP: nextCurrentXP,
+    dailyGoal: nextDailyGoal,
+    currentLevel: nextCurrentLevel,
+    targetLevel: nextTargetLevel,
+  }: {
+    totalXP: number;
+    currentXP: number;
+    dailyGoal: number;
+    currentLevel: number;
+    targetLevel: number;
+  }) {
+    const sanitizedCurrentXP = Math.max(0, nextCurrentXP);
+    const xpGained = currentXP - sanitizedCurrentXP;
+
+    setTotalXP(nextTotalXP);
+    setCurrentXP(sanitizedCurrentXP);
+    setDailyGoal(nextDailyGoal);
+    setCurrentLevel(sanitizeLevel(nextCurrentLevel));
+    setTargetLevel(sanitizeLevel(nextTargetLevel));
+    setLastSavedXP(sanitizedCurrentXP);
+
+    if (xpGained <= 0) return;
+
+    const entry: HistoryEntry = {
+      date: new Date().toISOString(),
+      xpGained,
+      xpRemaining: sanitizedCurrentXP,
+      totalXP: nextTotalXP,
+      source: "Ajuste manual em configurações",
+    };
+
+    setHistory((prev) => [entry, ...prev]);
+  }
+
   async function resetProgress() {
     setTotalXP(DEFAULT_TOTAL_XP);
     setCurrentXP(DEFAULT_CURRENT_XP);
@@ -594,6 +630,7 @@ export function useXpTracker() {
     saveProgress,
     applyFarmProgress,
     configureInitialProgress,
+    updateProgressSettings,
     deleteHistoryEntry,
     updateHistoryEntry,
     resetProgress,
