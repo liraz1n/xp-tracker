@@ -60,10 +60,19 @@ export function SettingsPanel({
 
   if (!open) return null;
 
+  const draftCurrentXPValue = Math.min(draftCurrentXP, draftTotalXP);
+  const draftUserXP = Math.max(0, draftTotalXP - draftCurrentXPValue);
+
+  function updateDraftUserXP(value: number) {
+    const sanitizedUserXP = Math.min(Math.max(0, value), draftTotalXP);
+
+    setDraftCurrentXP(Math.max(0, draftTotalXP - sanitizedUserXP));
+  }
+
   function saveSettings() {
     onSave({
       totalXP: draftTotalXP,
-      currentXP: draftCurrentXP,
+      currentXP: draftCurrentXPValue,
       dailyGoal: draftDailyGoal,
       currentLevel: draftCurrentLevel,
       targetLevel: draftTargetLevel,
@@ -127,10 +136,12 @@ export function SettingsPanel({
 
         <XpInputs
           totalXP={draftTotalXP}
-          currentXP={draftCurrentXP}
+          userXP={draftUserXP}
+          currentXP={draftCurrentXPValue}
           dailyGoal={draftDailyGoal}
           theme={theme}
           onTotalXPChange={setDraftTotalXP}
+          onUserXPChange={updateDraftUserXP}
           onCurrentXPChange={setDraftCurrentXP}
           onDailyGoalChange={setDraftDailyGoal}
         />

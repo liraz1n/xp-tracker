@@ -194,10 +194,12 @@ export default function Home() {
           />
 
           {!shouldShowOnboarding && (
-            <UsageAchievementsCard
-              history={tracker.history}
-              dailyGoal={tracker.dailyGoal}
+            <FarmRunsCard
+              currentXP={tracker.currentXP}
+              currentLevel={tracker.currentLevel}
+              totalXP={tracker.totalXP}
               theme={theme}
+              onApplyFarmProgress={tracker.applyFarmProgress}
             />
           )}
 
@@ -211,12 +213,10 @@ export default function Home() {
           />
 
           {!shouldShowOnboarding && (
-            <FarmRunsCard
-              currentXP={tracker.currentXP}
-              currentLevel={tracker.currentLevel}
-              totalXP={tracker.totalXP}
+            <UsageAchievementsCard
+              history={tracker.history}
+              dailyGoal={tracker.dailyGoal}
               theme={theme}
-              onApplyFarmProgress={tracker.applyFarmProgress}
             />
           )}
 
@@ -228,12 +228,12 @@ export default function Home() {
             />
           )}
 
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <button
               type="button"
               onClick={saveProgress}
               disabled={tracker.xpGainedSinceLastSave <= 0}
-              className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               Salvar Progresso{" "}
               {tracker.xpGainedSinceLastSave > 0 &&
@@ -242,8 +242,17 @@ export default function Home() {
 
             <button
               type="button"
+              onClick={tracker.undoLastProgress}
+              disabled={!tracker.canUndoLastProgress}
+              className={`${theme.card} border hover:border-yellow-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed`}
+            >
+              Voltar último progresso
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowSettings(true)}
-              className={`${theme.card} border hover:border-yellow-400 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg`}
+              className={`${theme.card} border hover:border-yellow-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg`}
             >
               Configurações
             </button>

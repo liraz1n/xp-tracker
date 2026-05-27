@@ -561,6 +561,7 @@ export function FarmRunsCard({
   const xpApplied = Math.min(currentXP, xpTotal);
   const remainingAfterRun = Math.max(0, currentXP - xpTotal);
   const canApply = Boolean(selectedActivity) && totalXP > 0 && currentXP > 0 && xpApplied > 0;
+  const canApplyQuickRun = totalXP > 0 && currentXP > 0;
 
   const planActivities = useMemo(() => {
     if (planMode === "only-cripta") {
@@ -656,7 +657,7 @@ export function FarmRunsCard({
   }
 
   function applyQuickActivity(activity: ResolvedFarmActivity) {
-    if (!canApply) return;
+    if (!canApplyQuickRun) return;
 
     onApplyFarmProgress({
       xpGained: activity.xp,
@@ -678,27 +679,27 @@ export function FarmRunsCard({
   }
 
   return (
-    <section className={`${theme.card} border rounded-3xl p-5 md:p-6 mb-6 md:mb-8 shadow-[0_0_40px_rgba(234,179,8,0.12)]`}>
+    <section className={`${theme.card} border rounded-3xl p-4 md:p-5 mb-4 md:mb-5 shadow-[0_0_34px_rgba(16,185,129,0.1)]`}>
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
           <div className="max-w-2xl">
-            <p className="text-yellow-400 text-sm font-black mb-1">
+            <p className="text-emerald-300 text-xs md:text-sm font-black mb-1">
               Runs e farm
             </p>
 
-            <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
-              Calculadora de runs
+            <h2 className="text-xl md:text-2xl font-black text-emerald-300">
+              Registro rápido de run
             </h2>
 
-            <p className={`${theme.muted} mt-2 leading-relaxed`}>
-              Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível. O cálculo usa seu nível atual: {currentLevel}.
+            <p className={`${theme.muted} mt-1.5 text-sm leading-relaxed`}>
+              Escolha uma cripta ou masmorra, ajuste os jogadores quando existir e registre 1 run direto no histórico. O cálculo usa seu nível atual: {currentLevel}.
             </p>
           </div>
 
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
+          <div className="hidden self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
             <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
               <label className="block">
                 <span className="block text-yellow-400 text-xs font-black mb-1.5">
@@ -822,11 +823,11 @@ export function FarmRunsCard({
             </div>
           </div>
 
-          <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+          <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-3 md:p-4">
             <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-emerald-300 font-black">
-                  Registro rápido de run
+                  Atalhos disponíveis
                 </p>
                 <p className={`${theme.muted} text-xs`}>
                   Escolha uma aba, ajuste jogadores quando existir e registre 1 run direto no histórico.
@@ -896,7 +897,7 @@ export function FarmRunsCard({
                       type="button"
                       key={activity.id}
                       onClick={() => applyQuickActivity(activity)}
-                      disabled={!canApply}
+                      disabled={!canApplyQuickRun}
                       className="rounded-2xl border border-emerald-500/15 bg-black/25 p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <span className="block text-sm font-black text-white">
@@ -918,7 +919,7 @@ export function FarmRunsCard({
             )}
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="hidden grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-yellow-300 font-black">

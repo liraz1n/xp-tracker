@@ -2,7 +2,9 @@
 
 Base de coleta para montar tabelas oficiais de cripta no XP Tracker.
 
-Na build 1.3.0, os dados de cripta passam a suportar faixas de nível do jogador. Os valores atuais da Cripta Nível 1 foram cadastrados como base conhecida para jogadores de nível 28 ou superior. A faixa de nível 22 a 27 ficará preparada para receber os próximos valores coletados.
+Na build 1.3.0, os dados de cripta passaram a suportar faixas de nível do jogador. Os valores atuais da Cripta Nível 1 foram cadastrados como base conhecida para jogadores de nível 28 ou superior. A faixa de nível 22 a 27 ficará preparada para receber os próximos valores coletados.
+
+Na build 1.3.1, a calculadora completa e o plano sugerido foram ocultados temporariamente no site. O fluxo principal ficou focado no registro rápido de runs, com botão de desfazer último progresso e campo de XP atual do usuário nas configurações.
 
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |

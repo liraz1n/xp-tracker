@@ -1,5 +1,6 @@
 interface XpInputsProps {
   totalXP: number;
+  userXP: number;
   currentXP: number;
   dailyGoal: number;
   theme: {
@@ -7,6 +8,7 @@ interface XpInputsProps {
     input: string;
   };
   onTotalXPChange: (value: number) => void;
+  onUserXPChange: (value: number) => void;
   onCurrentXPChange: (value: number) => void;
   onDailyGoalChange: (value: number) => void;
 }
@@ -22,21 +24,24 @@ function formatInputValue(value: number) {
 
 export function XpInputs({
   totalXP,
+  userXP,
   currentXP,
   dailyGoal,
   theme,
   onTotalXPChange,
+  onUserXPChange,
   onCurrentXPChange,
   onDailyGoalChange,
 }: XpInputsProps) {
   const fields = [
     { label: "XP para Upar", value: totalXP, setter: onTotalXPChange },
+    { label: "XP Atual do Usuário", value: userXP, setter: onUserXPChange },
     { label: "XP Restante", value: currentXP, setter: onCurrentXPChange },
     { label: "Meta Diária de XP", value: dailyGoal, setter: onDailyGoalChange },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-8">
       {fields.map(({ label, value, setter }) => (
         <div
           key={label}

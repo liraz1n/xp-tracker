@@ -43,7 +43,14 @@ export function OnboardingCard({
   const [dailyGoal, setDailyGoal] = useState(0);
 
   const currentXPValue = Math.min(currentXP, totalXP);
+  const userXP = Math.max(0, totalXP - currentXPValue);
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
+
+  function updateUserXP(value: number) {
+    const sanitizedUserXP = Math.min(sanitizeNumber(value), totalXP);
+
+    setCurrentXP(Math.max(0, totalXP - sanitizedUserXP));
+  }
 
   function submitSetup() {
     if (!canStart) return;
@@ -80,7 +87,7 @@ export function OnboardingCard({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
               Nível atual
@@ -152,6 +159,26 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
+              XP atual do usuário
+            </span>
+            <input
+              type="number"
+              min={0}
+              max={totalXP}
+              value={formatInputValue(userXP)}
+              onChange={(event) =>
+                updateUserXP(
+                  event.target.value === ""
+                    ? 0
+                    : sanitizeNumber(Number(event.target.value))
+                )
+              }
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-yellow-400 text-sm mb-2">
               Meta diária
             </span>
             <input
@@ -169,7 +196,7 @@ export function OnboardingCard({
             />
           </label>
 
-          <div className="sm:col-span-2 xl:col-span-5 flex flex-col sm:flex-row gap-3 sm:items-center mt-1">
+          <div className="sm:col-span-2 xl:col-span-6 flex flex-col sm:flex-row gap-3 sm:items-center mt-1">
             <button
               type="button"
               onClick={submitSetup}

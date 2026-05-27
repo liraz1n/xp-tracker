@@ -452,6 +452,28 @@ export function useXpTracker() {
     setLastSavedXP(newCurrentXP);
   }
 
+  function undoLastProgress() {
+    const [lastEntry, ...remainingHistory] = history;
+
+    if (!lastEntry) return;
+
+    const restoredCurrentXP = Math.min(
+      totalXP,
+      Math.max(0, lastEntry.xpRemaining + lastEntry.xpGained)
+    );
+    const restoredPercentage =
+      totalXP > 0 ? clamp(((totalXP - restoredCurrentXP) / totalXP) * 100, 0, 100) : 0;
+
+    setHistory(remainingHistory);
+    setCurrentXP(restoredCurrentXP);
+    setLastSavedXP(restoredCurrentXP);
+    setReachedMilestones(
+      MILESTONES.filter((milestone) => restoredPercentage >= milestone)
+    );
+    setActiveMilestone(null);
+    setBarPulsing(false);
+  }
+
   function deleteHistoryEntry(indexToDelete: number) {
     setHistory((prev) => prev.filter((_, index) => index !== indexToDelete));
   }
@@ -588,6 +610,7 @@ export function useXpTracker() {
       ? Math.ceil(currentXP / averageDailyXP)
       : null;
   const xpGainedSinceLastSave = lastSavedXP - currentXP;
+  const canUndoLastProgress = history.length > 0;
   const userName =
     guestMode
       ? "Visitante"
@@ -629,6 +652,8 @@ export function useXpTracker() {
     loadProgress,
     saveProgress,
     applyFarmProgress,
+    undoLastProgress,
+    canUndoLastProgress,
     configureInitialProgress,
     updateProgressSettings,
     deleteHistoryEntry,
