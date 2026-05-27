@@ -15,6 +15,7 @@ import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
 import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
+import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
 type SidebarTab = "historico" | "grafico";
@@ -159,6 +160,7 @@ export default function Home() {
     historyEntryToEdit !== null ? tracker.history[historyEntryToEdit] : null;
   const shouldShowOnboarding =
     tracker.totalXP === 0 && tracker.currentXP === 0 && tracker.history.length === 0;
+  const premiumLocked = tracker.billing.accessStatus === "locked";
 
   if (!tracker.user && !tracker.guestMode) {
     return (
@@ -221,6 +223,8 @@ export default function Home() {
             onLogout={tracker.logout}
           />
 
+          <SubscriptionCard billing={tracker.billing} theme={theme} />
+
           {shouldShowOnboarding && (
             <OnboardingCard
               guestMode={tracker.guestMode}
@@ -247,7 +251,7 @@ export default function Home() {
             theme={theme}
           />
 
-          {!shouldShowOnboarding && (
+          {!shouldShowOnboarding && !premiumLocked && (
             <FarmRunsCard
               currentXP={tracker.currentXP}
               currentLevel={tracker.currentLevel}
@@ -272,7 +276,7 @@ export default function Home() {
             />
           </MobileDashboardSection>
 
-          {!shouldShowOnboarding && (
+          {!shouldShowOnboarding && !premiumLocked && (
             <MobileDashboardSection
               title="Marcos do farm"
               description="Conquistas de uso e metas automáticas."
@@ -286,7 +290,7 @@ export default function Home() {
             </MobileDashboardSection>
           )}
 
-          {!shouldShowOnboarding && (
+          {!shouldShowOnboarding && !premiumLocked && (
             <MobileDashboardSection
               title="Histórico inteligente"
               description="Ritmo recente, melhores registros e resumo do farm."
@@ -304,11 +308,11 @@ export default function Home() {
             <button
               type="button"
               onClick={saveProgress}
-              disabled={tracker.xpGainedSinceLastSave <= 0}
+              disabled={premiumLocked || tracker.xpGainedSinceLastSave <= 0}
               className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              Salvar Progresso{" "}
-              {tracker.xpGainedSinceLastSave > 0 &&
+              {premiumLocked ? "Premium para salvar" : "Salvar Progresso"}{" "}
+              {!premiumLocked && tracker.xpGainedSinceLastSave > 0 &&
                 `(+${tracker.xpGainedSinceLastSave.toLocaleString("pt-BR")} XP)`}
             </button>
 

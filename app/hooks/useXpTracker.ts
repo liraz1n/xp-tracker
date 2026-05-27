@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "~/supabase";
+import { useBilling } from "~/hooks/useBilling";
 
 export const DEFAULT_TOTAL_XP = 0;
 export const DEFAULT_CURRENT_XP = 0;
@@ -93,6 +94,7 @@ export function useXpTracker() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [currentLevel, setCurrentLevel] = useState(DEFAULT_CURRENT_LEVEL);
   const [targetLevel, setTargetLevel] = useState(DEFAULT_TARGET_LEVEL);
+  const billing = useBilling({ user, guestMode, progressLoaded });
 
   const milestoneTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -298,7 +300,7 @@ export function useXpTracker() {
   }, [user, guestMode]);
 
   useEffect(() => {
-    if (guestMode) return;
+    if (guestMode || !billing.canUseCloudSync) return;
     if (!user || !progressLoaded || loadError) return;
 
     setSaveStatus("saving");
@@ -341,6 +343,7 @@ export function useXpTracker() {
   }, [
     user,
     guestMode,
+    billing.canUseCloudSync,
     progressLoaded,
     loadError,
     totalXP,
@@ -633,6 +636,7 @@ export function useXpTracker() {
     setDarkMode,
     user,
     guestMode,
+    billing,
     userName,
     currentLevel,
     targetLevel,
