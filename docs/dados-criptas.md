@@ -2,10 +2,12 @@
 
 Base de coleta para montar tabelas oficiais de cripta no XP Tracker.
 
+Na build 1.3.0, os dados de cripta passam a suportar faixas de nível do jogador. Os valores atuais da Cripta Nível 1 foram cadastrados como base conhecida para jogadores de nível 28 ou superior. A faixa de nível 22 a 27 ficará preparada para receber os próximos valores coletados.
+
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |
-| Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | XP acumulado informado após derrotar o nível 29. | 2026-05-27 |
-| Nível 1 | Até derrotar o nível 30, 4 jogadores | 53.942 | Confirmado | Substitui a antiga base provisória de 49.000 XP. | 2026-05-27 |
+| Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |
+| Nível 1 | Até derrotar o nível 30, 4 jogadores | 53.942 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |
 | Nível 3 | Até derrotar o nível 7 | 18.832 | Parcial | Primeiro dado informado para iniciar a tabela da Cripta 3. | 2026-05-26 |
 | Nível 3 | Até derrotar o nível 9 | 26.065 | Parcial | Progresso acumulado informado após derrotar o nível 9. | 2026-05-26 |
 | Nível 3 | Até derrotar o nível 10 | 30.065 | Parcial | Progresso acumulado informado após derrotar o nível 10. | 2026-05-26 |

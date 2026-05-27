@@ -213,6 +213,7 @@ export default function Home() {
           {!shouldShowOnboarding && (
             <FarmRunsCard
               currentXP={tracker.currentXP}
+              currentLevel={tracker.currentLevel}
               totalXP={tracker.totalXP}
               theme={theme}
               onApplyFarmProgress={tracker.applyFarmProgress}

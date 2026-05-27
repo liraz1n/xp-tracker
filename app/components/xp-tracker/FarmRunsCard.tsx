@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 interface FarmRunsCardProps {
   currentXP: number;
+  currentLevel: number;
   totalXP: number;
   theme: {
     card: string;
@@ -20,12 +21,30 @@ interface FarmActivity {
   category: "Cripta" | "Masmorra";
   name: string;
   detail: string;
+  players?: number;
+  xp?: number;
+  xpByLevel?: LevelXpValue[];
+}
+
+interface LevelXpValue {
+  minLevel: number;
+  maxLevel?: number;
   xp: number;
+  label: string;
+}
+
+interface ResolvedFarmActivity extends FarmActivity {
+  xp: number;
+  levelRangeLabel: string;
 }
 
 interface FarmPlanItem {
-  activity: FarmActivity;
+  activity: ResolvedFarmActivity;
   runs: number;
+}
+
+function xpForLevel28Plus(xp: number): LevelXpValue[] {
+  return [{ minLevel: 28, xp, label: "Nível 28+" }];
 }
 
 const FARM_ACTIVITIES: FarmActivity[] = [
@@ -34,119 +53,136 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     category: "Cripta",
     name: "Cripta Nível 1 até 30",
     detail: "4 jogadores",
-    xp: 53942,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(53942),
   },
   {
     id: "cripta-n1-16-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 16",
     detail: "4 jogadores",
-    xp: 14347,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(14347),
   },
   {
     id: "cripta-n1-17-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 17",
     detail: "4 jogadores",
-    xp: 17608,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(17608),
   },
   {
     id: "cripta-n1-18-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 18",
     detail: "4 jogadores",
-    xp: 19412,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(19412),
   },
   {
     id: "cripta-n1-19-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 19",
     detail: "4 jogadores",
-    xp: 21342,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(21342),
   },
   {
     id: "cripta-n1-20-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 20",
     detail: "4 jogadores",
-    xp: 23407,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(23407),
   },
   {
     id: "cripta-n1-21-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 21",
     detail: "4 jogadores",
-    xp: 25617,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(25617),
   },
   {
     id: "cripta-n1-22-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 22",
     detail: "4 jogadores",
-    xp: 27982,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(27982),
   },
   {
     id: "cripta-n1-23-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 23",
     detail: "4 jogadores",
-    xp: 30512,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(30512),
   },
   {
     id: "cripta-n1-24-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 24",
     detail: "4 jogadores",
-    xp: 33219,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(33219),
   },
   {
     id: "cripta-n1-25-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 25",
     detail: "4 jogadores",
-    xp: 36116,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(36116),
   },
   {
     id: "cripta-n1-26-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 26",
     detail: "4 jogadores",
-    xp: 39216,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(39216),
   },
   {
     id: "cripta-n1-25-5",
     category: "Cripta",
     name: "Cripta Nível 1 até 25",
     detail: "5 jogadores",
-    xp: 36116,
+    players: 5,
+    xpByLevel: xpForLevel28Plus(36116),
   },
   {
     id: "cripta-n1-26-5",
     category: "Cripta",
     name: "Cripta Nível 1 até 26",
     detail: "5 jogadores",
-    xp: 39216,
+    players: 5,
+    xpByLevel: xpForLevel28Plus(39216),
   },
   {
     id: "cripta-n1-27-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 27",
     detail: "4 jogadores",
-    xp: 42533,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(42533),
   },
   {
     id: "cripta-n1-28-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 28",
     detail: "4 jogadores",
-    xp: 46082,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(46082),
   },
   {
     id: "cripta-n1-29-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 29",
     detail: "4 jogadores",
-    xp: 49859,
+    players: 4,
+    xpByLevel: xpForLevel28Plus(49859),
   },
   {
     id: "cripta-n3-7",
@@ -281,15 +317,21 @@ const QUICK_RUN_TABS = [
 
 type QuickRunTab = (typeof QUICK_RUN_TABS)[number]["id"];
 
-const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, string[]>> = {
-  "cripta-1": [
-    "cripta-n1-25-4",
-    "cripta-n1-26-4",
-    "cripta-n1-27-4",
-    "cripta-n1-28-4",
-    "cripta-n1-29-4",
-    "cripta-n1-30-4",
-  ],
+const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string[]>>>> = {
+  "cripta-1": {
+    4: [
+      "cripta-n1-25-4",
+      "cripta-n1-26-4",
+      "cripta-n1-27-4",
+      "cripta-n1-28-4",
+      "cripta-n1-29-4",
+      "cripta-n1-30-4",
+    ],
+    5: [
+      "cripta-n1-25-5",
+      "cripta-n1-26-5",
+    ],
+  },
 };
 
 // Dados mantidos na base interna, mas ocultos temporariamente do site.
@@ -326,6 +368,44 @@ function getActivityLabel(activity: FarmActivity) {
   return `${activity.name} (${activity.detail})`;
 }
 
+function resolveActivityForLevel(
+  activity: FarmActivity,
+  currentLevel: number
+): ResolvedFarmActivity | null {
+  if (activity.xpByLevel) {
+    const levelXp = activity.xpByLevel.find(
+      (entry) =>
+        currentLevel >= entry.minLevel &&
+        (entry.maxLevel === undefined || currentLevel <= entry.maxLevel)
+    );
+
+    if (!levelXp) return null;
+
+    return {
+      ...activity,
+      xp: levelXp.xp,
+      levelRangeLabel: levelXp.label,
+    };
+  }
+
+  if (typeof activity.xp !== "number") return null;
+
+  return {
+    ...activity,
+    xp: activity.xp,
+    levelRangeLabel: "XP fixo",
+  };
+}
+
+function resolveActivitiesForLevel(
+  activities: FarmActivity[],
+  currentLevel: number
+) {
+  return activities
+    .map((activity) => resolveActivityForLevel(activity, currentLevel))
+    .filter((activity): activity is ResolvedFarmActivity => Boolean(activity));
+}
+
 function getActivitiesById(activityIds: string[]) {
   return activityIds
     .map((activityId) =>
@@ -359,7 +439,7 @@ function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number)
   plan.push({ activity, runs });
 }
 
-function buildFarmPlan(currentXP: number, activities: FarmActivity[]) {
+function buildFarmPlan(currentXP: number, activities: ResolvedFarmActivity[]) {
   if (currentXP <= 0 || activities.length === 0) {
     return {
       items: [],
@@ -401,7 +481,10 @@ function buildFarmPlan(currentXP: number, activities: FarmActivity[]) {
   };
 }
 
-function buildSingleActivityPlan(currentXP: number, activities: FarmActivity[]) {
+function buildSingleActivityPlan(
+  currentXP: number,
+  activities: ResolvedFarmActivity[]
+) {
   if (currentXP <= 0 || activities.length === 0) {
     return {
       items: [],
@@ -432,6 +515,7 @@ function buildSingleActivityPlan(currentXP: number, activities: FarmActivity[]) 
 
 export function FarmRunsCard({
   currentXP,
+  currentLevel,
   totalXP,
   theme,
   onApplyFarmProgress,
@@ -444,14 +528,20 @@ export function FarmRunsCard({
   const [runs, setRuns] = useState(1);
   const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
   const [quickRunTab, setQuickRunTab] = useState<QuickRunTab>("cripta-1");
+  const [quickPlayerCount, setQuickPlayerCount] = useState(4);
+
+  const resolvedSiteActivities = useMemo(
+    () => resolveActivitiesForLevel(SITE_FARM_ACTIVITIES, currentLevel),
+    [currentLevel]
+  );
 
   const visibleActivities = useMemo(() => {
-    if (categoryFilter === "Todas") return SITE_FARM_ACTIVITIES;
+    if (categoryFilter === "Todas") return resolvedSiteActivities;
 
-    return SITE_FARM_ACTIVITIES.filter(
+    return resolvedSiteActivities.filter(
       (activity) => activity.category === categoryFilter
     );
-  }, [categoryFilter]);
+  }, [categoryFilter, resolvedSiteActivities]);
 
   useEffect(() => {
     if (visibleActivities.some((activity) => activity.id === selectedActivityId)) {
@@ -459,35 +549,34 @@ export function FarmRunsCard({
     }
 
     setSelectedActivityId(
-      visibleActivities[0]?.id ?? SITE_FARM_ACTIVITIES[0].id
+      visibleActivities[0]?.id ?? ""
     );
   }, [selectedActivityId, visibleActivities]);
 
   const selectedActivity =
-    SITE_FARM_ACTIVITIES.find((activity) => activity.id === selectedActivityId) ??
-    visibleActivities[0] ??
-    SITE_FARM_ACTIVITIES[0];
+    visibleActivities.find((activity) => activity.id === selectedActivityId) ??
+    visibleActivities[0];
 
-  const xpTotal = selectedActivity.xp * runs;
+  const xpTotal = (selectedActivity?.xp ?? 0) * runs;
   const xpApplied = Math.min(currentXP, xpTotal);
   const remainingAfterRun = Math.max(0, currentXP - xpTotal);
-  const canApply = totalXP > 0 && currentXP > 0 && xpApplied > 0;
+  const canApply = Boolean(selectedActivity) && totalXP > 0 && currentXP > 0 && xpApplied > 0;
 
   const planActivities = useMemo(() => {
     if (planMode === "only-cripta") {
-      return SITE_FARM_ACTIVITIES.filter(
+      return resolvedSiteActivities.filter(
         (activity) => activity.category === "Cripta"
       );
     }
 
     if (planMode === "only-masmorra") {
-      return SITE_FARM_ACTIVITIES.filter(
+      return resolvedSiteActivities.filter(
         (activity) => activity.category === "Masmorra"
       );
     }
 
     return visibleActivities;
-  }, [planMode, visibleActivities]);
+  }, [planMode, resolvedSiteActivities, visibleActivities]);
 
   const recommendedRuns = useMemo(() => {
     if (currentXP <= 0) return [];
@@ -512,33 +601,66 @@ export function FarmRunsCard({
     return buildFarmPlan(currentXP, planActivities);
   }, [currentXP, planActivities, planMode]);
 
-  const quickActivities = useMemo(() => {
-    const orderedActivityIds = QUICK_RUN_ORDER[quickRunTab];
+  const availableQuickPlayerCounts = useMemo(() => {
+    const orderedPlayers = QUICK_RUN_ORDER[quickRunTab];
+
+    if (orderedPlayers) {
+      return Object.keys(orderedPlayers)
+        .map(Number)
+        .sort((a, b) => a - b);
+    }
+
+    const players = SITE_FARM_ACTIVITIES.filter((activity) =>
+      matchesQuickRunTab(activity, quickRunTab)
+    )
+      .map((activity) => activity.players)
+      .filter((players): players is number => typeof players === "number");
+
+    return Array.from(new Set(players)).sort((a, b) => a - b);
+  }, [quickRunTab]);
+
+  useEffect(() => {
+    if (availableQuickPlayerCounts.length === 0) return;
+    if (availableQuickPlayerCounts.includes(quickPlayerCount)) return;
+
+    setQuickPlayerCount(availableQuickPlayerCounts[0]);
+  }, [availableQuickPlayerCounts, quickPlayerCount]);
+
+  const quickBaseActivities = useMemo(() => {
+    const orderedActivityIds = QUICK_RUN_ORDER[quickRunTab]?.[quickPlayerCount];
 
     if (orderedActivityIds) {
       return getActivitiesById(orderedActivityIds);
     }
 
-    return SITE_FARM_ACTIVITIES.filter((activity) =>
-      matchesQuickRunTab(activity, quickRunTab)
+    return SITE_FARM_ACTIVITIES.filter(
+      (activity) =>
+        matchesQuickRunTab(activity, quickRunTab) &&
+        (availableQuickPlayerCounts.length === 0 ||
+          activity.players === quickPlayerCount)
     );
-  }, [quickRunTab]);
+  }, [availableQuickPlayerCounts.length, quickPlayerCount, quickRunTab]);
+
+  const quickActivities = useMemo(
+    () => resolveActivitiesForLevel(quickBaseActivities, currentLevel),
+    [currentLevel, quickBaseActivities]
+  );
 
   function applyFarmProgress() {
-    if (!canApply) return;
+    if (!canApply || !selectedActivity) return;
 
     onApplyFarmProgress({
       xpGained: xpTotal,
-      source: `${runs}x ${getActivityLabel(selectedActivity)}`,
+      source: `${runs}x ${getActivityLabel(selectedActivity)} - ${selectedActivity.levelRangeLabel}`,
     });
   }
 
-  function applyQuickActivity(activity: FarmActivity) {
+  function applyQuickActivity(activity: ResolvedFarmActivity) {
     if (!canApply) return;
 
     onApplyFarmProgress({
       xpGained: activity.xp,
-      source: `1x ${getActivityLabel(activity)}`,
+      source: `1x ${getActivityLabel(activity)} - ${activity.levelRangeLabel}`,
     });
   }
 
@@ -546,7 +668,7 @@ export function FarmRunsCard({
     if (farmPlan.totalXP <= 0) return;
 
     const source = farmPlan.items
-      .map((item) => `${item.runs}x ${item.activity.name}`)
+      .map((item) => `${item.runs}x ${item.activity.name} (${item.activity.levelRangeLabel})`)
       .join(" + ");
 
     onApplyFarmProgress({
@@ -569,7 +691,7 @@ export function FarmRunsCard({
             </h2>
 
             <p className={`${theme.muted} mt-2 leading-relaxed`}>
-              Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível.
+              Escolha uma cripta ou masmorra e veja quanto XP ela remove do caminho até o próximo nível. O cálculo usa seu nível atual: {currentLevel}.
             </p>
           </div>
 
@@ -607,14 +729,20 @@ export function FarmRunsCard({
                 <select
                   value={selectedActivityId}
                   onChange={(event) => setSelectedActivityId(event.target.value)}
+                  disabled={visibleActivities.length === 0}
                   className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
                 >
                   {visibleActivities.map((activity) => (
                     <option key={activity.id} value={activity.id}>
-                      {activity.category} - {getActivityLabel(activity)}
+                      {activity.category} - {getActivityLabel(activity)} - {activity.levelRangeLabel}
                     </option>
                   ))}
                 </select>
+                {visibleActivities.length === 0 && (
+                  <p className={`${theme.muted} mt-2 text-xs`}>
+                    Sem dados de XP para o nível {currentLevel} nesta categoria.
+                  </p>
+                )}
               </label>
 
               <label className="block">
@@ -643,7 +771,10 @@ export function FarmRunsCard({
                   XP por run
                 </p>
                 <p className="text-2xl font-black text-yellow-300">
-                  {formatXP(selectedActivity.xp)}
+                  {formatXP(selectedActivity?.xp ?? 0)}
+                </p>
+                <p className={`${theme.muted} text-[11px] font-bold`}>
+                  {selectedActivity?.levelRangeLabel ?? `Nível ${currentLevel}`}
                 </p>
               </div>
 
@@ -669,10 +800,14 @@ export function FarmRunsCard({
             <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className={`${theme.text} text-sm font-black`}>
-                  {getActivityLabel(selectedActivity)}
+                  {selectedActivity
+                    ? getActivityLabel(selectedActivity)
+                    : "Sem atividade disponível"}
                 </p>
                 <p className={`${theme.muted} text-xs`}>
-                  {selectedActivity.category} selecionada. O registro entra automaticamente no histórico.
+                  {selectedActivity
+                    ? `${selectedActivity.category} selecionada para ${selectedActivity.levelRangeLabel}. O registro entra automaticamente no histórico.`
+                    : `Aguardando dados de XP para o nível ${currentLevel}.`}
                 </p>
               </div>
 
@@ -694,7 +829,7 @@ export function FarmRunsCard({
                   Registro rápido de run
                 </p>
                 <p className={`${theme.muted} text-xs`}>
-                  Escolha uma aba e registre 1 run direto no histórico.
+                  Escolha uma aba, ajuste jogadores quando existir e registre 1 run direto no histórico.
                 </p>
               </div>
 
@@ -716,20 +851,42 @@ export function FarmRunsCard({
               </div>
             </div>
 
+            {availableQuickPlayerCounts.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className={`${theme.muted} text-xs font-bold`}>
+                  Jogadores
+                </span>
+                {availableQuickPlayerCounts.map((players) => (
+                  <button
+                    type="button"
+                    key={players}
+                    onClick={() => setQuickPlayerCount(players)}
+                    className={`rounded-full border px-3 py-1 text-xs font-black transition-all ${
+                      quickPlayerCount === players
+                        ? "border-emerald-400 bg-emerald-500/15 text-emerald-200"
+                        : "border-emerald-500/10 bg-black/20 text-zinc-500 hover:text-emerald-200"
+                    }`}
+                  >
+                    {players} jogadores
+                  </button>
+                ))}
+              </div>
+            )}
+
             {quickActivities.length === 0 ? (
               <div className="rounded-2xl border border-emerald-500/10 bg-black/20 p-4">
                 <p className={`${theme.text} text-sm font-black`}>
                   Dados em coleta
                 </p>
                 <p className={`${theme.muted} mt-1 text-xs`}>
-                  Ainda não temos dados cadastrados para esta aba.
+                  Ainda não temos dados cadastrados para esta aba no nível {currentLevel}.
                 </p>
               </div>
             ) : (
               <div>
                 <div className="mb-3">
                   <p className={`${theme.muted} text-xs`}>
-                    {quickActivities.length} atalhos disponíveis.
+                    {quickActivities.length} atalhos disponíveis para {quickActivities[0]?.levelRangeLabel}.
                   </p>
                 </div>
 
@@ -750,6 +907,9 @@ export function FarmRunsCard({
                       </span>
                       <span className="mt-0.5 block text-[11px] text-zinc-500">
                         {activity.category} - {activity.detail}
+                      </span>
+                      <span className="mt-1 inline-flex rounded-full border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
+                        {activity.levelRangeLabel}
                       </span>
                     </button>
                   ))}
@@ -786,6 +946,9 @@ export function FarmRunsCard({
                         </p>
                         <p className={`${theme.muted} text-xs leading-tight`}>
                           {activity.category} - {activity.detail}
+                        </p>
+                        <p className={`${theme.muted} text-[11px] leading-tight`}>
+                          {activity.levelRangeLabel}
                         </p>
                       </div>
 
@@ -843,6 +1006,9 @@ export function FarmRunsCard({
                           </p>
                           <p className={`${theme.muted} text-xs leading-tight`}>
                             {item.activity.category} - {item.activity.detail}
+                          </p>
+                          <p className={`${theme.muted} text-[11px] leading-tight`}>
+                            {item.activity.levelRangeLabel}
                           </p>
                         </div>
 
