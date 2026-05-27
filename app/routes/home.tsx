@@ -239,6 +239,7 @@ export default function Home() {
           <StatsCards
             totalXP={tracker.totalXP}
             currentXP={tracker.currentXP}
+            userTotalXP={tracker.userTotalXP}
             percentageDisplay={tracker.percentageDisplay}
             currentLevel={tracker.currentLevel}
             targetLevel={tracker.targetLevel}
