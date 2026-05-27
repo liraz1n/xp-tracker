@@ -5,6 +5,7 @@ interface SettingsPanelProps {
   open: boolean;
   totalXP: number;
   currentXP: number;
+  userTotalXP: number;
   dailyGoal: number;
   currentLevel: number;
   targetLevel: number;
@@ -19,6 +20,7 @@ interface SettingsPanelProps {
   onSave: (values: {
     totalXP: number;
     currentXP: number;
+    userTotalXP: number;
     dailyGoal: number;
     currentLevel: number;
     targetLevel: number;
@@ -34,6 +36,7 @@ export function SettingsPanel({
   open,
   totalXP,
   currentXP,
+  userTotalXP,
   dailyGoal,
   currentLevel,
   targetLevel,
@@ -44,6 +47,7 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   const [draftTotalXP, setDraftTotalXP] = useState(totalXP);
   const [draftCurrentXP, setDraftCurrentXP] = useState(currentXP);
+  const [draftUserTotalXP, setDraftUserTotalXP] = useState(userTotalXP);
   const [draftDailyGoal, setDraftDailyGoal] = useState(dailyGoal);
   const [draftCurrentLevel, setDraftCurrentLevel] = useState(currentLevel);
   const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
@@ -53,26 +57,33 @@ export function SettingsPanel({
 
     setDraftTotalXP(totalXP);
     setDraftCurrentXP(currentXP);
+    setDraftUserTotalXP(userTotalXP);
     setDraftDailyGoal(dailyGoal);
     setDraftCurrentLevel(currentLevel);
     setDraftTargetLevel(targetLevel);
-  }, [open, totalXP, currentXP, dailyGoal, currentLevel, targetLevel]);
+  }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel, targetLevel]);
 
   if (!open) return null;
 
   const draftCurrentXPValue = Math.min(draftCurrentXP, draftTotalXP);
-  const draftUserXP = Math.max(0, draftTotalXP - draftCurrentXPValue);
 
-  function updateDraftUserXP(value: number) {
-    const sanitizedUserXP = Math.min(Math.max(0, value), draftTotalXP);
+  function updateDraftCurrentXP(value: number) {
+    const previousCurrentXP = Math.min(draftCurrentXP, draftTotalXP);
+    const nextCurrentXP = Math.min(Math.max(0, value), draftTotalXP);
+    const xpGained = previousCurrentXP - nextCurrentXP;
 
-    setDraftCurrentXP(Math.max(0, draftTotalXP - sanitizedUserXP));
+    setDraftCurrentXP(nextCurrentXP);
+
+    if (xpGained > 0) {
+      setDraftUserTotalXP((prev) => prev + xpGained);
+    }
   }
 
   function saveSettings() {
     onSave({
       totalXP: draftTotalXP,
       currentXP: draftCurrentXPValue,
+      userTotalXP: draftUserTotalXP,
       dailyGoal: draftDailyGoal,
       currentLevel: draftCurrentLevel,
       targetLevel: draftTargetLevel,
@@ -136,13 +147,13 @@ export function SettingsPanel({
 
         <XpInputs
           totalXP={draftTotalXP}
-          userXP={draftUserXP}
+          userXP={draftUserTotalXP}
           currentXP={draftCurrentXPValue}
           dailyGoal={draftDailyGoal}
           theme={theme}
           onTotalXPChange={setDraftTotalXP}
-          onUserXPChange={updateDraftUserXP}
-          onCurrentXPChange={setDraftCurrentXP}
+          onUserXPChange={setDraftUserTotalXP}
+          onCurrentXPChange={updateDraftCurrentXP}
           onDailyGoalChange={setDraftDailyGoal}
         />
 

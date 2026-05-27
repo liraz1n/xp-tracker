@@ -1,6 +1,6 @@
 # Pagamentos e assinaturas
 
-Build 1.4.0 inicia a base comercial do XP Tracker.
+Build 1.4.1 mantém a base comercial do XP Tracker e adiciona o painel de assinatura no cabeçalho.
 
 ## Plano inicial
 
@@ -20,7 +20,7 @@ Build 1.4.0 inicia a base comercial do XP Tracker.
 - Criação automática de trial quando um usuário novo é criado no Supabase Auth.
 - Backfill para usuários já existentes.
 - RLS para leitura segura da própria assinatura.
-- Card visual no site para comunicar trial, Premium e cupom.
+- Card visual e painel do plano no site para comunicar trial, Premium e cupom.
 
 ## Próxima etapa
 

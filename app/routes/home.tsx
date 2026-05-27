@@ -16,6 +16,7 @@ import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
 import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
+import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
 type SidebarTab = "historico" | "grafico";
@@ -78,6 +79,7 @@ export default function Home() {
   const tracker = useXpTracker();
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("historico");
   const [historyEntryToDelete, setHistoryEntryToDelete] = useState<number | null>(null);
@@ -218,6 +220,7 @@ export default function Home() {
             theme={theme}
             onToggleDarkMode={() => tracker.setDarkMode((prev) => !prev)}
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+            onOpenSubscription={() => setShowSubscriptionPanel(true)}
             onOpenSettings={() => setShowSettings(true)}
             onLoginWithGoogle={tracker.loginWithGoogle}
             onLogout={tracker.logout}
@@ -356,6 +359,7 @@ export default function Home() {
         open={showSettings}
         totalXP={tracker.totalXP}
         currentXP={tracker.currentXP}
+        userTotalXP={tracker.userTotalXP}
         dailyGoal={tracker.dailyGoal}
         currentLevel={tracker.currentLevel}
         targetLevel={tracker.targetLevel}
@@ -363,6 +367,13 @@ export default function Home() {
         onClose={() => setShowSettings(false)}
         onReset={() => setShowResetModal(true)}
         onSave={tracker.updateProgressSettings}
+      />
+
+      <SubscriptionPanel
+        open={showSubscriptionPanel}
+        billing={tracker.billing}
+        theme={theme}
+        onClose={() => setShowSubscriptionPanel(false)}
       />
 
       <EditHistoryEntryModal

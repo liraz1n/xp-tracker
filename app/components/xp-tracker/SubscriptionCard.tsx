@@ -6,6 +6,7 @@ import {
 
 interface SubscriptionCardProps {
   billing: BillingState;
+  alwaysShow?: boolean;
   theme: {
     card: string;
     input: string;
@@ -14,7 +15,11 @@ interface SubscriptionCardProps {
   };
 }
 
-export function SubscriptionCard({ billing, theme }: SubscriptionCardProps) {
+export function SubscriptionCard({
+  billing,
+  alwaysShow = false,
+  theme,
+}: SubscriptionCardProps) {
   const [couponCode, setCouponCode] = useState("");
   const couponPreview = useMemo(
     () => findCouponPreview(couponCode),
@@ -22,15 +27,18 @@ export function SubscriptionCard({ billing, theme }: SubscriptionCardProps) {
   );
 
   if (
-    billing.accessStatus === "guest" ||
-    billing.accessStatus === "loading" ||
-    billing.accessStatus === "setup_pending"
+    !alwaysShow &&
+    (billing.accessStatus === "guest" ||
+      billing.accessStatus === "loading" ||
+      billing.accessStatus === "setup_pending")
   ) {
     return null;
   }
 
   const isLocked = billing.accessStatus === "locked";
   const isActive = billing.accessStatus === "active";
+  const isGuest = billing.accessStatus === "guest";
+  const isSetupPending = billing.accessStatus === "setup_pending";
   const trialDays =
     billing.trialDaysRemaining === null ? 0 : billing.trialDaysRemaining;
 
@@ -38,7 +46,11 @@ export function SubscriptionCard({ billing, theme }: SubscriptionCardProps) {
     ? "Premium ativo"
     : isLocked
       ? "Teste encerrado"
-      : `${trialDays} dias grátis restantes`;
+      : isGuest
+        ? "Modo visitante"
+        : isSetupPending
+          ? "Banco pendente"
+          : `${trialDays} dias grátis restantes`;
 
   return (
     <section
@@ -59,7 +71,11 @@ export function SubscriptionCard({ billing, theme }: SubscriptionCardProps) {
               ? "Seu teste grátis terminou. Assine para liberar registro rápido de runs, conquistas de uso, histórico inteligente e salvamento contínuo na nuvem."
               : isActive
                 ? "Sua assinatura está ativa. O acesso completo permanece liberado enquanto o plano estiver em dia."
-                : "Durante o teste grátis, você usa os recursos completos. Depois, o plano Premium continua por R$ 5,00/mês."}
+                : isGuest
+                  ? "Entre com Google para iniciar o teste grátis e salvar seu progresso na nuvem."
+                  : isSetupPending
+                    ? "Rode o script SQL de assinaturas no Supabase para ativar trial, cupons e controle de plano."
+                    : "Durante o teste grátis, você usa os recursos completos. Depois, o plano Premium continua por R$ 5,00/mês."}
           </p>
         </div>
 

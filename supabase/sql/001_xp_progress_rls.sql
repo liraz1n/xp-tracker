@@ -11,11 +11,13 @@ alter table public.xp_progress
 
 alter table public.xp_progress
   add column if not exists current_level integer not null default 0,
-  add column if not exists target_level integer not null default 1;
+  add column if not exists target_level integer not null default 1,
+  add column if not exists user_total_xp bigint not null default 0;
 
 alter table public.xp_progress
   alter column current_level set default 0,
-  alter column target_level set default 1;
+  alter column target_level set default 1,
+  alter column user_total_xp set default 0;
 
 drop policy if exists "Users can read own progress" on public.xp_progress;
 drop policy if exists "Users can insert own progress" on public.xp_progress;

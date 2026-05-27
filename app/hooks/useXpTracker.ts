@@ -8,11 +8,15 @@ export const DEFAULT_CURRENT_XP = 0;
 export const DEFAULT_DAILY_GOAL = 0;
 export const DEFAULT_CURRENT_LEVEL = 0;
 export const DEFAULT_TARGET_LEVEL = 1;
+export const DEFAULT_USER_TOTAL_XP = 0;
 export const GUEST_CURRENT_LEVEL = 0;
 export const GUEST_TARGET_LEVEL = 1;
 
 const MILESTONES = [25, 50, 75, 100];
 const GUEST_PROGRESS_DRAFT_KEY = "xpTrackerGuestProgressDraft";
+const XP_PROGRESS_SELECT_LEGACY =
+  "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level";
+const XP_PROGRESS_SELECT = `${XP_PROGRESS_SELECT_LEGACY}, user_total_xp`;
 
 export interface HistoryEntry {
   date: string;
@@ -32,6 +36,7 @@ interface XpProgressRow {
   dark_mode: boolean;
   current_level: number;
   target_level: number;
+  user_total_xp?: number;
 }
 
 interface GuestProgressDraft {
@@ -44,6 +49,7 @@ interface GuestProgressDraft {
   darkMode: boolean;
   currentLevel?: number;
   targetLevel?: number;
+  userTotalXP?: number;
 }
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -77,6 +83,27 @@ function sanitizeLevel(value: number) {
   return Math.max(0, Math.floor(value));
 }
 
+function isMissingUserTotalXPColumn(error: {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+} | null) {
+  if (!error) return false;
+
+  const errorText = [
+    error.code,
+    error.message,
+    error.details,
+    error.hint,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return error.code === "42703" || errorText.includes("user_total_xp");
+}
+
 export function useXpTracker() {
   const [totalXP, setTotalXP] = useState<number>(DEFAULT_TOTAL_XP);
   const [currentXP, setCurrentXP] = useState<number>(DEFAULT_CURRENT_XP);
@@ -94,10 +121,12 @@ export function useXpTracker() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [currentLevel, setCurrentLevel] = useState(DEFAULT_CURRENT_LEVEL);
   const [targetLevel, setTargetLevel] = useState(DEFAULT_TARGET_LEVEL);
+  const [userTotalXP, setUserTotalXP] = useState(DEFAULT_USER_TOTAL_XP);
   const billing = useBilling({ user, guestMode, progressLoaded });
 
   const milestoneTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userTotalXPColumnAvailable = useRef(true);
 
   function saveGuestProgressDraft() {
     if (typeof window === "undefined") return;
@@ -112,6 +141,7 @@ export function useXpTracker() {
       darkMode,
       currentLevel,
       targetLevel,
+      userTotalXP,
     };
 
     window.localStorage.setItem(
@@ -152,6 +182,7 @@ export function useXpTracker() {
     setDarkMode(true);
     setCurrentLevel(GUEST_CURRENT_LEVEL);
     setTargetLevel(GUEST_TARGET_LEVEL);
+    setUserTotalXP(DEFAULT_USER_TOTAL_XP);
     clearGuestProgressDraft();
   }
 
@@ -177,6 +208,7 @@ export function useXpTracker() {
     setDarkMode(data.dark_mode);
     setCurrentLevel(sanitizeLevel(data.current_level ?? DEFAULT_CURRENT_LEVEL));
     setTargetLevel(sanitizeLevel(data.target_level ?? DEFAULT_TARGET_LEVEL));
+    setUserTotalXP(Math.max(0, data.user_total_xp ?? DEFAULT_USER_TOTAL_XP));
   }
 
   function applyGuestProgressDraft(draft: GuestProgressDraft) {
@@ -189,6 +221,7 @@ export function useXpTracker() {
     setDarkMode(draft.darkMode);
     setCurrentLevel(sanitizeLevel(draft.currentLevel ?? DEFAULT_CURRENT_LEVEL));
     setTargetLevel(sanitizeLevel(draft.targetLevel ?? DEFAULT_TARGET_LEVEL));
+    setUserTotalXP(Math.max(0, draft.userTotalXP ?? DEFAULT_USER_TOTAL_XP));
   }
 
   async function loadProgress(userId: string) {
@@ -196,13 +229,29 @@ export function useXpTracker() {
     setSaveStatus("idle");
     setLoadError(null);
 
-    const { data, error } = await supabase
+    let progressResult = await supabase
       .from("xp_progress")
       .select(
-        "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level"
+        userTotalXPColumnAvailable.current
+          ? XP_PROGRESS_SELECT
+          : XP_PROGRESS_SELECT_LEGACY
       )
       .eq("user_id", userId)
       .maybeSingle();
+
+    if (
+      isMissingUserTotalXPColumn(progressResult.error) &&
+      userTotalXPColumnAvailable.current
+    ) {
+      userTotalXPColumnAvailable.current = false;
+      progressResult = await supabase
+        .from("xp_progress")
+        .select(XP_PROGRESS_SELECT_LEGACY)
+        .eq("user_id", userId)
+        .maybeSingle();
+    }
+
+    const { data, error } = progressResult;
 
     if (error) {
       console.error("Erro ao carregar progresso:", error);
@@ -213,24 +262,49 @@ export function useXpTracker() {
     }
 
     if (!data) {
-      const { data: created, error: createError } = await supabase
+      const baseInsert = {
+        user_id: userId,
+        total_xp: DEFAULT_TOTAL_XP,
+        current_xp: DEFAULT_CURRENT_XP,
+        daily_goal: DEFAULT_DAILY_GOAL,
+        history: [],
+        reached_milestones: [],
+        last_saved_xp: DEFAULT_CURRENT_XP,
+        dark_mode: true,
+        current_level: DEFAULT_CURRENT_LEVEL,
+        target_level: DEFAULT_TARGET_LEVEL,
+      };
+
+      let createResult = await supabase
         .from("xp_progress")
-        .insert({
-          user_id: userId,
-          total_xp: DEFAULT_TOTAL_XP,
-          current_xp: DEFAULT_CURRENT_XP,
-          daily_goal: DEFAULT_DAILY_GOAL,
-          history: [],
-          reached_milestones: [],
-          last_saved_xp: DEFAULT_CURRENT_XP,
-          dark_mode: true,
-          current_level: DEFAULT_CURRENT_LEVEL,
-          target_level: DEFAULT_TARGET_LEVEL,
-        })
+        .insert(
+          userTotalXPColumnAvailable.current
+            ? {
+                ...baseInsert,
+                user_total_xp: DEFAULT_USER_TOTAL_XP,
+              }
+            : baseInsert
+        )
         .select(
-          "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level"
+          userTotalXPColumnAvailable.current
+            ? XP_PROGRESS_SELECT
+            : XP_PROGRESS_SELECT_LEGACY
         )
         .single();
+
+      if (
+        isMissingUserTotalXPColumn(createResult.error) &&
+        userTotalXPColumnAvailable.current
+      ) {
+        userTotalXPColumnAvailable.current = false;
+        createResult = await supabase
+          .from("xp_progress")
+          .insert(baseInsert)
+          .select(XP_PROGRESS_SELECT_LEGACY)
+          .single();
+      }
+
+      const { data: created, error: createError } = createResult;
 
       if (createError) {
         console.error("Erro ao criar progresso:", createError);
@@ -310,24 +384,44 @@ export function useXpTracker() {
     }
 
     saveTimeout.current = setTimeout(async () => {
-      const { error } = await supabase
+      const baseUpdate = {
+        total_xp: totalXP,
+        current_xp: currentXP,
+        daily_goal: dailyGoal,
+        history,
+        reached_milestones: reachedMilestones,
+        last_saved_xp: lastSavedXP,
+        dark_mode: darkMode,
+        current_level: currentLevel,
+        target_level: targetLevel,
+        updated_at: new Date().toISOString(),
+      };
+
+      let saveResult = await supabase
         .from("xp_progress")
-        .update({
-          total_xp: totalXP,
-          current_xp: currentXP,
-          daily_goal: dailyGoal,
-          history,
-          reached_milestones: reachedMilestones,
-          last_saved_xp: lastSavedXP,
-          dark_mode: darkMode,
-          current_level: currentLevel,
-          target_level: targetLevel,
-          updated_at: new Date().toISOString(),
-        })
+        .update(
+          userTotalXPColumnAvailable.current
+            ? {
+                ...baseUpdate,
+                user_total_xp: userTotalXP,
+              }
+            : baseUpdate
+        )
         .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Erro ao salvar progresso:", error);
+      if (
+        isMissingUserTotalXPColumn(saveResult.error) &&
+        userTotalXPColumnAvailable.current
+      ) {
+        userTotalXPColumnAvailable.current = false;
+        saveResult = await supabase
+          .from("xp_progress")
+          .update(baseUpdate)
+          .eq("user_id", user.id);
+      }
+
+      if (saveResult.error) {
+        console.error("Erro ao salvar progresso:", saveResult.error);
         setSaveStatus("error");
         return;
       }
@@ -355,6 +449,7 @@ export function useXpTracker() {
     darkMode,
     currentLevel,
     targetLevel,
+    userTotalXP,
   ]);
 
   useEffect(() => {
@@ -425,6 +520,7 @@ export function useXpTracker() {
     };
 
     setHistory((prev) => [entry, ...prev]);
+    setUserTotalXP((prev) => prev + xpGained);
     setLastSavedXP(currentXP);
   }
 
@@ -451,6 +547,7 @@ export function useXpTracker() {
     };
 
     setCurrentXP(newCurrentXP);
+    setUserTotalXP((prev) => prev + appliedXP);
     setHistory((prev) => [entry, ...prev]);
     setLastSavedXP(newCurrentXP);
   }
@@ -470,6 +567,7 @@ export function useXpTracker() {
     setHistory(remainingHistory);
     setCurrentXP(restoredCurrentXP);
     setLastSavedXP(restoredCurrentXP);
+    setUserTotalXP((prev) => Math.max(0, prev - lastEntry.xpGained));
     setReachedMilestones(
       MILESTONES.filter((milestone) => restoredPercentage >= milestone)
     );
@@ -495,18 +593,21 @@ export function useXpTracker() {
     dailyGoal,
     currentLevel,
     targetLevel,
+    userTotalXP,
   }: {
     totalXP: number;
     currentXP: number;
     dailyGoal: number;
     currentLevel: number;
     targetLevel: number;
+    userTotalXP: number;
   }) {
     setTotalXP(totalXP);
     setCurrentXP(currentXP);
     setDailyGoal(dailyGoal);
     setCurrentLevel(sanitizeLevel(currentLevel));
     setTargetLevel(sanitizeLevel(targetLevel));
+    setUserTotalXP(Math.max(0, userTotalXP));
     setLastSavedXP(currentXP);
     setHistory([]);
     setReachedMilestones([]);
@@ -520,12 +621,14 @@ export function useXpTracker() {
     dailyGoal: nextDailyGoal,
     currentLevel: nextCurrentLevel,
     targetLevel: nextTargetLevel,
+    userTotalXP: nextUserTotalXP,
   }: {
     totalXP: number;
     currentXP: number;
     dailyGoal: number;
     currentLevel: number;
     targetLevel: number;
+    userTotalXP: number;
   }) {
     const sanitizedCurrentXP = Math.max(0, nextCurrentXP);
     const xpGained = currentXP - sanitizedCurrentXP;
@@ -535,6 +638,7 @@ export function useXpTracker() {
     setDailyGoal(nextDailyGoal);
     setCurrentLevel(sanitizeLevel(nextCurrentLevel));
     setTargetLevel(sanitizeLevel(nextTargetLevel));
+    setUserTotalXP(Math.max(0, nextUserTotalXP));
     setLastSavedXP(sanitizedCurrentXP);
 
     if (xpGained <= 0) return;
@@ -562,29 +666,50 @@ export function useXpTracker() {
     setDarkMode(true);
     setCurrentLevel(guestMode ? GUEST_CURRENT_LEVEL : DEFAULT_CURRENT_LEVEL);
     setTargetLevel(guestMode ? GUEST_TARGET_LEVEL : DEFAULT_TARGET_LEVEL);
+    setUserTotalXP(DEFAULT_USER_TOTAL_XP);
 
     if (guestMode || !user) return;
 
     setSaveStatus("saving");
 
-    const { error } = await supabase
+    const baseReset = {
+      total_xp: DEFAULT_TOTAL_XP,
+      current_xp: DEFAULT_CURRENT_XP,
+      daily_goal: DEFAULT_DAILY_GOAL,
+      history: [],
+      reached_milestones: [],
+      last_saved_xp: DEFAULT_CURRENT_XP,
+      dark_mode: true,
+      current_level: DEFAULT_CURRENT_LEVEL,
+      target_level: DEFAULT_TARGET_LEVEL,
+      updated_at: new Date().toISOString(),
+    };
+
+    let resetResult = await supabase
       .from("xp_progress")
-      .update({
-        total_xp: DEFAULT_TOTAL_XP,
-        current_xp: DEFAULT_CURRENT_XP,
-        daily_goal: DEFAULT_DAILY_GOAL,
-        history: [],
-        reached_milestones: [],
-        last_saved_xp: DEFAULT_CURRENT_XP,
-        dark_mode: true,
-        current_level: DEFAULT_CURRENT_LEVEL,
-        target_level: DEFAULT_TARGET_LEVEL,
-        updated_at: new Date().toISOString(),
-      })
+      .update(
+        userTotalXPColumnAvailable.current
+          ? {
+              ...baseReset,
+              user_total_xp: DEFAULT_USER_TOTAL_XP,
+            }
+          : baseReset
+      )
       .eq("user_id", user.id);
 
-    if (error) {
-      console.error("Erro ao resetar progresso:", error);
+    if (
+      isMissingUserTotalXPColumn(resetResult.error) &&
+      userTotalXPColumnAvailable.current
+    ) {
+      userTotalXPColumnAvailable.current = false;
+      resetResult = await supabase
+        .from("xp_progress")
+        .update(baseReset)
+        .eq("user_id", user.id);
+    }
+
+    if (resetResult.error) {
+      console.error("Erro ao resetar progresso:", resetResult.error);
       setSaveStatus("error");
       return;
     }
@@ -640,6 +765,7 @@ export function useXpTracker() {
     userName,
     currentLevel,
     targetLevel,
+    userTotalXP,
     setCurrentLevel,
     setTargetLevel,
     saveStatus,

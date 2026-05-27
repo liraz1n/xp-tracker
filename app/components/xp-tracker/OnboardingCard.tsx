@@ -14,6 +14,7 @@ interface OnboardingCardProps {
     dailyGoal: number;
     currentLevel: number;
     targetLevel: number;
+    userTotalXP: number;
   }) => void;
 }
 
@@ -40,17 +41,11 @@ export function OnboardingCard({
   const [targetLevel, setTargetLevel] = useState(1);
   const [totalXP, setTotalXP] = useState(0);
   const [currentXP, setCurrentXP] = useState(0);
+  const [userTotalXP, setUserTotalXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
   const currentXPValue = Math.min(currentXP, totalXP);
-  const userXP = Math.max(0, totalXP - currentXPValue);
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
-
-  function updateUserXP(value: number) {
-    const sanitizedUserXP = Math.min(sanitizeNumber(value), totalXP);
-
-    setCurrentXP(Math.max(0, totalXP - sanitizedUserXP));
-  }
 
   function submitSetup() {
     if (!canStart) return;
@@ -61,6 +56,7 @@ export function OnboardingCard({
       dailyGoal,
       currentLevel,
       targetLevel,
+      userTotalXP,
     });
   }
 
@@ -159,15 +155,14 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              XP atual do usuário
+              XP total do usuário
             </span>
             <input
               type="number"
               min={0}
-              max={totalXP}
-              value={formatInputValue(userXP)}
+              value={formatInputValue(userTotalXP)}
               onChange={(event) =>
-                updateUserXP(
+                setUserTotalXP(
                   event.target.value === ""
                     ? 0
                     : sanitizeNumber(Number(event.target.value))

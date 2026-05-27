@@ -35,7 +35,7 @@ export function XpInputs({
 }: XpInputsProps) {
   const fields = [
     { label: "XP para Upar", value: totalXP, setter: onTotalXPChange },
-    { label: "XP Atual do Usuário", value: userXP, setter: onUserXPChange },
+    { label: "XP Total do Usuário", value: userXP, setter: onUserXPChange },
     { label: "XP Restante", value: currentXP, setter: onCurrentXPChange },
     { label: "Meta Diária de XP", value: dailyGoal, setter: onDailyGoalChange },
   ];

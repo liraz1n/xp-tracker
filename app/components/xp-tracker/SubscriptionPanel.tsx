@@ -1,0 +1,81 @@
+import { COUPON_PREVIEWS, type BillingState } from "~/hooks/useBilling";
+import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
+
+interface SubscriptionPanelProps {
+  open: boolean;
+  billing: BillingState;
+  theme: {
+    card: string;
+    input: string;
+    muted: string;
+    text: string;
+  };
+  onClose: () => void;
+}
+
+export function SubscriptionPanel({
+  open,
+  billing,
+  theme,
+  onClose,
+}: SubscriptionPanelProps) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className={`${theme.card} max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-wide text-yellow-400">
+              Assinatura
+            </p>
+            <h2 className="mt-1 text-3xl font-black text-yellow-300">
+              Painel do plano
+            </h2>
+            <p className={`${theme.muted} mt-2 max-w-2xl`}>
+              Acompanhe seu acesso, teste grátis, cupons e a preparação do checkout Premium.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${theme.muted} rounded-2xl border border-yellow-500/20 px-4 py-2 font-bold transition-all hover:text-yellow-300`}
+          >
+            Fechar
+          </button>
+        </div>
+
+        <SubscriptionCard billing={billing} alwaysShow theme={theme} />
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {COUPON_PREVIEWS.map((coupon) => (
+            <div
+              key={coupon.code}
+              className="rounded-2xl border border-yellow-500/20 bg-black/25 p-4"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-yellow-400">
+                {coupon.code}
+              </p>
+              <h3 className="mt-1 font-black text-white">{coupon.title}</h3>
+              <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
+                {coupon.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <h3 className="font-black text-emerald-300">
+            Próxima etapa de pagamento
+          </h3>
+          <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
+            O próximo passo técnico é conectar o checkout real no back-end,
+            usando Asaas para cartão recorrente e Pix. A chave secreta fica no
+            servidor, nunca no navegador.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

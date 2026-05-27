@@ -12,6 +12,7 @@ interface DashboardHeaderProps {
   };
   onToggleDarkMode: () => void;
   onToggleSidebar: () => void;
+  onOpenSubscription: () => void;
   onOpenSettings: () => void;
   onLoginWithGoogle: () => void;
   onLogout: () => void;
@@ -26,6 +27,7 @@ export function DashboardHeader({
   theme,
   onToggleDarkMode,
   onToggleSidebar,
+  onOpenSubscription,
   onOpenSettings,
   onLoginWithGoogle,
   onLogout,
@@ -109,6 +111,16 @@ export function DashboardHeader({
                 {historyCount}
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            aria-label="Abrir assinatura"
+            onClick={onOpenSubscription}
+            className={iconButtonClass}
+          >
+            <span className="text-base md:text-lg leading-none">💳</span>
+            <span className={iconLabelClass}>Plano</span>
           </button>
 
           <button
