@@ -281,6 +281,17 @@ const QUICK_RUN_TABS = [
 
 type QuickRunTab = (typeof QUICK_RUN_TABS)[number]["id"];
 
+const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, string[]>> = {
+  "cripta-1": [
+    "cripta-n1-25-4",
+    "cripta-n1-26-4",
+    "cripta-n1-27-4",
+    "cripta-n1-28-4",
+    "cripta-n1-29-4",
+    "cripta-n1-30-4",
+  ],
+};
+
 // Dados mantidos na base interna, mas ocultos temporariamente do site.
 const HIDDEN_SITE_ACTIVITY_IDS = new Set([
   "cripta-n1-16-4",
@@ -313,6 +324,14 @@ function formatXP(value: number) {
 
 function getActivityLabel(activity: FarmActivity) {
   return `${activity.name} (${activity.detail})`;
+}
+
+function getActivitiesById(activityIds: string[]) {
+  return activityIds
+    .map((activityId) =>
+      SITE_FARM_ACTIVITIES.find((activity) => activity.id === activityId)
+    )
+    .filter((activity): activity is FarmActivity => Boolean(activity));
 }
 
 function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
@@ -494,6 +513,12 @@ export function FarmRunsCard({
   }, [currentXP, planActivities, planMode]);
 
   const quickActivities = useMemo(() => {
+    const orderedActivityIds = QUICK_RUN_ORDER[quickRunTab];
+
+    if (orderedActivityIds) {
+      return getActivitiesById(orderedActivityIds);
+    }
+
     return SITE_FARM_ACTIVITIES.filter((activity) =>
       matchesQuickRunTab(activity, quickRunTab)
     );
