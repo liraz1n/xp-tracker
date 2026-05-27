@@ -12,28 +12,31 @@ Na build 1.3.3, a aba Masmorras recebeu ordem fixa e seletor de 4 ou 5 jogadores
 
 Na build 1.3.4, o texto do registro rápido foi ajustado para deixar claro que somente criptas usam variação por nível do jogador. Masmorras continuam com XP fixo por quantidade de jogadores.
 
+Na build 1.4.3, a Cripta Nível 3 recebeu novos dados para 4 jogadores dos bosses 10 a 13.
+
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |
 | Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |
 | Nível 1 | Até derrotar o nível 30, 4 jogadores | 53.942 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |
 | Nível 3 | Até derrotar o nível 7 | 18.832 | Parcial | Primeiro dado informado para iniciar a tabela da Cripta 3. | 2026-05-26 |
 | Nível 3 | Até derrotar o nível 9 | 26.065 | Parcial | Progresso acumulado informado após derrotar o nível 9. | 2026-05-26 |
-| Nível 3 | Até derrotar o nível 10 | 30.065 | Parcial | Progresso acumulado informado após derrotar o nível 10. | 2026-05-26 |
-| Nível 3 | Até derrotar o nível 11 | 34.346 | Parcial | Progresso acumulado informado após derrotar o nível 11. | 2026-05-26 |
-| Nível 3 | Até derrotar o nível 12 | 38.926 | Parcial | Progresso acumulado informado após derrotar o nível 12. | 2026-05-26 |
+| Nível 3 | Até derrotar o nível 10, 4 jogadores | 35.371 | Confirmado | Novo dado informado para grupo com 4 jogadores. | 2026-05-27 |
+| Nível 3 | Até derrotar o nível 11, 4 jogadores | 40.407 | Confirmado | Novo dado informado para grupo com 4 jogadores. | 2026-05-27 |
+| Nível 3 | Até derrotar o nível 12, 4 jogadores | 45.796 | Confirmado | Novo dado informado para grupo com 4 jogadores. | 2026-05-27 |
+| Nível 3 | Até derrotar o nível 13, 4 jogadores | 51.561 | Confirmado | Novo dado informado para grupo com 4 jogadores. | 2026-05-27 |
 
 ## Análise inicial da Cripta Nível 3
 
-Os dados parecem ser acumulados até o marco derrotado. A partir do nível 9, o ganho incremental de XP cresce a cada novo nível, então a curva não parece fixa/linear.
+Os dados parecem ser acumulados até o marco derrotado. A nova sequência de 4 jogadores, do boss 10 ao 13, mostra ganho incremental crescente a cada novo nível, então a curva não parece fixa/linear.
 
 | Intervalo conhecido | XP adicional | Leitura inicial |
 | --- | ---: | --- |
 | Nível 7 até nível 9 | 7.233 | Faltam os dados isolados do nível 8 e do nível 9 para separar esse salto. |
-| Nível 9 até nível 10 | 4.000 | Primeiro salto isolado confirmado. |
-| Nível 10 até nível 11 | 4.281 | O XP subiu 281 em relação ao salto anterior. |
-| Nível 11 até nível 12 | 4.580 | O XP subiu 299 em relação ao salto anterior. |
+| Nível 10 até nível 11, 4 jogadores | 5.036 | Primeiro salto isolado da nova base de 4 jogadores. |
+| Nível 11 até nível 12, 4 jogadores | 5.389 | O XP subiu 353 em relação ao salto anterior. |
+| Nível 12 até nível 13, 4 jogadores | 5.765 | O XP subiu 376 em relação ao salto anterior. |
 
-Padrão provisório: depois do nível 9, cada nível está adicionando cerca de 280 a 300 XP a mais que o nível anterior. Ainda não dá para confirmar uma fórmula oficial, mas a tendência é progressiva.
+Padrão provisório: na nova base de 4 jogadores, cada nível está adicionando cerca de 350 a 380 XP a mais que o nível anterior. Ainda não dá para confirmar uma fórmula oficial, mas a tendência é progressiva.
 
 Gold: não será usado na tabela porque o valor é irregular e não entra no cálculo principal do XP Tracker.
 

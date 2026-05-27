@@ -1,6 +1,6 @@
 # Pagamentos e assinaturas
 
-Build 1.4.2 mantém a base comercial do XP Tracker, adiciona o painel de assinatura no cabeçalho e reforça a compatibilidade de carregamento após refresh.
+Build 1.4.3 mantém a base comercial do XP Tracker, adiciona o painel de assinatura no cabeçalho, reforça a compatibilidade de carregamento após refresh e atualiza a base da Cripta 3.
 
 ## Plano inicial
 
