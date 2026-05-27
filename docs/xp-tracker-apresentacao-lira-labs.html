@@ -3,25 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>XP Tracker - Apresentacao Comercial | Lira Labs</title>
+    <title>XP Tracker - Apresentação Comercial | Lira Labs</title>
     <style>
       @page {
         size: A4;
-        margin: 16mm;
+        margin: 14mm;
       }
 
       :root {
         --bg: #070707;
-        --panel: #111113;
-        --panel-soft: #171717;
+        --panel: #101013;
+        --panel-soft: #151515;
         --text: #f7f4ea;
         --muted: #a1a1aa;
         --gold: #facc15;
-        --gold-2: #f59e0b;
+        --gold-soft: rgba(250, 204, 21, 0.13);
         --green: #34d399;
-        --red: #fb7185;
-        --blue: #60a5fa;
-        --line: rgba(250, 204, 21, 0.24);
+        --line: rgba(250, 204, 21, 0.2);
+        --line-soft: rgba(255, 255, 255, 0.08);
       }
 
       * {
@@ -30,51 +29,64 @@
 
       body {
         margin: 0;
-        background: var(--bg);
+        background: #000;
         color: var(--text);
         font-family: Arial, Helvetica, sans-serif;
-        line-height: 1.45;
+        line-height: 1.42;
       }
 
       .page {
-        min-height: 265mm;
+        min-height: 269mm;
         page-break-after: always;
-        background:
-          radial-gradient(circle at top right, rgba(250, 204, 21, 0.18), transparent 32%),
-          linear-gradient(180deg, #080808 0%, #0d0d0f 100%);
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        padding: 28px;
         position: relative;
         overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+        background:
+          radial-gradient(circle at top right, rgba(250, 204, 21, 0.13), transparent 30%),
+          linear-gradient(180deg, #080808 0%, #0d0d0f 100%);
       }
 
       .page:last-child {
         page-break-after: auto;
       }
 
-      .brand-row {
+      .topbar,
+      .footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 16px;
-        margin-bottom: 28px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .topbar {
+        margin-bottom: 30px;
+      }
+
+      .footer {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 20px;
+        border-top: 1px solid var(--line-soft);
+        padding-top: 10px;
       }
 
       .brand {
         color: var(--gold);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 900;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
       }
 
-      .doc-tag {
+      .tag {
         border: 1px solid var(--line);
-        color: var(--muted);
         border-radius: 999px;
-        padding: 7px 12px;
-        font-size: 12px;
+        padding: 5px 10px;
       }
 
       h1,
@@ -85,233 +97,235 @@
       }
 
       h1 {
-        font-size: 56px;
-        line-height: 0.95;
-        margin-bottom: 18px;
+        max-width: 600px;
+        margin-bottom: 14px;
         color: var(--gold);
+        font-size: 44px;
+        line-height: 1;
         letter-spacing: -0.03em;
       }
 
       h2 {
-        color: var(--gold);
-        font-size: 28px;
         margin-bottom: 14px;
+        color: var(--gold);
+        font-size: 24px;
+        letter-spacing: -0.02em;
       }
 
       h3 {
-        color: #fff7c2;
-        font-size: 18px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        color: #fff8c7;
+        font-size: 15px;
+      }
+
+      p,
+      li {
+        color: #d4d4d8;
+        font-size: 12px;
+      }
+
+      ul {
+        margin: 8px 0 0;
+        padding-left: 16px;
+      }
+
+      li {
+        margin-bottom: 5px;
       }
 
       .lead {
-        font-size: 19px;
-        color: #d4d4d8;
-        max-width: 620px;
+        max-width: 610px;
+        color: #d9d9de;
+        font-size: 16px;
       }
 
       .muted {
         color: var(--muted);
       }
 
-      .hero-grid {
+      .small {
+        font-size: 10.5px;
+      }
+
+      .hero {
         display: grid;
         grid-template-columns: 1.1fr 0.9fr;
-        gap: 22px;
+        gap: 18px;
         margin-top: 34px;
       }
 
       .card {
-        background: rgba(17, 17, 19, 0.92);
         border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
-      }
-
-      .metric {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-top: 18px;
-      }
-
-      .metric div {
-        background: #070707;
-        border: 1px solid rgba(250, 204, 21, 0.18);
         border-radius: 14px;
-        padding: 14px;
+        background: rgba(16, 16, 19, 0.92);
+        padding: 16px;
       }
 
-      .metric strong {
-        display: block;
-        color: var(--gold);
-        font-size: 20px;
-      }
-
-      .metric span {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .section-title {
-        border-left: 4px solid var(--gold);
-        padding-left: 12px;
+      .quiet-card {
+        border-color: var(--line-soft);
+        background: rgba(255, 255, 255, 0.03);
       }
 
       .grid-2 {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
+        gap: 12px;
       }
 
       .grid-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
+        gap: 12px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #080808;
+        padding: 12px;
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--gold);
+        font-size: 18px;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .section-label {
+        margin-bottom: 7px;
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .pill {
+        display: inline-block;
+        margin-bottom: 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--gold-soft);
+        padding: 4px 8px;
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .quote {
+        color: #fff8c7;
+        font-size: 20px;
+        font-weight: 900;
+        line-height: 1.15;
+      }
+
+      .spacer {
+        height: 18px;
       }
 
       .feature {
-        min-height: 126px;
-      }
-
-      .feature-label {
-        display: inline-block;
-        background: rgba(250, 204, 21, 0.12);
-        border: 1px solid rgba(250, 204, 21, 0.22);
-        color: var(--gold);
-        border-radius: 999px;
-        padding: 4px 9px;
-        font-size: 11px;
-        font-weight: 900;
-        text-transform: uppercase;
-        margin-bottom: 10px;
-      }
-
-      ul {
-        margin: 10px 0 0;
-        padding-left: 18px;
-      }
-
-      li {
-        margin-bottom: 7px;
+        min-height: 112px;
       }
 
       .flow {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-top: 16px;
+        gap: 10px;
+        margin-top: 12px;
       }
 
-      .flow .step {
-        position: relative;
-        background: #080808;
-        border: 1px solid rgba(250, 204, 21, 0.2);
-        border-radius: 14px;
-        padding: 14px;
-        min-height: 118px;
+      .step {
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px;
       }
 
       .step-number {
+        margin-bottom: 8px;
         color: var(--gold);
+        font-size: 18px;
         font-weight: 900;
-        font-size: 24px;
       }
 
-      .security-row {
+      .line-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .line-item {
         display: grid;
         grid-template-columns: 92px 1fr;
-        gap: 14px;
-        align-items: start;
-        padding: 15px 0;
-        border-bottom: 1px solid rgba(250, 204, 21, 0.12);
-      }
-
-      .security-row:last-child {
-        border-bottom: 0;
-      }
-
-      .level-pill {
-        border: 1px solid rgba(250, 204, 21, 0.26);
-        background: rgba(250, 204, 21, 0.1);
-        color: var(--gold);
-        border-radius: 999px;
-        padding: 6px 10px;
-        text-align: center;
-        font-weight: 900;
-        font-size: 12px;
-      }
-
-      .status-ok {
-        color: var(--green);
-        font-weight: 900;
-      }
-
-      .status-plan {
-        color: var(--blue);
-        font-weight: 900;
-      }
-
-      .price-card {
-        min-height: 210px;
-      }
-
-      .footer-note {
-        position: absolute;
-        left: 28px;
-        right: 28px;
-        bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        color: #71717a;
-        font-size: 11px;
-        border-top: 1px solid rgba(250, 204, 21, 0.12);
+        gap: 12px;
+        border-top: 1px solid var(--line-soft);
         padding-top: 10px;
       }
 
-      .quote {
-        border-left: 4px solid var(--gold);
-        padding: 14px 18px;
-        background: rgba(250, 204, 21, 0.08);
-        border-radius: 0 14px 14px 0;
-        color: #fff7c2;
-        font-size: 18px;
-        font-weight: 700;
+      .line-item:first-child {
+        border-top: 0;
+        padding-top: 0;
       }
 
-      .small {
-        font-size: 12px;
+      .level {
+        width: fit-content;
+        border: 1px solid rgba(52, 211, 153, 0.25);
+        border-radius: 999px;
+        background: rgba(52, 211, 153, 0.08);
+        padding: 4px 8px;
+        color: var(--green);
+        font-size: 10px;
+        font-weight: 900;
       }
 
       .table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
         overflow: hidden;
+        border: 1px solid var(--line-soft);
         border-radius: 14px;
+        font-size: 11px;
       }
 
       .table th,
       .table td {
-        border: 1px solid rgba(250, 204, 21, 0.16);
+        border-bottom: 1px solid var(--line-soft);
         padding: 10px;
+        text-align: left;
         vertical-align: top;
       }
 
       .table th {
-        background: rgba(250, 204, 21, 0.12);
         color: var(--gold);
-        text-align: left;
+        background: var(--gold-soft);
+        font-size: 10px;
+        text-transform: uppercase;
       }
 
       .table td {
         color: #d4d4d8;
       }
 
+      .table tr:last-child td {
+        border-bottom: 0;
+      }
+
       @media print {
         body {
-          background: #000;
           print-color-adjust: exact;
           -webkit-print-color-adjust: exact;
         }
@@ -320,445 +334,274 @@
   </head>
   <body>
     <section class="page">
-      <div class="brand-row">
+      <div class="topbar">
         <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Apresentação comercial | Build 1.2.1 | 26/05/2026</div>
+        <div class="tag">Apresentação comercial | Build 1.2.2 | 27/05/2026</div>
       </div>
 
+      <div class="section-label">Produto web para RPG via bot</div>
       <h1>XP Tracker</h1>
       <p class="lead">
-        Plataforma web para acompanhar progresso, níveis, XP restante, histórico e rotas de farm em jogos de RPG via bot no Telegram.
+        Uma dashboard simples para acompanhar nível, XP restante, progresso diário e rotas de farm em jogos de RPG no Telegram.
       </p>
 
-      <div class="hero-grid">
+      <div class="hero">
         <div class="card">
-          <h2 class="section-title">Resumo executivo</h2>
+          <h2>O que ele resolve</h2>
           <p>
-            O XP Tracker transforma informações dispersas de um jogo por bot em uma dashboard simples, visual e segura.
-            O jogador consegue saber onde está, quanto falta para upar e quais atividades ajudam a chegar mais rápido ao próximo nível.
+            Jogadores costumam controlar XP por mensagens, prints e contas manuais. O XP Tracker centraliza esse processo em uma experiência visual, rápida e segura.
           </p>
-          <p>
-            O produto foi pensado para jogadores individuais, comunidades, guildas e administradores que desejam mais clareza sobre evolução, metas e desempenho.
-          </p>
-          <div class="metric">
-            <div>
-              <strong>Topo</strong>
-              <span>jornada de progresso em destaque</span>
+          <div class="metrics">
+            <div class="metric">
+              <strong>Clareza</strong>
+              <span>quanto falta para upar</span>
             </div>
-            <div>
+            <div class="metric">
+              <strong>Farm</strong>
+              <span>runs de cripta e masmorra</span>
+            </div>
+            <div class="metric">
               <strong>Nuvem</strong>
-              <span>sincronização com login Google</span>
-            </div>
-            <div>
-              <strong>RLS</strong>
-              <span>isolamento de dados por usuário</span>
+              <span>salvo com login Google</span>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <h2 class="section-title">Proposta de valor</h2>
-          <div class="quote">
-            Menos conta manual. Mais clareza para evoluir.
-          </div>
-          <ul>
-            <li>Facilita a leitura do progresso do jogador.</li>
-            <li>Ajuda a planejar criptas, masmorras e metas diárias.</li>
-            <li>Permite testar como visitante antes de salvar na nuvem.</li>
-            <li>Cria uma experiência organizada para comunidades RPG.</li>
-          </ul>
+        <div class="card quiet-card">
+          <p class="quote">Menos conta manual. Mais direção para evoluir.</p>
+          <div class="spacer"></div>
+          <p class="muted">
+            O usuário pode testar como visitante e salvar o progresso depois, quando decidir entrar com Google.
+          </p>
         </div>
       </div>
 
-      <div class="footer-note">
+      <div class="footer">
         <span>XP Tracker por Lira Labs</span>
         <span>xp-tracker.pages.dev</span>
       </div>
     </section>
 
     <section class="page">
-      <div class="brand-row">
+      <div class="topbar">
         <div class="brand">Lira Labs</div>
-        <div class="doc-tag">O problema e a solução</div>
+        <div class="tag">Experiência do usuário</div>
       </div>
 
-      <h2 class="section-title">Para que o site serve</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>Contexto do jogo</h3>
-          <p>
-            Em jogos via bot no Telegram, o jogador geralmente precisa acompanhar XP, nível, progresso, caçadas, criptas e masmorras com informações espalhadas em mensagens, tabelas ou prints.
-          </p>
-          <p>
-            Isso torna difícil entender quanto falta para subir de nível e qual atividade compensa mais naquele momento.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Solução</h3>
-          <p>
-            O XP Tracker centraliza esse acompanhamento em uma dashboard web, com histórico, estimativas, cálculo de progresso, conquistas e planejamento de runs.
-          </p>
-          <p>
-            O jogador pode testar como visitante e, se gostar, salvar o progresso na nuvem usando Google.
-          </p>
-        </div>
-      </div>
-
-      <h2 class="section-title" style="margin-top: 22px;">Fluxo principal</h2>
+      <h2>Fluxo principal</h2>
       <div class="flow">
         <div class="step">
           <div class="step-number">01</div>
           <h3>Entrar</h3>
-          <p class="small">O usuário entra como visitante ou com Google. No primeiro contato, o nível começa em 0.</p>
+          <p class="small">Visitante para testar ou Google para salvar.</p>
         </div>
         <div class="step">
           <div class="step-number">02</div>
           <h3>Configurar</h3>
-          <p class="small">Informa nível atual, nível alvo, XP para upar, XP restante e meta diária.</p>
+          <p class="small">Nível atual, nível alvo, XP para upar e XP restante.</p>
         </div>
         <div class="step">
           <div class="step-number">03</div>
           <h3>Acompanhar</h3>
-          <p class="small">Visualiza progresso, conquistas, histórico, gráfico e estimativas de conclusão.</p>
+          <p class="small">Jornada, histórico, gráfico, metas e conquistas.</p>
         </div>
         <div class="step">
           <div class="step-number">04</div>
-          <h3>Salvar</h3>
-          <p class="small">Ao logar com Google, o progresso do visitante é levado para a conta e salvo automaticamente.</p>
+          <h3>Planejar</h3>
+          <p class="small">Runs sugeridas para reduzir o XP restante.</p>
         </div>
       </div>
 
-      <div class="footer-note">
-        <span>Documento comercial</span>
-        <span>Uso: apresentação para jogadores, guildas e parceiros</span>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="brand-row">
-        <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Funcionalidades</div>
-      </div>
-
-      <h2 class="section-title">Features atuais</h2>
+      <div class="spacer"></div>
+      <h2>Features essenciais</h2>
       <div class="grid-3">
         <div class="card feature">
-          <span class="feature-label">Acesso</span>
+          <span class="pill">Acesso</span>
           <h3>Visitante + Google</h3>
-          <p>Teste sem cadastro e migração do progresso para a conta Google quando o usuário decidir salvar.</p>
+          <p>Teste sem cadastro e migração do progresso para a conta quando fizer login.</p>
         </div>
         <div class="card feature">
-          <span class="feature-label">Dashboard</span>
+          <span class="pill">Dashboard</span>
           <h3>Progresso visual</h3>
-          <p>Meta total, XP restante, percentual, barra de progresso e marcos de 25%, 50%, 75% e 100%.</p>
+          <p>Nível, XP restante, percentual, jornada de conquistas e meta diária.</p>
         </div>
         <div class="card feature">
-          <span class="feature-label">Configuração</span>
-          <h3>Setup manual de progresso</h3>
-          <p>O jogador informa nível atual, nível alvo, XP para upar, XP restante e meta diária sem depender de tabelas futuras.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Farm</span>
+          <span class="pill">Farm</span>
           <h3>Criptas e masmorras</h3>
-          <p>Cálculo compacto focado em cripta e masmorra, com registro rápido de runs, modos de plano e base interna de dados de XP.</p>
+          <p>Calculadora de runs com base interna de XP e plano sugerido.</p>
         </div>
         <div class="card feature">
-          <span class="feature-label">Conquistas</span>
+          <span class="pill">Histórico</span>
+          <h3>Registro inteligente</h3>
+          <p>Salva progresso manual, runs aplicadas, edição e exclusão de registros.</p>
+        </div>
+        <div class="card feature">
+          <span class="pill">Gráfico</span>
+          <h3>Evolução temporal</h3>
+          <p>Visualização do XP restante e leitura de ritmo recente.</p>
+        </div>
+        <div class="card feature">
+          <span class="pill">Conquistas</span>
           <h3>Marcos de uso</h3>
-          <p>Conquistas automáticas por comportamento, como primeira run registrada, 10 runs no histórico, 100k XP farmado e meta diária batida.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Histórico</span>
-          <h3>Histórico inteligente</h3>
-          <p>Registros de progresso, edição, exclusão, filtros e leitura de evolução ao longo do tempo. Ajustes manuais de XP restante também entram no histórico quando representam avanço.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Gráficos</span>
-          <h3>Visualização temporal</h3>
-          <p>Gráfico de XP restante com filtros para entender ritmo e tendência de evolução.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Estimativas</span>
-          <h3>Previsão de conclusão</h3>
-          <p>Calcula dias restantes usando meta diária e média histórica de XP ganho.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Experiência</span>
-          <h3>Responsivo</h3>
-          <p>Interface adaptada para desktop e celular, com tema escuro premium e leitura rápida.</p>
-        </div>
-        <div class="card feature">
-          <span class="feature-label">Marca</span>
-          <h3>Lira Labs</h3>
-          <p>Produto assinado, com rodapé, ambiente, versão, build e identificação de produção.</p>
+          <p>Primeira run, 10 runs, 100k XP farmado e meta diária batida.</p>
         </div>
       </div>
 
-      <div class="footer-note">
-        <span>Features atuais do MVP</span>
-        <span>Base pronta para expansão comercial</span>
+      <div class="footer">
+        <span>Experiência limpa para desktop e celular</span>
+        <span>Build 1.2.2</span>
       </div>
     </section>
 
     <section class="page">
-      <div class="brand-row">
+      <div class="topbar">
         <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Segurança e confiança</div>
+        <div class="tag">Segurança e tecnologia</div>
       </div>
 
-      <h2 class="section-title">Níveis de segurança implementados</h2>
+      <h2>Base de confiança</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="line-list">
+            <div class="line-item">
+              <div class="level">Login</div>
+              <div>
+                <h3>Google OAuth</h3>
+                <p>Autenticação via Supabase Auth. Visitante não grava na nuvem até escolher salvar.</p>
+              </div>
+            </div>
+            <div class="line-item">
+              <div class="level">Dados</div>
+              <div>
+                <h3>Row Level Security</h3>
+                <p>Cada usuário autenticado só acessa o próprio progresso salvo.</p>
+              </div>
+            </div>
+            <div class="line-item">
+              <div class="level">Entrega</div>
+              <div>
+                <h3>Cloudflare Pages</h3>
+                <p>Hospedagem com HTTPS, deploy controlado e headers de segurança.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card quiet-card">
+          <h3>Stack atual</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Camada</th>
+                <th>Tecnologia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Interface</td>
+                <td>React Router, React, Tailwind CSS</td>
+              </tr>
+              <tr>
+                <td>Autenticação</td>
+                <td>Supabase Auth + Google</td>
+              </tr>
+              <tr>
+                <td>Banco</td>
+                <td>Supabase Postgres + RLS</td>
+              </tr>
+              <tr>
+                <td>Hospedagem</td>
+                <td>Cloudflare Pages</td>
+              </tr>
+              <tr>
+                <td>Versionamento</td>
+                <td>GitHub</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
       <div class="card">
-        <div class="security-row">
-          <div class="level-pill">Nível 1</div>
-          <div>
-            <h3>Autenticação segura</h3>
-            <p><span class="status-ok">Implementado:</span> login com Google via Supabase Auth. O usuário visitante não grava dados na nuvem até escolher autenticar.</p>
-          </div>
-        </div>
-        <div class="security-row">
-          <div class="level-pill">Nível 2</div>
-          <div>
-            <h3>Isolamento por usuário</h3>
-            <p><span class="status-ok">Implementado:</span> Row Level Security no Supabase. Cada conta autenticada só pode ler, criar e atualizar o próprio progresso.</p>
-          </div>
-        </div>
-        <div class="security-row">
-          <div class="level-pill">Nível 3</div>
-          <div>
-            <h3>Regras de banco</h3>
-            <p><span class="status-ok">Implementado:</span> políticas de SELECT, INSERT e UPDATE baseadas em <strong>auth.uid() = user_id</strong>, além de linha única por usuário.</p>
-          </div>
-        </div>
-        <div class="security-row">
-          <div class="level-pill">Nível 4</div>
-          <div>
-            <h3>Hospedagem e transporte</h3>
-            <p><span class="status-ok">Implementado:</span> publicação em Cloudflare Pages com HTTPS e headers de segurança configurados no projeto.</p>
-          </div>
-        </div>
-        <div class="security-row">
-          <div class="level-pill">Nível 5</div>
-          <div>
-            <h3>Boas práticas operacionais</h3>
-            <p><span class="status-ok">Implementado:</span> versionamento no GitHub, deploy controlado e separação entre chave pública do cliente e regras reais no banco.</p>
-          </div>
+        <h3>Status do produto</h3>
+        <div class="grid-3">
+          <p><strong>Online:</strong><br />site publicado em produção.</p>
+          <p><strong>Funcional:</strong><br />modo visitante, login e salvamento.</p>
+          <p><strong>Escalável:</strong><br />base pronta para guildas e comunidades.</p>
         </div>
       </div>
 
-      <h2 class="section-title" style="margin-top: 22px;">Pontos de confiança para venda</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>Privacidade do progresso</h3>
-          <p>O progresso salvo fica associado à conta autenticada. Outro usuário não consegue acessar ou alterar os dados dessa conta via API pública.</p>
-        </div>
-        <div class="card">
-          <h3>Sem bloqueio para testar</h3>
-          <p>O modo visitante reduz atrito comercial: a pessoa experimenta primeiro e só faz login quando percebe valor no produto.</p>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        <span>Segurança atual: Supabase Auth + RLS + Cloudflare Pages</span>
-        <span>XP Tracker | Lira Labs</span>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="brand-row">
-        <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Arquitetura</div>
-      </div>
-
-      <h2 class="section-title">Como o produto está estruturado</h2>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Camada</th>
-            <th>Tecnologia</th>
-            <th>Função no produto</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Frontend</td>
-            <td>React Router, React, Tailwind CSS</td>
-            <td>Interface web, dashboard, formulários, gráficos, planejador e experiência responsiva.</td>
-          </tr>
-          <tr>
-            <td>Autenticação</td>
-            <td>Supabase Auth + Google OAuth</td>
-            <td>Entrada segura do usuário e sessão autenticada para salvar progresso.</td>
-          </tr>
-          <tr>
-            <td>Banco de dados</td>
-            <td>Supabase Postgres</td>
-            <td>Armazena progresso, histórico, metas, níveis, tema e marcos alcançados.</td>
-          </tr>
-          <tr>
-            <td>Segurança de dados</td>
-            <td>Row Level Security</td>
-            <td>Impede que um usuário leia ou altere progresso de outro usuário.</td>
-          </tr>
-          <tr>
-            <td>Hospedagem</td>
-            <td>Cloudflare Pages</td>
-            <td>Entrega global, HTTPS e publicação contínua do site.</td>
-          </tr>
-          <tr>
-            <td>Versionamento</td>
-            <td>GitHub</td>
-            <td>Histórico de código, controle de mudanças e base para manutenção profissional.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2 class="section-title" style="margin-top: 24px;">Status do produto</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>MVP funcional</h3>
-          <ul>
-            <li>Site online em produção.</li>
-            <li>Login Google operacional.</li>
-            <li>Modo visitante funcional.</li>
-            <li>Dados salvos na nuvem para usuários autenticados.</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Pronto para demonstração</h3>
-          <ul>
-            <li>Fluxo de teste simples para novos usuários.</li>
-            <li>Visual de produto com marca Lira Labs.</li>
-            <li>Recursos suficientes para apresentar valor real.</li>
-            <li>Base técnica pronta para evoluir.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        <span>Arquitetura enxuta e escalável</span>
-        <span>React + Supabase + Cloudflare</span>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="brand-row">
-        <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Venda e posicionamento</div>
-      </div>
-
-      <h2 class="section-title">Público-alvo</h2>
-      <div class="grid-3">
-        <div class="card">
-          <h3>Jogadores</h3>
-          <p>Quem quer saber quanto falta para upar, qual meta diária cumprir e quais runs compensam mais.</p>
-        </div>
-        <div class="card">
-          <h3>Guildas</h3>
-          <p>Comunidades que desejam padronizar acompanhamento de evolução e facilitar organização de grupos.</p>
-        </div>
-        <div class="card">
-          <h3>Administradores</h3>
-          <p>Pessoas que gerenciam bots, eventos ou tabelas e querem oferecer uma ferramenta complementar.</p>
-        </div>
-      </div>
-
-      <h2 class="section-title" style="margin-top: 24px;">Argumentos comerciais</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>Benefícios para o usuário</h3>
-          <ul>
-            <li>Economia de tempo em contas manuais.</li>
-            <li>Mais clareza sobre metas e progresso.</li>
-            <li>Planejamento de criptas e masmorras com base em XP restante.</li>
-            <li>Experiência simples: testar primeiro, salvar depois.</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Benefícios para a comunidade</h3>
-          <ul>
-            <li>Ferramenta compartilhável por link.</li>
-            <li>Padronização de acompanhamento entre jogadores.</li>
-            <li>Base para rankings, eventos e metas de guilda.</li>
-            <li>Possibilidade de customização futura para cada servidor.</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2 class="section-title" style="margin-top: 24px;">Modelos de venda possíveis</h2>
-      <div class="grid-3">
-        <div class="card price-card">
-          <span class="feature-label">Licença</span>
-          <h3>Mensalidade</h3>
-          <p>Comunidade paga para usar uma versão oficial hospedada, com suporte e melhorias contínuas.</p>
-        </div>
-        <div class="card price-card">
-          <span class="feature-label">Setup</span>
-          <h3>Implantação personalizada</h3>
-          <p>Configuração com tabelas oficiais, nome da comunidade, ajustes visuais e domínio próprio.</p>
-        </div>
-        <div class="card price-card">
-          <span class="feature-label">White label</span>
-          <h3>Marca própria</h3>
-          <p>Versão adaptada para outra guilda, bot ou servidor, mantendo a tecnologia Lira Labs por trás.</p>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        <span>Produto com potencial B2C e B2B leve</span>
+      <div class="footer">
+        <span>Segurança: Supabase Auth + RLS + Cloudflare</span>
         <span>Lira Labs</span>
       </div>
     </section>
 
     <section class="page">
-      <div class="brand-row">
+      <div class="topbar">
         <div class="brand">Lira Labs</div>
-        <div class="doc-tag">Evolução do produto</div>
+        <div class="tag">Venda e posicionamento</div>
       </div>
 
-      <h2 class="section-title">Próximas evoluções recomendadas</h2>
+      <h2>Para quem vender</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Jogadores</h3>
+          <p>Quem quer entender quanto falta para upar e quais atividades compensam.</p>
+        </div>
+        <div class="card">
+          <h3>Guildas</h3>
+          <p>Comunidades que precisam organizar evolução e metas entre membros.</p>
+        </div>
+        <div class="card">
+          <h3>Administradores</h3>
+          <p>Donos de bots ou servidores que desejam uma ferramenta complementar.</p>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <h2>Argumento comercial</h2>
       <div class="grid-2">
         <div class="card">
-          <h3>Leitura automática do bot</h3>
-          <p>
-            Evolução futura para interpretar mensagens, prints ou dados exportados do bot e atualizar o XP automaticamente.
-          </p>
-          <p class="muted small">Status: planejado.</p>
+          <h3>Valor para o jogador</h3>
+          <ul>
+            <li>Evita contas manuais.</li>
+            <li>Mostra progresso de forma visual.</li>
+            <li>Ajuda a planejar runs e metas.</li>
+            <li>Permite testar sem cadastro.</li>
+          </ul>
         </div>
         <div class="card">
-          <h3>Tabelas oficiais editáveis</h3>
-          <p>
-            Painel para cadastrar XP oficial por cripta e masmorra, com variações por quantidade de jogadores.
-          </p>
-          <p class="muted small">Status: próximo passo natural.</p>
-        </div>
-        <div class="card">
-          <h3>Rankings e guildas</h3>
-          <p>
-            Criação de grupos, metas coletivas, rankings internos e acompanhamento de evolução por equipe.
-          </p>
-          <p class="muted small">Status: expansão comercial.</p>
-        </div>
-        <div class="card">
-          <h3>Plano inteligente de farm</h3>
-          <p>
-            Algoritmo para sugerir runs por menos ações, maior XP por run, somente cripta ou somente masmorra.
-          </p>
-          <p class="muted small">Status: implementado e em refinamento.</p>
+          <h3>Valor para a comunidade</h3>
+          <ul>
+            <li>Ferramenta compartilhável por link.</li>
+            <li>Experiência padronizada para jogadores.</li>
+            <li>Base para rankings e eventos futuros.</li>
+            <li>Possibilidade de customização por servidor.</li>
+          </ul>
         </div>
       </div>
 
-      <h2 class="section-title" style="margin-top: 24px;">Mensagem final para apresentação</h2>
-      <div class="card">
-        <p class="quote">
-          O XP Tracker não é só uma calculadora de XP. É uma central de evolução para jogadores que querem jogar com mais direção, menos improviso e mais estratégia.
-        </p>
-        <p style="margin-top: 18px;">
-          Com a base atual, o produto já pode ser demonstrado para jogadores e comunidades. Com as próximas integrações, ele pode se tornar uma ferramenta oficial de apoio para servidores, guildas e bots RPG.
-        </p>
+      <div class="spacer"></div>
+      <h2>Próximos passos</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Tabelas oficiais</h3>
+          <p>Cadastro completo de XP por cripta, masmorra e variação de jogadores.</p>
+        </div>
+        <div class="card">
+          <h3>Guildas</h3>
+          <p>Grupos, metas coletivas e rankings internos.</p>
+        </div>
+        <div class="card">
+          <h3>Leitura do bot</h3>
+          <p>Integração futura para interpretar mensagens ou dados exportados.</p>
+        </div>
       </div>
 
-      <div class="footer-note">
-        <span>XP Tracker | Apresentação comercial | Build 1.2.1 | 26/05/2026</span>
+      <div class="footer">
+        <span>XP Tracker | Apresentação comercial | Build 1.2.2 | 27/05/2026</span>
         <span>© 2026 Lira Labs. Todos os direitos reservados.</span>
       </div>
     </section>
