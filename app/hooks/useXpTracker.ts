@@ -53,6 +53,19 @@ interface GuestProgressDraft {
   userTotalXP?: number;
 }
 
+interface ProgressSnapshot {
+  totalXP: number;
+  currentXP: number;
+  dailyGoal: number;
+  history: HistoryEntry[];
+  reachedMilestones: number[];
+  lastSavedXP: number;
+  darkMode: boolean;
+  currentLevel: number;
+  targetLevel: number;
+  userTotalXP: number;
+}
+
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 function clamp(value: number, min: number, max: number) {
@@ -109,6 +122,26 @@ function isMissingProgressColumn(error: {
     errorText.includes("current_level") ||
     errorText.includes("target_level")
   );
+}
+
+function isUserTotalXPColumnError(error: {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+} | null) {
+  if (!error) return false;
+
+  return [
+    error.code,
+    error.message,
+    error.details,
+    error.hint,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .includes("user_total_xp");
 }
 
 export function useXpTracker() {
@@ -188,14 +221,18 @@ export function useXpTracker() {
 
   function buildProgressPayload<T extends Record<string, unknown>>(
     basePayload: T,
-    userTotalXPValue: number
+    userTotalXPValue: number,
+    levels = {
+      currentLevel,
+      targetLevel,
+    }
   ) {
     return {
       ...basePayload,
       ...(levelColumnsAvailable.current
         ? {
-            current_level: currentLevel,
-            target_level: targetLevel,
+            current_level: levels.currentLevel,
+            target_level: levels.targetLevel,
           }
         : {}),
       ...(userTotalXPColumnAvailable.current
@@ -204,6 +241,78 @@ export function useXpTracker() {
           }
         : {}),
     };
+  }
+
+  async function persistProgressSnapshot(
+    snapshot: ProgressSnapshot,
+    options: { requireUserTotalXP?: boolean } = {}
+  ) {
+    if (guestMode || !billing.canUseCloudSync) return true;
+    if (!user || !progressLoaded || loadError) return false;
+
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+      saveTimeout.current = null;
+    }
+
+    setSaveStatus("saving");
+
+    const baseUpdate = {
+      total_xp: snapshot.totalXP,
+      current_xp: snapshot.currentXP,
+      daily_goal: snapshot.dailyGoal,
+      history: snapshot.history,
+      reached_milestones: snapshot.reachedMilestones,
+      last_saved_xp: snapshot.lastSavedXP,
+      dark_mode: snapshot.darkMode,
+      updated_at: new Date().toISOString(),
+    };
+
+    const levels = {
+      currentLevel: snapshot.currentLevel,
+      targetLevel: snapshot.targetLevel,
+    };
+
+    let saveResult = await supabase
+      .from("xp_progress")
+      .update(buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels))
+      .eq("user_id", user.id);
+
+    while (isMissingProgressColumn(saveResult.error)) {
+      if (
+        options.requireUserTotalXP &&
+        isUserTotalXPColumnError(saveResult.error)
+      ) {
+        console.error(
+          "Erro ao salvar XP do usuário: a coluna user_total_xp não foi encontrada.",
+          saveResult.error
+        );
+        setSaveStatus("error");
+        return false;
+      }
+
+      downgradeProgressColumns(saveResult.error);
+
+      saveResult = await supabase
+        .from("xp_progress")
+        .update(buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels))
+        .eq("user_id", user.id);
+
+      if (!saveResult.error) break;
+      if (!isMissingProgressColumn(saveResult.error)) break;
+      if (!levelColumnsAvailable.current && !userTotalXPColumnAvailable.current) {
+        break;
+      }
+    }
+
+    if (saveResult.error) {
+      console.error("Erro ao salvar progresso:", saveResult.error);
+      setSaveStatus("error");
+      return false;
+    }
+
+    setSaveStatus("saved");
+    return true;
   }
 
   function saveGuestProgressDraft() {
@@ -612,7 +721,7 @@ export function useXpTracker() {
       xpRemaining: currentXP,
       totalXP,
     };
-
+    
     setHistory((prev) => [entry, ...prev]);
     setUserTotalXP((prev) => prev + xpGained);
     setLastSavedXP(currentXP);
@@ -709,7 +818,7 @@ export function useXpTracker() {
     setBarPulsing(false);
   }
 
-  function updateProgressSettings({
+  async function updateProgressSettings({
     totalXP: nextTotalXP,
     currentXP: nextCurrentXP,
     dailyGoal: nextDailyGoal,
@@ -725,27 +834,53 @@ export function useXpTracker() {
     userTotalXP: number;
   }) {
     const sanitizedCurrentXP = Math.max(0, nextCurrentXP);
+    const sanitizedCurrentLevel = sanitizeLevel(nextCurrentLevel);
+    const sanitizedTargetLevel = sanitizeLevel(nextTargetLevel);
+    const sanitizedUserTotalXP = Math.max(0, nextUserTotalXP);
     const xpGained = currentXP - sanitizedCurrentXP;
+    const nextHistory =
+      xpGained > 0
+        ? [
+            {
+              date: new Date().toISOString(),
+              xpGained,
+              xpRemaining: sanitizedCurrentXP,
+              totalXP: nextTotalXP,
+              source: "Ajuste manual em configurações",
+            },
+            ...history,
+          ]
+        : history;
 
     setTotalXP(nextTotalXP);
     setCurrentXP(sanitizedCurrentXP);
     setDailyGoal(nextDailyGoal);
-    setCurrentLevel(sanitizeLevel(nextCurrentLevel));
-    setTargetLevel(sanitizeLevel(nextTargetLevel));
-    setUserTotalXP(Math.max(0, nextUserTotalXP));
+    setCurrentLevel(sanitizedCurrentLevel);
+    setTargetLevel(sanitizedTargetLevel);
+    setUserTotalXP(sanitizedUserTotalXP);
     setLastSavedXP(sanitizedCurrentXP);
 
-    if (xpGained <= 0) return;
+    if (xpGained > 0) {
+      setHistory(nextHistory);
+    }
 
-    const entry: HistoryEntry = {
-      date: new Date().toISOString(),
-      xpGained,
-      xpRemaining: sanitizedCurrentXP,
-      totalXP: nextTotalXP,
-      source: "Ajuste manual em configurações",
-    };
+    return persistProgressSnapshot(
+      {
+        totalXP: nextTotalXP,
+        currentXP: sanitizedCurrentXP,
+        dailyGoal: nextDailyGoal,
+        history: nextHistory,
+        reachedMilestones,
+        lastSavedXP: sanitizedCurrentXP,
+        darkMode,
+        currentLevel: sanitizedCurrentLevel,
+        targetLevel: sanitizedTargetLevel,
+        userTotalXP: sanitizedUserTotalXP,
+      },
+      { requireUserTotalXP: true }
+    );
 
-    setHistory((prev) => [entry, ...prev]);
+
   }
 
   async function resetProgress() {

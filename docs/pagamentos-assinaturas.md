@@ -1,6 +1,6 @@
 # Pagamentos e assinaturas
 
-Build 1.4.5 mantém a base comercial do XP Tracker, adiciona o XP atual do usuário na régua principal do dashboard, preserva o feedback visual do registro rápido de runs e mantém a base atualizada da Cripta 3.
+Build 1.4.6 mantém a base comercial do XP Tracker, corrige a soma do XP total do usuário ao salvar configurações, preserva o feedback visual do registro rápido de runs e mantém a base atualizada da Cripta 3.
 
 ## Plano inicial
 

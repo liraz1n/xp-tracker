@@ -24,7 +24,7 @@ interface SettingsPanelProps {
     dailyGoal: number;
     currentLevel: number;
     targetLevel: number;
-  }) => void;
+  }) => void | Promise<boolean | void>;
 }
 
 function sanitizeLevel(value: number) {
@@ -51,6 +51,7 @@ export function SettingsPanel({
   const [draftDailyGoal, setDraftDailyGoal] = useState(dailyGoal);
   const [draftCurrentLevel, setDraftCurrentLevel] = useState(currentLevel);
   const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -66,29 +67,32 @@ export function SettingsPanel({
   if (!open) return null;
 
   const draftCurrentXPValue = Math.min(draftCurrentXP, draftTotalXP);
+  const xpGainedInSettings = Math.max(0, currentXP - draftCurrentXPValue);
+  const userTotalAfterSave = draftUserTotalXP + xpGainedInSettings;
 
   function updateDraftCurrentXP(value: number) {
-    const previousCurrentXP = Math.min(draftCurrentXP, draftTotalXP);
     const nextCurrentXP = Math.min(Math.max(0, value), draftTotalXP);
-    const xpGained = previousCurrentXP - nextCurrentXP;
 
     setDraftCurrentXP(nextCurrentXP);
-
-    if (xpGained > 0) {
-      setDraftUserTotalXP((prev) => prev + xpGained);
-    }
   }
 
-  function saveSettings() {
-    onSave({
+  async function saveSettings() {
+    setIsSavingSettings(true);
+
+    const saved = await onSave({
       totalXP: draftTotalXP,
       currentXP: draftCurrentXPValue,
-      userTotalXP: draftUserTotalXP,
+      userTotalXP: userTotalAfterSave,
       dailyGoal: draftDailyGoal,
       currentLevel: draftCurrentLevel,
       targetLevel: draftTargetLevel,
     });
-    onClose();
+
+    setIsSavingSettings(false);
+
+    if (saved !== false) {
+      onClose();
+    }
   }
 
   return (
@@ -165,14 +169,20 @@ export function SettingsPanel({
             <p className={`${theme.muted} mt-2`}>
               Se o XP restante diminuir, o avanço entra automaticamente no histórico inteligente de hoje.
             </p>
+            {xpGainedInSettings > 0 && (
+              <p className="mt-2 text-sm font-bold text-emerald-300">
+                +{xpGainedInSettings.toLocaleString("pt-BR")} XP será somado. Total após salvar: {userTotalAfterSave.toLocaleString("pt-BR")}.
+              </p>
+            )}
           </div>
 
           <button
             type="button"
             onClick={saveSettings}
-            className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white"
+            disabled={isSavingSettings}
+            className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
-            Salvar alterações
+            {isSavingSettings ? "Salvando..." : "Salvar alterações"}
           </button>
         </div>
 
