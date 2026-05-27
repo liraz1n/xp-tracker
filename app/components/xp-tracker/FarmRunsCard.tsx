@@ -268,25 +268,6 @@ function getActivityLabel(activity: FarmActivity) {
   return `${activity.name} (${activity.detail})`;
 }
 
-function getActivityStatus(activity: FarmActivity) {
-  if (activity.detail.includes("Base provisória")) return "Provisório";
-  if (activity.detail.includes("Dado parcial")) return "Parcial";
-
-  return "Confirmado";
-}
-
-function getStatusClass(status: string) {
-  if (status === "Confirmado") {
-    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
-  }
-
-  if (status === "Parcial") {
-    return "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
-  }
-
-  return "border-yellow-500/20 bg-yellow-500/10 text-yellow-300";
-}
-
 function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number) {
   const existingItem = plan.find((item) => item.activity.id === activity.id);
 
@@ -769,64 +750,6 @@ export function FarmRunsCard({
                   </div>
                 </>
               )}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
-            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-yellow-300 font-black">
-                  Tabela de dados do jogo
-                </p>
-                <p className={`${theme.muted} text-xs`}>
-                  Base atual de criptas e masmorras usada pela calculadora.
-                </p>
-              </div>
-
-              <span className="w-fit rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
-                {visibleActivities.length} registros
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[680px] border-separate border-spacing-y-2 text-sm">
-                <thead>
-                  <tr className="text-left text-[11px] uppercase text-zinc-500">
-                    <th className="px-3 py-1 font-black">Tipo</th>
-                    <th className="px-3 py-1 font-black">Atividade</th>
-                    <th className="px-3 py-1 font-black">Detalhe</th>
-                    <th className="px-3 py-1 font-black">Status</th>
-                    <th className="px-3 py-1 text-right font-black">XP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleActivities.map((activity) => {
-                    const status = getActivityStatus(activity);
-
-                    return (
-                      <tr key={activity.id} className="bg-black/25">
-                        <td className="rounded-l-2xl border-y border-l border-yellow-500/10 px-3 py-3 text-xs font-black text-yellow-300">
-                          {activity.category}
-                        </td>
-                        <td className="border-y border-yellow-500/10 px-3 py-3 font-bold text-white">
-                          {activity.name}
-                        </td>
-                        <td className={`${theme.muted} border-y border-yellow-500/10 px-3 py-3 text-xs`}>
-                          {activity.detail}
-                        </td>
-                        <td className="border-y border-yellow-500/10 px-3 py-3">
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${getStatusClass(status)}`}>
-                            {status}
-                          </span>
-                        </td>
-                        <td className="rounded-r-2xl border-y border-r border-yellow-500/10 px-3 py-3 text-right font-black text-emerald-300">
-                          {formatXP(activity.xp)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             </div>
           </div>
         </div>

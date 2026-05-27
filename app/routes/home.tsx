@@ -175,6 +175,15 @@ export default function Home() {
             />
           )}
 
+          <StatsCards
+            totalXP={tracker.totalXP}
+            currentXP={tracker.currentXP}
+            percentageDisplay={tracker.percentageDisplay}
+            currentLevel={tracker.currentLevel}
+            targetLevel={tracker.targetLevel}
+            theme={theme}
+          />
+
           <ProgressCard
             completedXP={tracker.completedXP}
             percentageValue={tracker.percentageValue}
@@ -184,14 +193,13 @@ export default function Home() {
             theme={theme}
           />
 
-          <StatsCards
-            totalXP={tracker.totalXP}
-            currentXP={tracker.currentXP}
-            percentageDisplay={tracker.percentageDisplay}
-            currentLevel={tracker.currentLevel}
-            targetLevel={tracker.targetLevel}
-            theme={theme}
-          />
+          {!shouldShowOnboarding && (
+            <UsageAchievementsCard
+              history={tracker.history}
+              dailyGoal={tracker.dailyGoal}
+              theme={theme}
+            />
+          )}
 
           <EstimateCards
             daysGoal={tracker.daysGoal}
@@ -215,14 +223,6 @@ export default function Home() {
             <SmartHistoryCard
               history={tracker.history}
               currentXP={tracker.currentXP}
-              theme={theme}
-            />
-          )}
-
-          {!shouldShowOnboarding && (
-            <UsageAchievementsCard
-              history={tracker.history}
-              dailyGoal={tracker.dailyGoal}
               theme={theme}
             />
           )}
