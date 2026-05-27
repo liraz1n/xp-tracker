@@ -8,6 +8,8 @@ Na build 1.3.1, a calculadora completa e o plano sugerido foram ocultados tempor
 
 Na build 1.3.2, o layout mobile recebeu seções recolhíveis para estimativas, marcos do farm e histórico inteligente. O desktop permanece com esses blocos abertos.
 
+Na build 1.3.3, a aba Masmorras recebeu ordem fixa e seletor de 4 ou 5 jogadores no registro rápido.
+
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |
 | Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |

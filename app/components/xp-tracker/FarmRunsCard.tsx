@@ -332,6 +332,22 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n1-26-5",
     ],
   },
+  masmorras: {
+    4: [
+      "planicie-4",
+      "floresta-4",
+      "pantano-4",
+      "cemiterio-4",
+      "deserto-4",
+    ],
+    5: [
+      "planicie-5",
+      "floresta-5",
+      "pantano-5",
+      "cemiterio-5",
+      "deserto-5",
+    ],
+  },
 };
 
 // Dados mantidos na base interna, mas ocultos temporariamente do site.
