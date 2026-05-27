@@ -265,7 +265,14 @@ const FARM_PLAN_MODES = [
 
 type FarmPlanMode = (typeof FARM_PLAN_MODES)[number]["id"];
 
-const FIXED_QUICK_ACTIVITY_IDS = ["cripta-n1-25-5", "cripta-n1-26-5"];
+const QUICK_RUN_TABS = [
+  { id: "cripta-1", label: "Cripta 1" },
+  { id: "cripta-2", label: "Cripta 2" },
+  { id: "cripta-3", label: "Cripta 3" },
+  { id: "masmorras", label: "Masmorras" },
+] as const;
+
+type QuickRunTab = (typeof QUICK_RUN_TABS)[number]["id"];
 
 // Dados mantidos na base interna, mas ocultos temporariamente do site.
 const HIDDEN_SITE_ACTIVITY_IDS = new Set([
@@ -299,6 +306,20 @@ function formatXP(value: number) {
 
 function getActivityLabel(activity: FarmActivity) {
   return `${activity.name} (${activity.detail})`;
+}
+
+function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
+  if (tab === "masmorras") return activity.category === "Masmorra";
+
+  if (activity.category !== "Cripta") return false;
+
+  const levelByTab: Record<Exclude<QuickRunTab, "masmorras">, string> = {
+    "cripta-1": "Cripta Nível 1",
+    "cripta-2": "Cripta Nível 2",
+    "cripta-3": "Cripta Nível 3",
+  };
+
+  return activity.name.includes(levelByTab[tab]);
 }
 
 function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number) {
@@ -396,6 +417,7 @@ export function FarmRunsCard({
   );
   const [runs, setRuns] = useState(1);
   const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
+  const [quickRunTab, setQuickRunTab] = useState<QuickRunTab>("cripta-1");
 
   const visibleActivities = useMemo(() => {
     if (categoryFilter === "Todas") return SITE_FARM_ACTIVITIES;
@@ -465,18 +487,10 @@ export function FarmRunsCard({
   }, [currentXP, planActivities, planMode]);
 
   const quickActivities = useMemo(() => {
-    const fixedActivities = FIXED_QUICK_ACTIVITY_IDS.map((activityId) =>
-      FARM_ACTIVITIES.find((activity) => activity.id === activityId)
-    ).filter((activity): activity is FarmActivity => Boolean(activity));
-
-    const activityMap = new Map<string, FarmActivity>();
-
-    [...fixedActivities, ...recommendedRuns].forEach((activity) => {
-      activityMap.set(activity.id, activity);
-    });
-
-    return Array.from(activityMap.values()).slice(0, 6);
-  }, [recommendedRuns]);
+    return SITE_FARM_ACTIVITIES.filter((activity) =>
+      matchesQuickRunTab(activity, quickRunTab)
+    );
+  }, [quickRunTab]);
 
   function applyFarmProgress() {
     if (!canApply) return;
@@ -641,42 +655,76 @@ export function FarmRunsCard({
             </div>
           </div>
 
-          {quickActivities.length > 0 && (
-            <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
-              <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-emerald-300 font-black">
-                    Registro rápido de run
-                  </p>
-                  <p className={`${theme.muted} text-xs`}>
-                    Atalhos da Cripta Nível 1 para 5 jogadores e melhores opções.
-                  </p>
-                </div>
+          <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+            <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-emerald-300 font-black">
+                  Registro rápido de run
+                </p>
+                <p className={`${theme.muted} text-xs`}>
+                  Escolha uma aba e registre 1 run direto no histórico.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                {quickActivities.map((activity) => (
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                {QUICK_RUN_TABS.map((tab) => (
                   <button
                     type="button"
-                    key={activity.id}
-                    onClick={() => applyQuickActivity(activity)}
-                    disabled={!canApply}
-                    className="rounded-2xl border border-emerald-500/15 bg-black/25 p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    key={tab.id}
+                    onClick={() => setQuickRunTab(tab.id)}
+                    className={`rounded-2xl border px-3 py-2 text-xs font-black transition-all ${
+                      quickRunTab === tab.id
+                        ? "border-emerald-400 bg-emerald-500/15 text-emerald-200"
+                        : "border-emerald-500/10 bg-black/20 text-zinc-500 hover:text-emerald-200"
+                    }`}
                   >
-                    <span className="block text-sm font-black text-white">
-                      +{formatXP(activity.xp)} XP
-                    </span>
-                    <span className="mt-1 block text-xs text-zinc-400">
-                      {activity.name}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] text-zinc-500">
-                      {activity.category} - {activity.detail}
-                    </span>
+                    {tab.label}
                   </button>
                 ))}
               </div>
             </div>
-          )}
+
+            {quickActivities.length === 0 ? (
+              <div className="rounded-2xl border border-emerald-500/10 bg-black/20 p-4">
+                <p className={`${theme.text} text-sm font-black`}>
+                  Dados em coleta
+                </p>
+                <p className={`${theme.muted} mt-1 text-xs`}>
+                  Ainda não temos dados cadastrados para esta aba.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-3">
+                  <p className={`${theme.muted} text-xs`}>
+                    {quickActivities.length} atalhos disponíveis.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                  {quickActivities.map((activity) => (
+                    <button
+                      type="button"
+                      key={activity.id}
+                      onClick={() => applyQuickActivity(activity)}
+                      disabled={!canApply}
+                      className="rounded-2xl border border-emerald-500/15 bg-black/25 p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <span className="block text-sm font-black text-white">
+                        +{formatXP(activity.xp)} XP
+                      </span>
+                      <span className="mt-1 block text-xs text-zinc-400">
+                        {activity.name}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-zinc-500">
+                        {activity.category} - {activity.detail}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
