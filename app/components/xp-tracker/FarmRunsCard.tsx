@@ -267,6 +267,23 @@ type FarmPlanMode = (typeof FARM_PLAN_MODES)[number]["id"];
 
 const FIXED_QUICK_ACTIVITY_IDS = ["cripta-n1-25-5", "cripta-n1-26-5"];
 
+// Dados mantidos na base interna, mas ocultos temporariamente do site.
+const HIDDEN_SITE_ACTIVITY_IDS = new Set([
+  "cripta-n1-16-4",
+  "cripta-n1-17-4",
+  "cripta-n1-18-4",
+  "cripta-n1-19-4",
+  "cripta-n1-20-4",
+  "cripta-n1-21-4",
+  "cripta-n1-22-4",
+  "cripta-n1-23-4",
+  "cripta-n1-24-4",
+]);
+
+const SITE_FARM_ACTIVITIES = FARM_ACTIVITIES.filter(
+  (activity) => !HIDDEN_SITE_ACTIVITY_IDS.has(activity.id)
+);
+
 function sanitizeRuns(value: number) {
   if (!Number.isFinite(value)) return 1;
   return Math.max(1, Math.floor(value));
@@ -375,15 +392,15 @@ export function FarmRunsCard({
   const [categoryFilter, setCategoryFilter] =
     useState<FarmCategoryFilter>("Todas");
   const [selectedActivityId, setSelectedActivityId] = useState(
-    FARM_ACTIVITIES[0].id
+    SITE_FARM_ACTIVITIES[0].id
   );
   const [runs, setRuns] = useState(1);
   const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
 
   const visibleActivities = useMemo(() => {
-    if (categoryFilter === "Todas") return FARM_ACTIVITIES;
+    if (categoryFilter === "Todas") return SITE_FARM_ACTIVITIES;
 
-    return FARM_ACTIVITIES.filter(
+    return SITE_FARM_ACTIVITIES.filter(
       (activity) => activity.category === categoryFilter
     );
   }, [categoryFilter]);
@@ -393,13 +410,15 @@ export function FarmRunsCard({
       return;
     }
 
-    setSelectedActivityId(visibleActivities[0]?.id ?? FARM_ACTIVITIES[0].id);
+    setSelectedActivityId(
+      visibleActivities[0]?.id ?? SITE_FARM_ACTIVITIES[0].id
+    );
   }, [selectedActivityId, visibleActivities]);
 
   const selectedActivity =
-    FARM_ACTIVITIES.find((activity) => activity.id === selectedActivityId) ??
+    SITE_FARM_ACTIVITIES.find((activity) => activity.id === selectedActivityId) ??
     visibleActivities[0] ??
-    FARM_ACTIVITIES[0];
+    SITE_FARM_ACTIVITIES[0];
 
   const xpTotal = selectedActivity.xp * runs;
   const xpApplied = Math.min(currentXP, xpTotal);
@@ -408,11 +427,15 @@ export function FarmRunsCard({
 
   const planActivities = useMemo(() => {
     if (planMode === "only-cripta") {
-      return FARM_ACTIVITIES.filter((activity) => activity.category === "Cripta");
+      return SITE_FARM_ACTIVITIES.filter(
+        (activity) => activity.category === "Cripta"
+      );
     }
 
     if (planMode === "only-masmorra") {
-      return FARM_ACTIVITIES.filter((activity) => activity.category === "Masmorra");
+      return SITE_FARM_ACTIVITIES.filter(
+        (activity) => activity.category === "Masmorra"
+      );
     }
 
     return visibleActivities;
