@@ -30,11 +30,11 @@ interface FarmPlanItem {
 
 const FARM_ACTIVITIES: FarmActivity[] = [
   {
-    id: "cripta-n1-30",
+    id: "cripta-n1-30-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 30",
-    detail: "4 jogadores - Base provisória",
-    xp: 49000,
+    detail: "4 jogadores",
+    xp: 53942,
   },
   {
     id: "cripta-n1-16-4",
@@ -140,6 +140,13 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 28",
     detail: "4 jogadores",
     xp: 46082,
+  },
+  {
+    id: "cripta-n1-29-4",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 29",
+    detail: "4 jogadores",
+    xp: 49859,
   },
   {
     id: "cripta-n3-7",
