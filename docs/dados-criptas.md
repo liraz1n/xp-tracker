@@ -10,6 +10,8 @@ Na build 1.3.2, o layout mobile recebeu seções recolhíveis para estimativas, 
 
 Na build 1.3.3, a aba Masmorras recebeu ordem fixa e seletor de 4 ou 5 jogadores no registro rápido.
 
+Na build 1.3.4, o texto do registro rápido foi ajustado para deixar claro que somente criptas usam variação por nível do jogador. Masmorras continuam com XP fixo por quantidade de jogadores.
+
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |
 | Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |

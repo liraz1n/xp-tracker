@@ -708,7 +708,7 @@ export function FarmRunsCard({
             </h2>
 
             <p className={`${theme.muted} mt-1.5 text-sm leading-relaxed`}>
-              Escolha uma cripta ou masmorra, ajuste os jogadores quando existir e registre 1 run direto no histórico. O cálculo usa seu nível atual: {currentLevel}.
+              Criptas consideram seu nível atual: {currentLevel}. Masmorras usam XP fixo por quantidade de jogadores.
             </p>
           </div>
 
