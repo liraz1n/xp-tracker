@@ -114,6 +114,20 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xp: 39216,
   },
   {
+    id: "cripta-n1-25-5",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 25",
+    detail: "5 jogadores",
+    xp: 36116,
+  },
+  {
+    id: "cripta-n1-26-5",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 26",
+    detail: "5 jogadores",
+    xp: 39216,
+  },
+  {
     id: "cripta-n1-27-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 27",
@@ -250,6 +264,8 @@ const FARM_PLAN_MODES = [
 ] as const;
 
 type FarmPlanMode = (typeof FARM_PLAN_MODES)[number]["id"];
+
+const FIXED_QUICK_ACTIVITY_IDS = ["cripta-n1-25-5", "cripta-n1-26-5"];
 
 function sanitizeRuns(value: number) {
   if (!Number.isFinite(value)) return 1;
@@ -425,7 +441,19 @@ export function FarmRunsCard({
     return buildFarmPlan(currentXP, planActivities);
   }, [currentXP, planActivities, planMode]);
 
-  const quickActivities = recommendedRuns.slice(0, 4);
+  const quickActivities = useMemo(() => {
+    const fixedActivities = FIXED_QUICK_ACTIVITY_IDS.map((activityId) =>
+      FARM_ACTIVITIES.find((activity) => activity.id === activityId)
+    ).filter((activity): activity is FarmActivity => Boolean(activity));
+
+    const activityMap = new Map<string, FarmActivity>();
+
+    [...fixedActivities, ...recommendedRuns].forEach((activity) => {
+      activityMap.set(activity.id, activity);
+    });
+
+    return Array.from(activityMap.values()).slice(0, 6);
+  }, [recommendedRuns]);
 
   function applyFarmProgress() {
     if (!canApply) return;
@@ -598,12 +626,12 @@ export function FarmRunsCard({
                     Registro rápido de run
                   </p>
                   <p className={`${theme.muted} text-xs`}>
-                    Adicione 1 run das melhores opções sem mexer no seletor.
+                    Atalhos da Cripta Nível 1 para 5 jogadores e melhores opções.
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
                 {quickActivities.map((activity) => (
                   <button
                     type="button"
