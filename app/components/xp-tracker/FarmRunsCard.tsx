@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface FarmRunsCardProps {
   currentXP: number;
@@ -564,6 +564,15 @@ export function FarmRunsCard({
   const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
   const [quickRunTab, setQuickRunTab] = useState<QuickRunTab>("cripta-1");
   const [quickPlayerCount, setQuickPlayerCount] = useState(4);
+  const [quickFeedback, setQuickFeedback] = useState<{
+    activityId: string;
+    label: string;
+    xp: number;
+  } | null>(null);
+
+  const quickFeedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const resolvedSiteActivities = useMemo(
     () => resolveActivitiesForLevel(SITE_FARM_ACTIVITIES, currentLevel),
@@ -662,6 +671,14 @@ export function FarmRunsCard({
     setQuickPlayerCount(availableQuickPlayerCounts[0]);
   }, [availableQuickPlayerCounts, quickPlayerCount]);
 
+  useEffect(() => {
+    return () => {
+      if (quickFeedbackTimeout.current) {
+        clearTimeout(quickFeedbackTimeout.current);
+      }
+    };
+  }, []);
+
   const quickBaseActivities = useMemo(() => {
     const orderedActivityIds = QUICK_RUN_ORDER[quickRunTab]?.[quickPlayerCount];
 
@@ -698,6 +715,20 @@ export function FarmRunsCard({
       xpGained: activity.xp,
       source: `1x ${getActivityLabel(activity)} - ${activity.levelRangeLabel}`,
     });
+
+    setQuickFeedback({
+      activityId: activity.id,
+      label: getActivityLabel(activity),
+      xp: activity.xp,
+    });
+
+    if (quickFeedbackTimeout.current) {
+      clearTimeout(quickFeedbackTimeout.current);
+    }
+
+    quickFeedbackTimeout.current = setTimeout(() => {
+      setQuickFeedback(null);
+    }, 3200);
   }
 
   function applyFarmPlan() {
@@ -920,35 +951,66 @@ export function FarmRunsCard({
               </div>
             ) : (
               <div>
-                <div className="mb-3">
+                <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <p className={`${theme.muted} text-xs`}>
                     {quickActivities.length} atalhos disponíveis para {quickActivities[0]?.levelRangeLabel}.
                   </p>
+
+                  {quickFeedback && (
+                    <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs shadow-[0_0_24px_rgba(16,185,129,0.14)]">
+                      <span className="font-black text-emerald-200">
+                        Run registrada
+                      </span>
+                      <span className="mx-2 text-emerald-500/60">|</span>
+                      <span className="font-black text-emerald-300">
+                        +{formatXP(quickFeedback.xp)} XP
+                      </span>
+                      <span className="ml-2 text-zinc-400">
+                        {quickFeedback.label}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                  {quickActivities.map((activity) => (
-                    <button
-                      type="button"
-                      key={activity.id}
-                      onClick={() => applyQuickActivity(activity)}
-                      disabled={!canApplyQuickRun}
-                      className="rounded-2xl border border-emerald-500/15 bg-black/25 p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <span className="block text-sm font-black text-white">
-                        +{formatXP(activity.xp)} XP
-                      </span>
-                      <span className="mt-1 block text-xs text-zinc-400">
-                        {activity.name}
-                      </span>
-                      <span className="mt-0.5 block text-[11px] text-zinc-500">
-                        {activity.category} - {activity.detail}
-                      </span>
-                      <span className="mt-1 inline-flex rounded-full border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
-                        {activity.levelRangeLabel}
-                      </span>
-                    </button>
-                  ))}
+                  {quickActivities.map((activity) => {
+                    const isRecentQuickRun =
+                      quickFeedback?.activityId === activity.id;
+
+                    return (
+                      <button
+                        type="button"
+                        key={activity.id}
+                        onClick={() => applyQuickActivity(activity)}
+                        disabled={!canApplyQuickRun}
+                        className={`rounded-2xl border p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 ${
+                          isRecentQuickRun
+                            ? "scale-[1.01] border-emerald-300 bg-emerald-500/15 shadow-[0_0_24px_rgba(16,185,129,0.18)]"
+                            : "border-emerald-500/15 bg-black/25"
+                        }`}
+                      >
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="block text-sm font-black text-white">
+                            +{formatXP(activity.xp)} XP
+                          </span>
+                          {isRecentQuickRun && (
+                            <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black text-emerald-200">
+                              Registrada agora
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-1 block text-xs text-zinc-400">
+                          {activity.name}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-zinc-500">
+                          {activity.category} - {activity.detail}
+                        </span>
+                        <span className="mt-1 inline-flex rounded-full border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
+                          {activity.levelRangeLabel}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
