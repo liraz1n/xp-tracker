@@ -14,9 +14,10 @@ export const GUEST_TARGET_LEVEL = 1;
 
 const MILESTONES = [25, 50, 75, 100];
 const GUEST_PROGRESS_DRAFT_KEY = "xpTrackerGuestProgressDraft";
-const XP_PROGRESS_SELECT_LEGACY =
-  "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode, current_level, target_level";
-const XP_PROGRESS_SELECT = `${XP_PROGRESS_SELECT_LEGACY}, user_total_xp`;
+const XP_PROGRESS_SELECT_BASE =
+  "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode";
+const XP_PROGRESS_SELECT_LEVELS = `${XP_PROGRESS_SELECT_BASE}, current_level, target_level`;
+const XP_PROGRESS_SELECT_FULL = `${XP_PROGRESS_SELECT_LEVELS}, user_total_xp`;
 
 export interface HistoryEntry {
   date: string;
@@ -34,8 +35,8 @@ interface XpProgressRow {
   reached_milestones: number[];
   last_saved_xp: number;
   dark_mode: boolean;
-  current_level: number;
-  target_level: number;
+  current_level?: number;
+  target_level?: number;
   user_total_xp?: number;
 }
 
@@ -83,7 +84,7 @@ function sanitizeLevel(value: number) {
   return Math.max(0, Math.floor(value));
 }
 
-function isMissingUserTotalXPColumn(error: {
+function isMissingProgressColumn(error: {
   code?: string;
   message?: string;
   details?: string;
@@ -101,7 +102,13 @@ function isMissingUserTotalXPColumn(error: {
     .join(" ")
     .toLowerCase();
 
-  return error.code === "42703" || errorText.includes("user_total_xp");
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    errorText.includes("user_total_xp") ||
+    errorText.includes("current_level") ||
+    errorText.includes("target_level")
+  );
 }
 
 export function useXpTracker() {
@@ -126,7 +133,78 @@ export function useXpTracker() {
 
   const milestoneTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const levelColumnsAvailable = useRef(true);
   const userTotalXPColumnAvailable = useRef(true);
+
+  function getProgressSelectColumns() {
+    if (levelColumnsAvailable.current && userTotalXPColumnAvailable.current) {
+      return XP_PROGRESS_SELECT_FULL;
+    }
+
+    if (levelColumnsAvailable.current) {
+      return XP_PROGRESS_SELECT_LEVELS;
+    }
+
+    return XP_PROGRESS_SELECT_BASE;
+  }
+
+  function downgradeProgressColumns(error: {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+  } | null) {
+    const errorText = [
+      error?.code,
+      error?.message,
+      error?.details,
+      error?.hint,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (errorText.includes("user_total_xp")) {
+      userTotalXPColumnAvailable.current = false;
+      return;
+    }
+
+    if (
+      errorText.includes("current_level") ||
+      errorText.includes("target_level")
+    ) {
+      levelColumnsAvailable.current = false;
+      userTotalXPColumnAvailable.current = false;
+      return;
+    }
+
+    if (userTotalXPColumnAvailable.current) {
+      userTotalXPColumnAvailable.current = false;
+      return;
+    }
+
+    levelColumnsAvailable.current = false;
+  }
+
+  function buildProgressPayload<T extends Record<string, unknown>>(
+    basePayload: T,
+    userTotalXPValue: number
+  ) {
+    return {
+      ...basePayload,
+      ...(levelColumnsAvailable.current
+        ? {
+            current_level: currentLevel,
+            target_level: targetLevel,
+          }
+        : {}),
+      ...(userTotalXPColumnAvailable.current
+        ? {
+            user_total_xp: userTotalXPValue,
+          }
+        : {}),
+    };
+  }
 
   function saveGuestProgressDraft() {
     if (typeof window === "undefined") return;
@@ -231,24 +309,28 @@ export function useXpTracker() {
 
     let progressResult = await supabase
       .from("xp_progress")
-      .select(
-        userTotalXPColumnAvailable.current
-          ? XP_PROGRESS_SELECT
-          : XP_PROGRESS_SELECT_LEGACY
-      )
+      .select(getProgressSelectColumns())
       .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (
-      isMissingUserTotalXPColumn(progressResult.error) &&
-      userTotalXPColumnAvailable.current
-    ) {
-      userTotalXPColumnAvailable.current = false;
+    while (isMissingProgressColumn(progressResult.error)) {
+      downgradeProgressColumns(progressResult.error);
+
       progressResult = await supabase
         .from("xp_progress")
-        .select(XP_PROGRESS_SELECT_LEGACY)
+        .select(getProgressSelectColumns())
         .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
+
+      if (!progressResult.error) break;
+      if (!isMissingProgressColumn(progressResult.error)) break;
+      if (!levelColumnsAvailable.current && !userTotalXPColumnAvailable.current) {
+        break;
+      }
     }
 
     const { data, error } = progressResult;
@@ -271,37 +353,54 @@ export function useXpTracker() {
         reached_milestones: [],
         last_saved_xp: DEFAULT_CURRENT_XP,
         dark_mode: true,
-        current_level: DEFAULT_CURRENT_LEVEL,
-        target_level: DEFAULT_TARGET_LEVEL,
       };
 
       let createResult = await supabase
         .from("xp_progress")
-        .insert(
-          userTotalXPColumnAvailable.current
+        .insert({
+          ...baseInsert,
+          ...(levelColumnsAvailable.current
             ? {
-                ...baseInsert,
+                current_level: DEFAULT_CURRENT_LEVEL,
+                target_level: DEFAULT_TARGET_LEVEL,
+              }
+            : {}),
+          ...(userTotalXPColumnAvailable.current
+            ? {
                 user_total_xp: DEFAULT_USER_TOTAL_XP,
               }
-            : baseInsert
-        )
-        .select(
-          userTotalXPColumnAvailable.current
-            ? XP_PROGRESS_SELECT
-            : XP_PROGRESS_SELECT_LEGACY
-        )
+            : {}),
+        })
+        .select(getProgressSelectColumns())
         .single();
 
-      if (
-        isMissingUserTotalXPColumn(createResult.error) &&
-        userTotalXPColumnAvailable.current
-      ) {
-        userTotalXPColumnAvailable.current = false;
+      while (isMissingProgressColumn(createResult.error)) {
+        downgradeProgressColumns(createResult.error);
+
         createResult = await supabase
           .from("xp_progress")
-          .insert(baseInsert)
-          .select(XP_PROGRESS_SELECT_LEGACY)
+          .insert({
+            ...baseInsert,
+            ...(levelColumnsAvailable.current
+              ? {
+                  current_level: DEFAULT_CURRENT_LEVEL,
+                  target_level: DEFAULT_TARGET_LEVEL,
+                }
+              : {}),
+            ...(userTotalXPColumnAvailable.current
+              ? {
+                  user_total_xp: DEFAULT_USER_TOTAL_XP,
+                }
+              : {}),
+          })
+          .select(getProgressSelectColumns())
           .single();
+
+        if (!createResult.error) break;
+        if (!isMissingProgressColumn(createResult.error)) break;
+        if (!levelColumnsAvailable.current && !userTotalXPColumnAvailable.current) {
+          break;
+        }
       }
 
       const { data: created, error: createError } = createResult;
@@ -392,32 +491,27 @@ export function useXpTracker() {
         reached_milestones: reachedMilestones,
         last_saved_xp: lastSavedXP,
         dark_mode: darkMode,
-        current_level: currentLevel,
-        target_level: targetLevel,
         updated_at: new Date().toISOString(),
       };
 
       let saveResult = await supabase
         .from("xp_progress")
-        .update(
-          userTotalXPColumnAvailable.current
-            ? {
-                ...baseUpdate,
-                user_total_xp: userTotalXP,
-              }
-            : baseUpdate
-        )
+        .update(buildProgressPayload(baseUpdate, userTotalXP))
         .eq("user_id", user.id);
 
-      if (
-        isMissingUserTotalXPColumn(saveResult.error) &&
-        userTotalXPColumnAvailable.current
-      ) {
-        userTotalXPColumnAvailable.current = false;
+      while (isMissingProgressColumn(saveResult.error)) {
+        downgradeProgressColumns(saveResult.error);
+
         saveResult = await supabase
           .from("xp_progress")
-          .update(baseUpdate)
+          .update(buildProgressPayload(baseUpdate, userTotalXP))
           .eq("user_id", user.id);
+
+        if (!saveResult.error) break;
+        if (!isMissingProgressColumn(saveResult.error)) break;
+        if (!levelColumnsAvailable.current && !userTotalXPColumnAvailable.current) {
+          break;
+        }
       }
 
       if (saveResult.error) {
@@ -680,32 +774,53 @@ export function useXpTracker() {
       reached_milestones: [],
       last_saved_xp: DEFAULT_CURRENT_XP,
       dark_mode: true,
-      current_level: DEFAULT_CURRENT_LEVEL,
-      target_level: DEFAULT_TARGET_LEVEL,
       updated_at: new Date().toISOString(),
     };
 
     let resetResult = await supabase
       .from("xp_progress")
-      .update(
-        userTotalXPColumnAvailable.current
+      .update({
+        ...baseReset,
+        ...(levelColumnsAvailable.current
           ? {
-              ...baseReset,
+              current_level: DEFAULT_CURRENT_LEVEL,
+              target_level: DEFAULT_TARGET_LEVEL,
+            }
+          : {}),
+        ...(userTotalXPColumnAvailable.current
+          ? {
               user_total_xp: DEFAULT_USER_TOTAL_XP,
             }
-          : baseReset
-      )
+          : {}),
+      })
       .eq("user_id", user.id);
 
-    if (
-      isMissingUserTotalXPColumn(resetResult.error) &&
-      userTotalXPColumnAvailable.current
-    ) {
-      userTotalXPColumnAvailable.current = false;
+    while (isMissingProgressColumn(resetResult.error)) {
+      downgradeProgressColumns(resetResult.error);
+
       resetResult = await supabase
         .from("xp_progress")
-        .update(baseReset)
+        .update({
+          ...baseReset,
+          ...(levelColumnsAvailable.current
+            ? {
+                current_level: DEFAULT_CURRENT_LEVEL,
+                target_level: DEFAULT_TARGET_LEVEL,
+              }
+            : {}),
+          ...(userTotalXPColumnAvailable.current
+            ? {
+                user_total_xp: DEFAULT_USER_TOTAL_XP,
+              }
+            : {}),
+        })
         .eq("user_id", user.id);
+
+      if (!resetResult.error) break;
+      if (!isMissingProgressColumn(resetResult.error)) break;
+      if (!levelColumnsAvailable.current && !userTotalXPColumnAvailable.current) {
+        break;
+      }
     }
 
     if (resetResult.error) {

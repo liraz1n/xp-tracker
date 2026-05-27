@@ -1,6 +1,6 @@
 # Pagamentos e assinaturas
 
-Build 1.4.1 mantém a base comercial do XP Tracker e adiciona o painel de assinatura no cabeçalho.
+Build 1.4.2 mantém a base comercial do XP Tracker, adiciona o painel de assinatura no cabeçalho e reforça a compatibilidade de carregamento após refresh.
 
 ## Plano inicial
 
