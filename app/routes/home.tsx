@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { LoginScreen } from "~/components/xp-tracker/LoginScreen";
 import { DashboardHeader } from "~/components/xp-tracker/DashboardHeader";
 import { StatsCards } from "~/components/xp-tracker/StatsCards";
@@ -18,6 +18,60 @@ import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
 type SidebarTab = "historico" | "grafico";
+
+interface MobileDashboardSectionProps {
+  title: string;
+  description: string;
+  defaultOpen?: boolean;
+  theme: {
+    card: string;
+    muted: string;
+    text: string;
+  };
+  children: ReactNode;
+}
+
+function MobileDashboardSection({
+  title,
+  description,
+  defaultOpen = false,
+  theme,
+  children,
+}: MobileDashboardSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section className="md:contents">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className={`${theme.card} md:hidden w-full border rounded-2xl px-4 py-3 text-left transition-all ${
+          open ? "mb-3" : "mb-4"
+        }`}
+      >
+        <span className="flex items-center justify-between gap-3">
+          <span className="min-w-0">
+            <span className={`${theme.text} block text-sm font-black`}>
+              {title}
+            </span>
+            <span className={`${theme.muted} mt-0.5 block text-xs leading-snug`}>
+              {description}
+            </span>
+          </span>
+
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-lg font-black text-yellow-300">
+            {open ? "-" : "+"}
+          </span>
+        </span>
+      </button>
+
+      <div className={`${open ? "block" : "hidden"} md:block`}>
+        {children}
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   const tracker = useXpTracker();
@@ -203,29 +257,47 @@ export default function Home() {
             />
           )}
 
-          <EstimateCards
-            daysGoal={tracker.daysGoal}
-            daysAvg={tracker.daysAvg}
-            dailyGoal={tracker.dailyGoal}
-            averageDailyXP={tracker.averageDailyXP}
-            formatDate={formatDate}
+          <MobileDashboardSection
+            title="Estimativas"
+            description="Previsão por meta diária e média histórica."
             theme={theme}
-          />
-
-          {!shouldShowOnboarding && (
-            <UsageAchievementsCard
-              history={tracker.history}
+          >
+            <EstimateCards
+              daysGoal={tracker.daysGoal}
+              daysAvg={tracker.daysAvg}
               dailyGoal={tracker.dailyGoal}
+              averageDailyXP={tracker.averageDailyXP}
+              formatDate={formatDate}
               theme={theme}
             />
+          </MobileDashboardSection>
+
+          {!shouldShowOnboarding && (
+            <MobileDashboardSection
+              title="Marcos do farm"
+              description="Conquistas de uso e metas automáticas."
+              theme={theme}
+            >
+              <UsageAchievementsCard
+                history={tracker.history}
+                dailyGoal={tracker.dailyGoal}
+                theme={theme}
+              />
+            </MobileDashboardSection>
           )}
 
           {!shouldShowOnboarding && (
-            <SmartHistoryCard
-              history={tracker.history}
-              currentXP={tracker.currentXP}
+            <MobileDashboardSection
+              title="Histórico inteligente"
+              description="Ritmo recente, melhores registros e resumo do farm."
               theme={theme}
-            />
+            >
+              <SmartHistoryCard
+                history={tracker.history}
+                currentXP={tracker.currentXP}
+                theme={theme}
+              />
+            </MobileDashboardSection>
           )}
 
           <div className="flex gap-3 flex-wrap">

@@ -6,6 +6,8 @@ Na build 1.3.0, os dados de cripta passaram a suportar faixas de nível do jogad
 
 Na build 1.3.1, a calculadora completa e o plano sugerido foram ocultados temporariamente no site. O fluxo principal ficou focado no registro rápido de runs, com botão de desfazer último progresso e campo de XP atual do usuário nas configurações.
 
+Na build 1.3.2, o layout mobile recebeu seções recolhíveis para estimativas, marcos do farm e histórico inteligente. O desktop permanece com esses blocos abertos.
+
 | Cripta | Trecho / marco derrotado | XP acumulado | Status | Observação | Registrado em |
 | --- | --- | ---: | --- | --- | --- |
 | Nível 1 | Até derrotar o nível 29, 4 jogadores | 49.859 | Confirmado | Base conhecida para jogador nível 28+. | 2026-05-27 |
