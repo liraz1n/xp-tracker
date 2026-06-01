@@ -25,9 +25,15 @@ export function SubscriptionCard({
   onCheckout,
 }: SubscriptionCardProps) {
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
+  const [couponFeedback, setCouponFeedback] = useState("");
   const couponPreview = useMemo(
     () => findCouponPreview(couponCode),
     [couponCode]
+  );
+  const appliedCouponPreview = useMemo(
+    () => findCouponPreview(appliedCouponCode),
+    [appliedCouponCode]
   );
 
   if (
@@ -53,8 +59,35 @@ export function SubscriptionCard({
       : isGuest
         ? "Modo visitante"
         : isSetupPending
-          ? "Teste disponível"
+          ? "Tem um Cupom?"
           : `${trialDays} dias grátis restantes`;
+
+  function handleCouponChange(value: string) {
+    setCouponCode(value);
+    setAppliedCouponCode("");
+    setCouponFeedback("");
+  }
+
+  function applyCoupon() {
+    const normalizedCode = couponCode.trim().toUpperCase();
+    const preview = findCouponPreview(normalizedCode);
+
+    if (!normalizedCode) {
+      setAppliedCouponCode("");
+      setCouponFeedback("Digite um cupom para aplicar.");
+      return;
+    }
+
+    if (!preview) {
+      setAppliedCouponCode("");
+      setCouponFeedback("Cupom não encontrado.");
+      return;
+    }
+
+    setCouponCode(normalizedCode);
+    setAppliedCouponCode(normalizedCode);
+    setCouponFeedback(`Cupom ${preview.code} aplicado. Ele será enviado ao checkout.`);
+  }
 
   return (
     <section
@@ -104,34 +137,40 @@ export function SubscriptionCard({
             <input
               type="text"
               value={couponCode}
-              onChange={(event) => setCouponCode(event.target.value)}
+              onChange={(event) => handleCouponChange(event.target.value)}
               placeholder="Cupom"
               className={`${theme.input} h-10 w-28 rounded-xl border px-3 text-sm font-bold uppercase outline-none focus:border-yellow-400`}
             />
 
             <button
               type="button"
+              onClick={applyCoupon}
               className="h-10 rounded-xl border border-yellow-500/30 px-3 text-xs font-black text-yellow-300 transition-all hover:border-yellow-400"
             >
               Aplicar
             </button>
           </div>
 
-          {couponCode.trim() && (
+          {(couponFeedback || couponCode.trim()) && (
             <p
               className={`max-w-56 text-xs leading-relaxed ${
-                couponPreview ? "text-emerald-300" : "text-red-300"
+                appliedCouponPreview
+                  ? "text-emerald-300"
+                  : couponPreview
+                    ? "text-yellow-300"
+                    : "text-red-300"
               }`}
             >
-              {couponPreview
-                ? `${couponPreview.code}: ${couponPreview.title}`
-                : "Cupom não encontrado nesta prévia."}
+              {couponFeedback ||
+                (couponPreview
+                  ? `${couponPreview.code}: clique em Aplicar para usar este cupom.`
+                  : "Cupom não encontrado.")}
             </p>
           )}
 
           <button
             type="button"
-            onClick={() => onCheckout?.(couponCode)}
+            onClick={() => onCheckout?.(appliedCouponCode)}
             disabled={!onCheckout || checkoutLoading || isActive || isGuest}
             className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
           >
