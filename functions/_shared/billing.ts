@@ -44,6 +44,7 @@ export const SUPABASE_ANON_KEY = "sb_publishable_kzsAi2dFuLrMjcr6R06MNw_8Vuv5Ilq
 export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
 export const PLAN_ID = "premium_monthly";
+const ALLOWED_COUPONS = new Set(["BETA50", "FOUNDERS"]);
 
 export function jsonError(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), {
@@ -140,15 +141,20 @@ export async function resolveCouponForCheckout({
 
   if (!code) return null;
 
+  if (!ALLOWED_COUPONS.has(code)) {
+    throw new Error("Cupom inválido ou indisponível.");
+  }
+
   const coupon = await getActiveCoupon(code, serviceRoleKey);
+  const maxRedemptions = maxRedemptionsForCoupon(coupon);
 
   if (!coupon) {
     throw new Error("Cupom inválido ou indisponível.");
   }
 
   if (
-    coupon.max_redemptions !== null &&
-    coupon.redeemed_count >= coupon.max_redemptions
+    maxRedemptions !== null &&
+    coupon.redeemed_count >= maxRedemptions
   ) {
     throw new Error("Esse cupom já atingiu o limite de uso.");
   }
@@ -167,7 +173,7 @@ async function redeemCoupon({
 }): Promise<AppliedCoupon | null> {
   const code = couponCode?.trim().toUpperCase();
 
-  if (!code) return null;
+  if (!code || !ALLOWED_COUPONS.has(code)) return null;
 
   const coupon = await getActiveCoupon(code, serviceRoleKey);
 
@@ -198,6 +204,7 @@ async function redeemCoupon({
   }
 
   const redeemedCount = coupon.redeemed_count + 1;
+  const maxRedemptions = maxRedemptionsForCoupon(coupon);
 
   const couponResponse = await fetch(
     `${SUPABASE_URL}/rest/v1/discount_coupons?id=eq.${coupon.id}`,
@@ -207,8 +214,8 @@ async function redeemCoupon({
       body: JSON.stringify({
         redeemed_count: redeemedCount,
         active:
-          coupon.max_redemptions === null ||
-          redeemedCount < coupon.max_redemptions,
+          maxRedemptions === null ||
+          redeemedCount < maxRedemptions,
       }),
     }
   );
@@ -314,6 +321,12 @@ function couponEndsAt(coupon: DiscountCouponRow) {
   date.setMonth(date.getMonth() + coupon.duration_months);
 
   return date.toISOString();
+}
+
+function maxRedemptionsForCoupon(coupon: DiscountCouponRow | null) {
+  if (coupon?.code === "FOUNDERS") return 10;
+
+  return coupon?.max_redemptions ?? null;
 }
 
 function serviceRoleHeaders(serviceRoleKey: string) {
