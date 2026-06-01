@@ -83,7 +83,7 @@ export function OnboardingCard({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
               Nível atual
@@ -191,7 +191,7 @@ export function OnboardingCard({
             />
           </label>
 
-          <div className="sm:col-span-2 xl:col-span-6 flex flex-col sm:flex-row gap-3 sm:items-center mt-1">
+          <div className="sm:col-span-2 xl:col-span-3 flex flex-col sm:flex-row gap-3 sm:items-center mt-1">
             <button
               type="button"
               onClick={submitSetup}

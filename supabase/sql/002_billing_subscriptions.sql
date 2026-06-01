@@ -186,3 +186,14 @@ select
   count(*)::text as total
 from public.discount_coupons
 where active = true;
+
+update public.discount_coupons
+set active = false
+where code = 'LIRA';
+
+update public.discount_coupons
+set
+  description = 'Preço fundador de R$ 2,50/mês para os 10 primeiros assinantes.',
+  max_redemptions = 10,
+  active = true
+where code = 'FOUNDERS';

@@ -49,6 +49,30 @@ function xpForLevel28Plus(xp: number): LevelXpValue[] {
 
 const FARM_ACTIVITIES: FarmActivity[] = [
   {
+    id: "cripta-n1-22-3",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 22",
+    detail: "3 jogadores",
+    players: 3,
+    xp: 23780,
+  },
+  {
+    id: "cripta-n1-24-3",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 24",
+    detail: "3 jogadores",
+    players: 3,
+    xp: 28232,
+  },
+  {
+    id: "cripta-n1-25-3",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 25",
+    detail: "3 jogadores",
+    players: 3,
+    xp: 30694,
+  },
+  {
     id: "cripta-n1-30-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 30",
@@ -370,6 +394,11 @@ type QuickRunTab = (typeof QUICK_RUN_TABS)[number]["id"];
 
 const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string[]>>>> = {
   "cripta-1": {
+    3: [
+      "cripta-n1-22-3",
+      "cripta-n1-24-3",
+      "cripta-n1-25-3",
+    ],
     4: [
       "cripta-n1-25-4",
       "cripta-n1-26-4",
@@ -508,6 +537,10 @@ function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
   return activity.name.includes(levelByTab[tab]);
 }
 
+function isCriptaTab(tab: QuickRunTab) {
+  return tab === "cripta-1" || tab === "cripta-2" || tab === "cripta-3";
+}
+
 function addPlanItem(plan: FarmPlanItem[], activity: ResolvedFarmActivity, runs: number) {
   const existingItem = plan.find((item) => item.activity.id === activity.id);
 
@@ -618,10 +651,18 @@ export function FarmRunsCard({
   const quickFeedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const canShowCriptas = currentLevel >= 22;
+  const visibleQuickRunTabs = useMemo(
+    () => QUICK_RUN_TABS.filter((tab) => canShowCriptas || !isCriptaTab(tab.id)),
+    [canShowCriptas]
+  );
 
   const resolvedSiteActivities = useMemo(
-    () => resolveActivitiesForLevel(SITE_FARM_ACTIVITIES, currentLevel),
-    [currentLevel]
+    () =>
+      resolveActivitiesForLevel(SITE_FARM_ACTIVITIES, currentLevel).filter(
+        (activity) => canShowCriptas || activity.category !== "Cripta"
+      ),
+    [canShowCriptas, currentLevel]
   );
 
   const visibleActivities = useMemo(() => {
@@ -631,6 +672,12 @@ export function FarmRunsCard({
       (activity) => activity.category === categoryFilter
     );
   }, [categoryFilter, resolvedSiteActivities]);
+
+  useEffect(() => {
+    if (visibleQuickRunTabs.some((tab) => tab.id === quickRunTab)) return;
+
+    setQuickRunTab(visibleQuickRunTabs[0]?.id ?? "masmorras");
+  }, [quickRunTab, visibleQuickRunTabs]);
 
   useEffect(() => {
     if (visibleActivities.some((activity) => activity.id === selectedActivityId)) {
@@ -946,7 +993,7 @@ export function FarmRunsCard({
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
-                {QUICK_RUN_TABS.map((tab) => (
+                {visibleQuickRunTabs.map((tab) => (
                   <button
                     type="button"
                     key={tab.id}

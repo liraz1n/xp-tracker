@@ -20,7 +20,7 @@ export type MercadoPagoPaymentResponse = {
 
 export const SUPABASE_URL = "https://vshglekspdbjnxngudmc.supabase.co";
 export const SUPABASE_ANON_KEY = "sb_publishable_kzsAi2dFuLrMjcr6R06MNw_8Vuv5Ilq";
-export const PREMIUM_PRICE = 5;
+export const PREMIUM_PRICE = 5.99;
 export const PLAN_ID = "premium_monthly";
 
 export function jsonError(message: string, status = 400) {

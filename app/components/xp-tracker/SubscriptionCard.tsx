@@ -53,7 +53,7 @@ export function SubscriptionCard({
       : isGuest
         ? "Modo visitante"
         : isSetupPending
-          ? "Banco pendente"
+          ? "Teste disponível"
           : `${trialDays} dias grátis restantes`;
 
   return (
@@ -78,7 +78,7 @@ export function SubscriptionCard({
                 : isGuest
                   ? "Entre com Google para iniciar o teste grátis e salvar seu progresso na nuvem."
                   : isSetupPending
-                    ? "Rode o script SQL de assinaturas no Supabase para ativar trial, cupons e controle de plano."
+                    ? "Entre no teste grátis de 7 dias e assine para manter o salvamento na nuvem após o período inicial."
                     : "Durante o teste grátis de 7 dias, você usa os recursos completos e salva na nuvem. Depois, assine para continuar sincronizando o progresso."}
           </p>
 
@@ -139,7 +139,7 @@ export function SubscriptionCard({
               ? "Abrindo checkout..."
               : isActive
                 ? "Premium ativo"
-                : "Assinar com Mercado Pago"}
+                : "Assinar com pagamento seguro"}
           </button>
         </div>
       </div>

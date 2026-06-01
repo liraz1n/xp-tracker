@@ -1,4 +1,4 @@
-import { COUPON_PREVIEWS, type BillingState } from "~/hooks/useBilling";
+import { ACTIVE_COUPON_PREVIEWS, type BillingState } from "~/hooks/useBilling";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 
 interface SubscriptionPanelProps {
@@ -33,7 +33,7 @@ export function SubscriptionPanel({
               Painel do plano
             </h2>
             <p className={`${theme.muted} mt-2 max-w-2xl`}>
-              Acompanhe seu acesso, teste grátis, cupons e a preparação do checkout Premium.
+              Acompanhe seu acesso, teste grátis, cupons e checkout Premium.
             </p>
           </div>
 
@@ -60,8 +60,8 @@ export function SubscriptionPanel({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {COUPON_PREVIEWS.map((coupon) => (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {ACTIVE_COUPON_PREVIEWS.map((coupon) => (
             <div
               key={coupon.code}
               className="rounded-2xl border border-yellow-500/20 bg-black/25 p-4"
@@ -79,11 +79,10 @@ export function SubscriptionPanel({
 
         <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <h3 className="font-black text-emerald-300">
-            Pagamento
+            Pagamento seguro
           </h3>
           <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
-            O checkout real usa Mercado Pago no back-end. A chave secreta fica
-            no servidor, nunca no navegador.
+            O pagamento é processado em ambiente seguro por uma instituição de pagamentos regulada. Seus dados de cartão e Pix não ficam expostos nem são armazenados pelo XP Tracker.
           </p>
         </div>
       </div>

@@ -279,8 +279,13 @@ export function useXpTracker() {
 
     let saveResult = await supabase
       .from("xp_progress")
-      .update(buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels))
-      .eq("user_id", user.id);
+      .upsert(
+        {
+          user_id: user.id,
+          ...buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels),
+        },
+        { onConflict: "user_id" }
+      );
 
     while (isMissingProgressColumn(saveResult.error)) {
       if (
@@ -299,8 +304,13 @@ export function useXpTracker() {
 
       saveResult = await supabase
         .from("xp_progress")
-        .update(buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels))
-        .eq("user_id", user.id);
+        .upsert(
+          {
+            user_id: user.id,
+            ...buildProgressPayload(baseUpdate, snapshot.userTotalXP, levels),
+          },
+          { onConflict: "user_id" }
+        );
 
       if (!saveResult.error) break;
       if (!isMissingProgressColumn(saveResult.error)) break;
@@ -473,29 +483,8 @@ export function useXpTracker() {
 
       let createResult = await supabase
         .from("xp_progress")
-        .insert({
-          ...baseInsert,
-          ...(levelColumnsAvailable.current
-            ? {
-                current_level: DEFAULT_CURRENT_LEVEL,
-                target_level: DEFAULT_TARGET_LEVEL,
-              }
-            : {}),
-          ...(userTotalXPColumnAvailable.current
-            ? {
-                user_total_xp: DEFAULT_USER_TOTAL_XP,
-              }
-            : {}),
-        })
-        .select(getProgressSelectColumns())
-        .single();
-
-      while (isMissingProgressColumn(createResult.error)) {
-        downgradeProgressColumns(createResult.error);
-
-        createResult = await supabase
-          .from("xp_progress")
-          .insert({
+        .upsert(
+          {
             ...baseInsert,
             ...(levelColumnsAvailable.current
               ? {
@@ -508,7 +497,34 @@ export function useXpTracker() {
                   user_total_xp: DEFAULT_USER_TOTAL_XP,
                 }
               : {}),
-          })
+          },
+          { onConflict: "user_id" }
+        )
+        .select(getProgressSelectColumns())
+        .single();
+
+      while (isMissingProgressColumn(createResult.error)) {
+        downgradeProgressColumns(createResult.error);
+
+        createResult = await supabase
+          .from("xp_progress")
+          .upsert(
+            {
+              ...baseInsert,
+              ...(levelColumnsAvailable.current
+                ? {
+                    current_level: DEFAULT_CURRENT_LEVEL,
+                    target_level: DEFAULT_TARGET_LEVEL,
+                  }
+                : {}),
+              ...(userTotalXPColumnAvailable.current
+                ? {
+                    user_total_xp: DEFAULT_USER_TOTAL_XP,
+                  }
+                : {}),
+            },
+            { onConflict: "user_id" }
+          )
           .select(getProgressSelectColumns())
           .single();
 
@@ -612,16 +628,26 @@ export function useXpTracker() {
 
       let saveResult = await supabase
         .from("xp_progress")
-        .update(buildProgressPayload(baseUpdate, userTotalXP))
-        .eq("user_id", user.id);
+        .upsert(
+          {
+            user_id: user.id,
+            ...buildProgressPayload(baseUpdate, userTotalXP),
+          },
+          { onConflict: "user_id" }
+        );
 
       while (isMissingProgressColumn(saveResult.error)) {
         downgradeProgressColumns(saveResult.error);
 
         saveResult = await supabase
           .from("xp_progress")
-          .update(buildProgressPayload(baseUpdate, userTotalXP))
-          .eq("user_id", user.id);
+          .upsert(
+            {
+              user_id: user.id,
+              ...buildProgressPayload(baseUpdate, userTotalXP),
+            },
+            { onConflict: "user_id" }
+          );
 
         if (!saveResult.error) break;
         if (!isMissingProgressColumn(saveResult.error)) break;

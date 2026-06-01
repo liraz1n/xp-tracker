@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "~/supabase";
 
-export const PREMIUM_PRICE_CENTS = 500;
+export const PREMIUM_PRICE_CENTS = 599;
 export const TRIAL_DAYS = 7;
 
 export type BillingAccessStatus =
@@ -71,6 +71,19 @@ export const COUPON_PREVIEWS: CouponPreview[] = [
   },
 ];
 
+export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
+  {
+    code: "BETA50",
+    title: "50% no plano mensal",
+    description: "Desconto alinhado ao plano Premium mensal durante o período beta.",
+  },
+  {
+    code: "FOUNDERS",
+    title: "♛ R$ 2,50/mês",
+    description: "Coroa de fundador para os 10 primeiros assinantes do XP Tracker.",
+  },
+];
+
 export function formatCurrencyCents(value: number) {
   return (value / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -84,7 +97,7 @@ export function findCouponPreview(code: string) {
   if (!normalizedCode) return null;
 
   return (
-    COUPON_PREVIEWS.find((coupon) => coupon.code === normalizedCode) ?? null
+    ACTIVE_COUPON_PREVIEWS.find((coupon) => coupon.code === normalizedCode) ?? null
   );
 }
 
