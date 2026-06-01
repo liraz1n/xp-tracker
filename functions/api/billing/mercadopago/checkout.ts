@@ -4,6 +4,7 @@ import {
   jsonError,
   PLAN_ID,
   PREMIUM_PRICE,
+  resolveCouponForCheckout,
   type BillingEnv,
   type MercadoPagoPreferenceResponse,
 } from "../../../_shared/billing";
@@ -13,6 +14,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   request,
 }) => {
   const accessToken = env.MERCADO_PAGO_ACCESS_TOKEN;
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!accessToken) {
     return jsonError("Mercado Pago access token is not configured.", 500);
@@ -25,6 +27,34 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   }
 
   const baseUrl = getBaseUrl(request, env);
+  const body = (await request.json().catch(() => ({}))) as {
+    couponCode?: string;
+  };
+  let finalPrice = PREMIUM_PRICE;
+  let couponCode: string | null = null;
+
+  if (body.couponCode?.trim()) {
+    if (!serviceRoleKey) {
+      return jsonError("Coupon validation is not configured.", 500);
+    }
+
+    try {
+      const coupon = await resolveCouponForCheckout({
+        couponCode: body.couponCode,
+        serviceRoleKey,
+      });
+
+      if (coupon) {
+        finalPrice = coupon.price;
+        couponCode = coupon.code;
+      }
+    } catch (error) {
+      return jsonError(
+        error instanceof Error ? error.message : "Cupom indisponível.",
+        422
+      );
+    }
+  }
 
   const preferenceResponse = await fetch(
     "https://api.mercadopago.com/checkout/preferences",
@@ -42,7 +72,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
             description: "Acesso Premium mensal ao XP Tracker",
             quantity: 1,
             currency_id: "BRL",
-            unit_price: PREMIUM_PRICE,
+            unit_price: finalPrice,
           },
         ],
         payer: {
@@ -52,6 +82,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
         metadata: {
           user_id: user.id,
           plan: PLAN_ID,
+          coupon_code: couponCode,
         },
         back_urls: {
           success: `${baseUrl}/?payment=success`,

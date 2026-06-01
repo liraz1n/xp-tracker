@@ -66,6 +66,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   await upsertActiveSubscription({
     userId,
     paymentId: String(paymentId),
+    couponCode: payment.metadata?.coupon_code,
     serviceRoleKey,
   });
 

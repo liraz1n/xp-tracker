@@ -43,8 +43,8 @@ interface FarmPlanItem {
   runs: number;
 }
 
-function xpForLevel28Plus(xp: number): LevelXpValue[] {
-  return [{ minLevel: 28, xp, label: "Nível 28+" }];
+function xpForExactLevel(level: number, xp: number): LevelXpValue[] {
+  return [{ minLevel: level, maxLevel: level, xp, label: `Nível ${level}` }];
 }
 
 const FARM_ACTIVITIES: FarmActivity[] = [
@@ -54,7 +54,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 22",
     detail: "3 jogadores",
     players: 3,
-    xp: 23780,
+    xpByLevel: xpForExactLevel(22, 23780),
   },
   {
     id: "cripta-n1-24-3",
@@ -62,7 +62,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 24",
     detail: "3 jogadores",
     players: 3,
-    xp: 28232,
+    xpByLevel: xpForExactLevel(24, 28232),
   },
   {
     id: "cripta-n1-25-3",
@@ -70,7 +70,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 25",
     detail: "3 jogadores",
     players: 3,
-    xp: 30694,
+    xpByLevel: xpForExactLevel(25, 30694),
   },
   {
     id: "cripta-n1-30-4",
@@ -78,7 +78,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 30",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(53942),
+    xpByLevel: xpForExactLevel(30, 53942),
   },
   {
     id: "cripta-n1-16-4",
@@ -86,7 +86,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 16",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(14347),
+    xpByLevel: xpForExactLevel(16, 14347),
   },
   {
     id: "cripta-n1-17-4",
@@ -94,7 +94,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 17",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(17608),
+    xpByLevel: xpForExactLevel(17, 17608),
   },
   {
     id: "cripta-n1-18-4",
@@ -102,7 +102,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 18",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(19412),
+    xpByLevel: xpForExactLevel(18, 19412),
   },
   {
     id: "cripta-n1-19-4",
@@ -110,7 +110,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 19",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(21342),
+    xpByLevel: xpForExactLevel(19, 21342),
   },
   {
     id: "cripta-n1-20-4",
@@ -118,7 +118,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 20",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(23407),
+    xpByLevel: xpForExactLevel(20, 23407),
   },
   {
     id: "cripta-n1-21-4",
@@ -126,7 +126,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 21",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(25617),
+    xpByLevel: xpForExactLevel(21, 25617),
   },
   {
     id: "cripta-n1-22-4",
@@ -134,7 +134,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 22",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(27982),
+    xpByLevel: xpForExactLevel(22, 27982),
   },
   {
     id: "cripta-n1-23-4",
@@ -142,7 +142,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 23",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(30512),
+    xpByLevel: xpForExactLevel(23, 30512),
   },
   {
     id: "cripta-n1-24-4",
@@ -150,7 +150,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 24",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(33219),
+    xpByLevel: xpForExactLevel(24, 33219),
   },
   {
     id: "cripta-n1-25-4",
@@ -158,7 +158,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 25",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(36116),
+    xpByLevel: xpForExactLevel(25, 36116),
   },
   {
     id: "cripta-n1-26-4",
@@ -166,7 +166,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 26",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(39216),
+    xpByLevel: xpForExactLevel(26, 39216),
   },
   {
     id: "cripta-n1-25-5",
@@ -174,7 +174,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 25",
     detail: "5 jogadores",
     players: 5,
-    xpByLevel: xpForLevel28Plus(36116),
+    xpByLevel: xpForExactLevel(25, 36116),
   },
   {
     id: "cripta-n1-26-5",
@@ -182,7 +182,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 26",
     detail: "5 jogadores",
     players: 5,
-    xpByLevel: xpForLevel28Plus(39216),
+    xpByLevel: xpForExactLevel(26, 39216),
   },
   {
     id: "cripta-n1-27-5",
@@ -190,7 +190,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 27",
     detail: "5 jogadores",
     players: 5,
-    xp: 42533,
+    xpByLevel: xpForExactLevel(27, 42533),
   },
   {
     id: "cripta-n1-28-5",
@@ -198,7 +198,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 28",
     detail: "5 jogadores",
     players: 5,
-    xp: 46082,
+    xpByLevel: xpForExactLevel(28, 46082),
   },
   {
     id: "cripta-n1-29-5",
@@ -206,7 +206,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 29",
     detail: "5 jogadores",
     players: 5,
-    xp: 49879,
+    xpByLevel: xpForExactLevel(29, 49879),
   },
   {
     id: "cripta-n1-30-5",
@@ -214,7 +214,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 30",
     detail: "5 jogadores",
     players: 5,
-    xp: 53942,
+    xpByLevel: xpForExactLevel(30, 53942),
   },
   {
     id: "cripta-n1-31-5",
@@ -222,7 +222,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 31",
     detail: "5 jogadores",
     players: 5,
-    xp: 58290,
+    xpByLevel: xpForExactLevel(31, 58290),
   },
   {
     id: "cripta-n1-27-4",
@@ -230,7 +230,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 27",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(42533),
+    xpByLevel: xpForExactLevel(27, 42533),
   },
   {
     id: "cripta-n1-28-4",
@@ -238,7 +238,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 28",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(46082),
+    xpByLevel: xpForExactLevel(28, 46082),
   },
   {
     id: "cripta-n1-29-4",
@@ -246,21 +246,21 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 1 até 29",
     detail: "4 jogadores",
     players: 4,
-    xpByLevel: xpForLevel28Plus(49859),
+    xpByLevel: xpForExactLevel(29, 49859),
   },
   {
     id: "cripta-n3-7",
     category: "Cripta",
     name: "Cripta Nível 3 até 7",
     detail: "Dado parcial",
-    xp: 18832,
+    xpByLevel: xpForExactLevel(7, 18832),
   },
   {
     id: "cripta-n3-9",
     category: "Cripta",
     name: "Cripta Nível 3 até 9",
     detail: "Dado parcial",
-    xp: 26065,
+    xpByLevel: xpForExactLevel(9, 26065),
   },
   {
     id: "cripta-n3-10",
@@ -268,7 +268,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 3 até 10",
     detail: "4 jogadores",
     players: 4,
-    xp: 35371,
+    xpByLevel: xpForExactLevel(10, 35371),
   },
   {
     id: "cripta-n3-11",
@@ -276,7 +276,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 3 até 11",
     detail: "4 jogadores",
     players: 4,
-    xp: 40407,
+    xpByLevel: xpForExactLevel(11, 40407),
   },
   {
     id: "cripta-n3-12",
@@ -284,7 +284,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 3 até 12",
     detail: "4 jogadores",
     players: 4,
-    xp: 45796,
+    xpByLevel: xpForExactLevel(12, 45796),
   },
   {
     id: "cripta-n3-13",
@@ -292,7 +292,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     name: "Cripta Nível 3 até 13",
     detail: "4 jogadores",
     players: 4,
-    xp: 51561,
+    xpByLevel: xpForExactLevel(13, 51561),
   },
   {
     id: "planicie-4",

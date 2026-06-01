@@ -53,24 +53,6 @@ export interface BillingState {
   startCheckout: (couponCode?: string) => Promise<void>;
 }
 
-export const COUPON_PREVIEWS: CouponPreview[] = [
-  {
-    code: "BETA50",
-    title: "50% por 3 meses",
-    description: "Ideal para os primeiros jogadores testarem o Premium pagando metade.",
-  },
-  {
-    code: "LIRA",
-    title: "Primeiro mês grátis",
-    description: "Libera o primeiro mês para experimentar o plano completo.",
-  },
-  {
-    code: "FOUNDERS",
-    title: "R$ 2,50/mês",
-    description: "Cupom limitado para os primeiros apoiadores do XP Tracker.",
-  },
-];
-
 export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
   {
     code: "BETA50",

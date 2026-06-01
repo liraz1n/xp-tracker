@@ -124,12 +124,12 @@ values
   ),
   (
     'FOUNDERS',
-    'Preço fundador de R$ 2,50/mês para os primeiros apoiadores.',
+    'Preço fundador de R$ 2,50/mês para os 10 primeiros assinantes.',
     'fixed_price_cents',
     250,
     'forever',
     null,
-    20
+    10
   )
 on conflict (code) do update
 set
@@ -175,18 +175,6 @@ for select
 to authenticated
 using (user_id::text = auth.uid()::text);
 
--- Verification query: should show one subscription row per user and the default coupons.
-select
-  'subscriptions' as source,
-  count(*)::text as total
-from public.user_subscriptions
-union all
-select
-  'active_coupons' as source,
-  count(*)::text as total
-from public.discount_coupons
-where active = true;
-
 update public.discount_coupons
 set active = false
 where code = 'LIRA';
@@ -197,3 +185,15 @@ set
   max_redemptions = 10,
   active = true
 where code = 'FOUNDERS';
+
+-- Verification query: should show one subscription row per user and the active coupons.
+select
+  'subscriptions' as source,
+  count(*)::text as total
+from public.user_subscriptions
+union all
+select
+  'active_coupons' as source,
+  count(*)::text as total
+from public.discount_coupons
+where active = true;
