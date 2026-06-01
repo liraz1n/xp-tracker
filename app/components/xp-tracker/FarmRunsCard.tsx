@@ -515,6 +515,36 @@ function resolveActivitiesForLevel(
     .filter((activity): activity is ResolvedFarmActivity => Boolean(activity));
 }
 
+function resolveQuickActivities(activities: FarmActivity[]) {
+  return activities
+    .flatMap((activity) => {
+      if (activity.xpByLevel) {
+        return activity.xpByLevel.map((levelXp) => ({
+          ...activity,
+          id: `${activity.id}-level-${levelXp.minLevel}`,
+          xp: levelXp.xp,
+          levelRangeLabel: levelXp.label,
+        }));
+      }
+
+      if (typeof activity.xp !== "number") return [];
+
+      return [
+        {
+          ...activity,
+          xp: activity.xp,
+          levelRangeLabel: "XP fixo",
+        },
+      ];
+    })
+    .sort((a, b) => {
+      const levelA = a.xpByLevel?.[0]?.minLevel ?? 0;
+      const levelB = b.xpByLevel?.[0]?.minLevel ?? 0;
+
+      return levelA - levelB || a.xp - b.xp;
+    });
+}
+
 function getActivitiesById(activityIds: string[]) {
   return activityIds
     .map((activityId) =>
@@ -787,8 +817,8 @@ export function FarmRunsCard({
   }, [quickPlayerCount, quickRunTab]);
 
   const quickActivities = useMemo(
-    () => resolveActivitiesForLevel(quickBaseActivities, currentLevel),
-    [currentLevel, quickBaseActivities]
+    () => resolveQuickActivities(quickBaseActivities),
+    [quickBaseActivities]
   );
 
   function applyFarmProgress() {
@@ -1038,14 +1068,14 @@ export function FarmRunsCard({
                   Dados em coleta
                 </p>
                 <p className={`${theme.muted} mt-1 text-xs`}>
-                  Ainda não temos dados cadastrados para esta aba no nível {currentLevel}.
+                  Ainda não temos dados cadastrados para esta aba e quantidade de jogadores.
                 </p>
               </div>
             ) : (
               <div>
                 <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <p className={`${theme.muted} text-xs`}>
-                    {quickActivities.length} atalhos disponíveis para {quickActivities[0]?.levelRangeLabel}.
+                    {quickActivities.length} atalhos cadastrados por nível.
                   </p>
 
                   {quickFeedback && (
