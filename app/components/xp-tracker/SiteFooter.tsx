@@ -2,7 +2,7 @@ interface SiteFooterProps {
   darkMode?: boolean;
 }
 
-const BUILD_LABEL = "1.4.17";
+const BUILD_LABEL = "1.4.18";
 const BUILD_DATE = "01/06/2026";
 const HOSTING_LABEL = "Cloudflare Pages";
 const SITE_URL = "xp-tracker.pages.dev";

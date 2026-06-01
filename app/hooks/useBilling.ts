@@ -37,6 +37,8 @@ export interface CouponPreview {
   description: string;
 }
 
+export type CheckoutPaymentMode = "default" | "pix";
+
 export interface BillingState {
   accessStatus: BillingAccessStatus;
   canUsePremiumFeatures: boolean;
@@ -50,7 +52,10 @@ export interface BillingState {
   priceLabel: string;
   checkoutLoading: boolean;
   checkoutError: string | null;
-  startCheckout: (couponCode?: string) => Promise<void>;
+  startCheckout: (
+    couponCode?: string,
+    paymentMode?: CheckoutPaymentMode
+  ) => Promise<void>;
 }
 
 export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
@@ -182,7 +187,10 @@ export function useBilling({
     };
   }, [guestMode, progressLoaded, user]);
 
-  async function startCheckout(couponCode = "") {
+  async function startCheckout(
+    couponCode = "",
+    paymentMode: CheckoutPaymentMode = "default"
+  ) {
     if (!user || guestMode) return;
 
     setCheckoutLoading(true);
@@ -204,6 +212,7 @@ export function useBilling({
         },
         body: JSON.stringify({
           couponCode: couponCode.trim().toUpperCase(),
+          paymentMode,
         }),
       });
 

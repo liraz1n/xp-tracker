@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   findCouponPreview,
   type BillingState,
+  type CheckoutPaymentMode,
 } from "~/hooks/useBilling";
 
 interface SubscriptionCardProps {
@@ -14,7 +15,7 @@ interface SubscriptionCardProps {
     muted: string;
     text: string;
   };
-  onCheckout?: (couponCode: string) => void;
+  onCheckout?: (couponCode: string, paymentMode?: CheckoutPaymentMode) => void;
 }
 
 export function SubscriptionCard({
@@ -168,18 +169,29 @@ export function SubscriptionCard({
             </p>
           )}
 
-          <button
-            type="button"
-            onClick={() => onCheckout?.(appliedCouponCode)}
-            disabled={!onCheckout || checkoutLoading || isActive || isGuest}
-            className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
-          >
-            {checkoutLoading
-              ? "Abrindo checkout..."
-              : isActive
-                ? "Premium ativo"
-                : "Assinar com pagamento seguro"}
-          </button>
+          <div className="grid grid-cols-1 gap-2">
+            <button
+              type="button"
+              onClick={() => onCheckout?.(appliedCouponCode, "default")}
+              disabled={!onCheckout || checkoutLoading || isActive || isGuest}
+              className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {checkoutLoading
+                ? "Abrindo checkout..."
+                : isActive
+                  ? "Premium ativo"
+                  : "Assinar com pagamento seguro"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onCheckout?.(appliedCouponCode, "pix")}
+              disabled={!onCheckout || checkoutLoading || isActive || isGuest}
+              className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-200 transition-all hover:border-emerald-300 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {checkoutLoading ? "Abrindo Pix..." : "Pagar com Pix"}
+            </button>
+          </div>
         </div>
       </div>
     </section>
