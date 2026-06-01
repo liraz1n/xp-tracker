@@ -7,18 +7,22 @@ import {
 interface SubscriptionCardProps {
   billing: BillingState;
   alwaysShow?: boolean;
+  checkoutLoading?: boolean;
   theme: {
     card: string;
     input: string;
     muted: string;
     text: string;
   };
+  onCheckout?: (couponCode: string) => void;
 }
 
 export function SubscriptionCard({
   billing,
   alwaysShow = false,
+  checkoutLoading = false,
   theme,
+  onCheckout,
 }: SubscriptionCardProps) {
   const [couponCode, setCouponCode] = useState("");
   const couponPreview = useMemo(
@@ -121,11 +125,15 @@ export function SubscriptionCard({
 
           <button
             type="button"
-            disabled
-            className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black opacity-70"
-            title="O checkout real será conectado na próxima etapa."
+            onClick={() => onCheckout?.(couponCode)}
+            disabled={!onCheckout || checkoutLoading || isActive || isGuest}
+            className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
           >
-            Checkout em implantação
+            {checkoutLoading
+              ? "Abrindo checkout..."
+              : isActive
+                ? "Premium ativo"
+                : "Assinar com Mercado Pago"}
           </button>
         </div>
       </div>

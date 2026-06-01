@@ -46,7 +46,19 @@ export function SubscriptionPanel({
           </button>
         </div>
 
-        <SubscriptionCard billing={billing} alwaysShow theme={theme} />
+        <SubscriptionCard
+          billing={billing}
+          alwaysShow
+          checkoutLoading={billing.checkoutLoading}
+          theme={theme}
+          onCheckout={billing.startCheckout}
+        />
+
+        {billing.checkoutError && (
+          <div className="mb-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm font-bold text-red-300">
+            {billing.checkoutError}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {COUPON_PREVIEWS.map((coupon) => (
@@ -67,12 +79,11 @@ export function SubscriptionPanel({
 
         <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <h3 className="font-black text-emerald-300">
-            Próxima etapa de pagamento
+            Pagamento
           </h3>
           <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
-            O próximo passo técnico é conectar o checkout real no back-end,
-            usando Asaas para cartão recorrente e Pix. A chave secreta fica no
-            servidor, nunca no navegador.
+            O checkout real usa Mercado Pago no back-end. A chave secreta fica
+            no servidor, nunca no navegador.
           </p>
         </div>
       </div>

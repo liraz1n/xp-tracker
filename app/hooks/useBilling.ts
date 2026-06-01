@@ -48,6 +48,9 @@ export interface BillingState {
   trialEndsAt: string | null;
   planLabel: string;
   priceLabel: string;
+  checkoutLoading: boolean;
+  checkoutError: string | null;
+  startCheckout: (couponCode?: string) => Promise<void>;
 }
 
 export const COUPON_PREVIEWS: CouponPreview[] = [
@@ -137,6 +140,8 @@ export function useBilling({
     useState<UserSubscriptionRow | null>(null);
   const [loading, setLoading] = useState(false);
   const [setupPending, setSetupPending] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +187,51 @@ export function useBilling({
     };
   }, [guestMode, progressLoaded, user]);
 
+  async function startCheckout(couponCode = "") {
+    if (!user || guestMode) return;
+
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token) {
+        throw new Error("Sessão expirada. Entre novamente para assinar.");
+      }
+
+      const response = await fetch("/api/billing/mercadopago/checkout", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          couponCode: couponCode.trim().toUpperCase(),
+        }),
+      });
+
+      const checkout = (await response.json()) as {
+        error?: string;
+        initPoint?: string;
+      };
+
+      if (!response.ok || !checkout.initPoint) {
+        throw new Error(checkout.error ?? "Não foi possível abrir o checkout.");
+      }
+
+      window.location.href = checkout.initPoint;
+    } catch (error) {
+      setCheckoutError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível abrir o checkout."
+      );
+      setCheckoutLoading(false);
+    }
+  }
+
   return useMemo(() => {
     if (guestMode) {
       return {
@@ -195,6 +245,9 @@ export function useBilling({
         trialEndsAt: null,
         planLabel: "Visitante",
         priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+        checkoutLoading,
+        checkoutError,
+        startCheckout,
       };
     }
 
@@ -210,6 +263,9 @@ export function useBilling({
         trialEndsAt: null,
         planLabel: "Carregando plano",
         priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+        checkoutLoading,
+        checkoutError,
+        startCheckout,
       };
     }
 
@@ -232,6 +288,9 @@ export function useBilling({
       trialEndsAt: subscription?.trial_ends_at ?? null,
       planLabel: accessStatus === "active" ? "Premium" : "Teste grátis",
       priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+      checkoutLoading,
+      checkoutError,
+      startCheckout,
     };
-  }, [guestMode, loading, setupPending, subscription]);
+  }, [guestMode, loading, setupPending, subscription, checkoutLoading, checkoutError, user]);
 }

@@ -226,7 +226,12 @@ export default function Home() {
             onLogout={tracker.logout}
           />
 
-          <SubscriptionCard billing={tracker.billing} theme={theme} />
+          <SubscriptionCard
+            billing={tracker.billing}
+            checkoutLoading={tracker.billing.checkoutLoading}
+            theme={theme}
+            onCheckout={tracker.billing.startCheckout}
+          />
 
           {shouldShowOnboarding && (
             <OnboardingCard
