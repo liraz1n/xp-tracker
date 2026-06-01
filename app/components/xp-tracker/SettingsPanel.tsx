@@ -69,8 +69,6 @@ export function SettingsPanel({
   if (!open) return null;
 
   const draftCurrentXPValue = Math.min(draftCurrentXP, draftTotalXP);
-  const xpGainedInSettings = Math.max(0, currentXP - draftCurrentXPValue);
-  const userTotalAfterSave = draftUserTotalXP + xpGainedInSettings;
 
   function updateDraftCurrentXP(value: number) {
     const nextCurrentXP = Math.min(Math.max(0, value), draftTotalXP);
@@ -85,7 +83,7 @@ export function SettingsPanel({
     const saved = await onSave({
       totalXP: draftTotalXP,
       currentXP: draftCurrentXPValue,
-      userTotalXP: userTotalAfterSave,
+      userTotalXP: draftUserTotalXP,
       dailyGoal: draftDailyGoal,
       currentLevel: draftCurrentLevel,
       targetLevel: draftTargetLevel,
@@ -175,13 +173,8 @@ export function SettingsPanel({
               Salvar ajustes
             </h3>
             <p className={`${theme.muted} mt-2`}>
-              Se o XP restante diminuir, o avanço entra automaticamente no histórico inteligente de hoje.
+              Salva os valores informados sem recalcular automaticamente o XP total do usuário.
             </p>
-            {xpGainedInSettings > 0 && (
-              <p className="mt-2 text-sm font-bold text-emerald-300">
-                +{xpGainedInSettings.toLocaleString("pt-BR")} XP será somado. Total após salvar: {userTotalAfterSave.toLocaleString("pt-BR")}.
-              </p>
-            )}
             {settingsError && (
               <p className="mt-2 text-sm font-bold text-red-300">
                 {settingsError}
