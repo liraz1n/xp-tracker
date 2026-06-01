@@ -46,6 +46,30 @@ export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
 export const PLAN_ID = "premium_monthly";
 const ALLOWED_COUPONS = new Set(["BETA50", "FOUNDERS"]);
+const FALLBACK_COUPONS: Record<string, DiscountCouponRow> = {
+  BETA50: {
+    id: "fallback:BETA50",
+    code: "BETA50",
+    discount_type: "percent",
+    discount_value: 50,
+    duration_type: "repeating",
+    duration_months: 3,
+    max_redemptions: null,
+    redeemed_count: 0,
+    expires_at: null,
+  },
+  FOUNDERS: {
+    id: "fallback:FOUNDERS",
+    code: "FOUNDERS",
+    discount_type: "fixed_price_cents",
+    discount_value: 250,
+    duration_type: "forever",
+    duration_months: null,
+    max_redemptions: 10,
+    redeemed_count: 0,
+    expires_at: null,
+  },
+};
 
 export function jsonError(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), {
@@ -234,6 +258,8 @@ async function redeemCoupon({
 
   if (!coupon) return null;
 
+  if (coupon.id.startsWith("fallback:")) return applyCoupon(coupon);
+
   const alreadyRedeemed = await userAlreadyRedeemedCoupon({
     couponId: coupon.id,
     userId,
@@ -293,12 +319,16 @@ async function getActiveCoupon(code: string, serviceRoleKey: string) {
   );
 
   if (!response.ok) {
+    const fallbackCoupon = FALLBACK_COUPONS[code];
+
+    if (fallbackCoupon) return fallbackCoupon;
+
     throw new Error(await response.text());
   }
 
   const [coupon] = (await response.json()) as DiscountCouponRow[];
 
-  if (!coupon) return null;
+  if (!coupon) return FALLBACK_COUPONS[code] ?? null;
 
   if (coupon.expires_at && new Date(coupon.expires_at).getTime() <= Date.now()) {
     return null;
