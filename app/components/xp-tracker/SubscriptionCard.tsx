@@ -172,7 +172,7 @@ export function SubscriptionCard({
           <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
-              onClick={() => onCheckout?.(appliedCouponCode, "default")}
+              onClick={() => onCheckout?.(appliedCouponCode, "pix")}
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
               className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
@@ -180,16 +180,16 @@ export function SubscriptionCard({
                 ? "Abrindo checkout..."
                 : isActive
                   ? "Premium ativo"
-                  : "Assinar com pagamento seguro"}
+                  : "Assinar com Pix"}
             </button>
 
             <button
               type="button"
-              onClick={() => onCheckout?.(appliedCouponCode, "pix")}
+              onClick={() => onCheckout?.(appliedCouponCode, "card")}
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
-              className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm font-black text-emerald-200 transition-all hover:border-emerald-300 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl border border-yellow-500/35 bg-yellow-400/10 px-4 py-3 text-sm font-black text-yellow-300 transition-all hover:border-yellow-400 hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {checkoutLoading ? "Abrindo Pix..." : "Pagar com Pix"}
+              {checkoutLoading ? "Abrindo cartão..." : "Assinar com Cartão"}
             </button>
           </div>
         </div>

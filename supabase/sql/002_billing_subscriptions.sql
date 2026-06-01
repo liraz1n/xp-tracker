@@ -106,12 +106,21 @@ insert into public.discount_coupons (
 values
   (
     'BETA50',
-    '50% de desconto por 3 meses para beta testers.',
+    '50% de desconto por 6 meses para o plano recorrente.',
     'percent',
     50,
     'repeating',
-    3,
+    6,
     null
+  ),
+  (
+    'TOFUS',
+    '50% de desconto limitado aos 10 primeiros usos.',
+    'percent',
+    50,
+    'once',
+    1,
+    10
   ),
   (
     'LIRA',
@@ -178,6 +187,25 @@ using (user_id::text = auth.uid()::text);
 update public.discount_coupons
 set active = false
 where code = 'LIRA';
+
+update public.discount_coupons
+set
+  description = '50% de desconto por 6 meses para o plano recorrente.',
+  duration_months = 6,
+  max_redemptions = null,
+  active = true
+where code = 'BETA50';
+
+update public.discount_coupons
+set
+  description = '50% de desconto limitado aos 10 primeiros usos.',
+  discount_type = 'percent',
+  discount_value = 50,
+  duration_type = 'once',
+  duration_months = 1,
+  max_redemptions = 10,
+  active = true
+where code = 'TOFUS';
 
 update public.discount_coupons
 set

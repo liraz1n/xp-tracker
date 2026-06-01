@@ -29,12 +29,13 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   const baseUrl = getBaseUrl(request, env);
   const body = (await request.json().catch(() => ({}))) as {
     couponCode?: string;
-    paymentMode?: "default" | "pix";
+    paymentMode?: "card" | "pix";
   };
   let finalPrice = PREMIUM_PRICE;
   let couponCode: string | null = null;
+  const paymentMode = body.paymentMode === "pix" ? "pix" : "card";
   const paymentMethods =
-    body.paymentMode === "pix"
+    paymentMode === "pix"
       ? {
           excluded_payment_types: [
             { id: "credit_card" },
@@ -44,7 +45,14 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
           ],
           installments: 1,
         }
-      : undefined;
+      : {
+          excluded_payment_types: [
+            { id: "bank_transfer" },
+            { id: "ticket" },
+            { id: "atm" },
+          ],
+          installments: 1,
+        };
 
   if (body.couponCode?.trim()) {
     if (!serviceRoleKey) {
@@ -96,9 +104,9 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
           user_id: user.id,
           plan: PLAN_ID,
           coupon_code: couponCode,
-          payment_mode: body.paymentMode === "pix" ? "pix" : "default",
+          payment_mode: paymentMode,
         },
-        ...(paymentMethods ? { payment_methods: paymentMethods } : {}),
+        payment_methods: paymentMethods,
         back_urls: {
           success: `${baseUrl}/?payment=success`,
           failure: `${baseUrl}/?payment=failure`,

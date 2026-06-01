@@ -37,7 +37,7 @@ export interface CouponPreview {
   description: string;
 }
 
-export type CheckoutPaymentMode = "default" | "pix";
+export type CheckoutPaymentMode = "card" | "pix";
 
 export interface BillingState {
   accessStatus: BillingAccessStatus;
@@ -61,8 +61,13 @@ export interface BillingState {
 export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
   {
     code: "BETA50",
-    title: "50% no plano mensal",
-    description: "Desconto alinhado ao plano Premium mensal durante o período beta.",
+    title: "50% por 6 meses",
+    description: "Desconto para plano recorrente durante os 6 primeiros meses.",
+  },
+  {
+    code: "TOFUS",
+    title: "50% para 10 usos",
+    description: "Cupom limitado aos 10 primeiros usos com metade do valor.",
   },
   {
     code: "FOUNDERS",
@@ -189,7 +194,7 @@ export function useBilling({
 
   async function startCheckout(
     couponCode = "",
-    paymentMode: CheckoutPaymentMode = "default"
+    paymentMode: CheckoutPaymentMode = "card"
   ) {
     if (!user || guestMode) return;
 

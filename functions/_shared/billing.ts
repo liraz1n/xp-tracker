@@ -45,7 +45,7 @@ export const SUPABASE_ANON_KEY = "sb_publishable_kzsAi2dFuLrMjcr6R06MNw_8Vuv5Ilq
 export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
 export const PLAN_ID = "premium_monthly";
-const ALLOWED_COUPONS = new Set(["BETA50", "FOUNDERS"]);
+const ALLOWED_COUPONS = new Set(["BETA50", "TOFUS", "FOUNDERS"]);
 const FALLBACK_COUPONS: Record<string, DiscountCouponRow> = {
   BETA50: {
     id: "fallback:BETA50",
@@ -53,8 +53,19 @@ const FALLBACK_COUPONS: Record<string, DiscountCouponRow> = {
     discount_type: "percent",
     discount_value: 50,
     duration_type: "repeating",
-    duration_months: 3,
+    duration_months: 6,
     max_redemptions: null,
+    redeemed_count: 0,
+    expires_at: null,
+  },
+  TOFUS: {
+    id: "fallback:TOFUS",
+    code: "TOFUS",
+    discount_type: "percent",
+    discount_value: 50,
+    duration_type: "once",
+    duration_months: 1,
+    max_redemptions: 10,
     redeemed_count: 0,
     expires_at: null,
   },
@@ -410,6 +421,7 @@ function couponEndsAt(coupon: DiscountCouponRow) {
 
 function maxRedemptionsForCoupon(coupon: DiscountCouponRow | null) {
   if (coupon?.code === "FOUNDERS") return 10;
+  if (coupon?.code === "TOFUS") return 10;
 
   return coupon?.max_redemptions ?? null;
 }
