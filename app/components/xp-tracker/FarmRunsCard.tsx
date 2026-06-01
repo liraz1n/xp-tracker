@@ -812,6 +812,35 @@ export function FarmRunsCard({
       .slice(0, 5);
   }, [currentXP, planActivities, planMode]);
 
+  const smartRunOptions = useMemo(() => {
+    if (currentXP <= 0) return [];
+
+    const baseActivities = SITE_FARM_ACTIVITIES.filter(
+      (activity) => canShowCriptas || activity.category !== "Cripta"
+    );
+
+    return resolveQuickActivities(baseActivities)
+      .filter((activity) => activity.xp > 0)
+      .map((activity) => {
+        const runs = Math.ceil(currentXP / activity.xp);
+        const totalXP = runs * activity.xp;
+
+        return {
+          activity,
+          runs,
+          totalXP,
+          overflowXP: Math.max(0, totalXP - currentXP),
+        };
+      })
+      .sort(
+        (left, right) =>
+          left.runs - right.runs ||
+          left.overflowXP - right.overflowXP ||
+          right.activity.xp - left.activity.xp
+      )
+      .slice(0, 6);
+  }, [canShowCriptas, currentXP]);
+
   const farmPlan = useMemo(() => {
     if (planMode === "fewest-runs") {
       return buildSingleActivityPlan(currentXP, planActivities);
@@ -907,7 +936,7 @@ export function FarmRunsCard({
             </h2>
 
             <p className={`${theme.muted} mt-1.5 text-sm leading-relaxed`}>
-              Criptas consideram seu nível atual: {currentLevel}. Masmorras usam XP fixo por quantidade de jogadores.
+              Criptas usam XP cadastrado por nível. Masmorras usam XP fixo por quantidade de jogadores.
             </p>
           </div>
 
@@ -1165,43 +1194,60 @@ export function FarmRunsCard({
             )}
           </div>
 
-          <div className="hidden grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-yellow-300 font-black">
-                  Runs para upar
-                </p>
+                <div>
+                  <p className="text-yellow-300 font-black">
+                    Plano inteligente para upar
+                  </p>
+                  <p className={`${theme.muted} text-xs`}>
+                    Faltam {formatXP(currentXP)} XP. Veja quantas runs fecham o nível.
+                  </p>
+                </div>
                 <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
-                  {recommendedRuns.length} melhores
+                  {smartRunOptions.length} opções
                 </span>
               </div>
 
-              {recommendedRuns.length === 0 ? (
+              {smartRunOptions.length === 0 ? (
                 <p className={`${theme.muted} text-sm`}>
                   Configure seu XP restante para calcular as melhores opções.
                 </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-2.5">
-                  {recommendedRuns.map((activity) => (
+                  {smartRunOptions.map(({ activity, runs, totalXP, overflowXP }) => (
                     <div
                       key={activity.id}
-                      className="flex items-start justify-between gap-3 rounded-2xl border border-yellow-500/10 bg-yellow-500/[0.03] p-3"
+                      className="rounded-2xl border border-yellow-500/10 bg-yellow-500/[0.03] p-3"
                     >
-                      <div>
-                        <p className={`${theme.text} text-sm font-bold leading-tight`}>
-                          {activity.name}
-                        </p>
-                        <p className={`${theme.muted} text-xs leading-tight`}>
-                          {activity.category} - {activity.detail}
-                        </p>
-                        <p className={`${theme.muted} text-[11px] leading-tight`}>
-                          {activity.levelRangeLabel}
-                        </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className={`${theme.text} text-sm font-bold leading-tight`}>
+                            {activity.name}
+                          </p>
+                          <p className={`${theme.muted} text-xs leading-tight`}>
+                            {activity.category} - {activity.detail}
+                          </p>
+                          <p className={`${theme.muted} text-[11px] leading-tight`}>
+                            {activity.levelRangeLabel}
+                          </p>
+                        </div>
+
+                        <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                          {runs}x
+                        </span>
                       </div>
 
-                      <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
-                        {Math.ceil(currentXP / activity.xp)}x
-                      </span>
+                      <div className="mt-3 rounded-xl border border-yellow-500/10 bg-black/20 px-3 py-2">
+                        <p className={`${theme.text} text-sm font-bold leading-tight`}>
+                          Faça {runs} {runs === 1 ? "run" : "runs"} e você upa.
+                        </p>
+                        <p className={`${theme.muted} text-xs leading-tight`}>
+                          Total: {formatXP(totalXP)} XP
+                          {overflowXP > 0 ? ` | sobra ${formatXP(overflowXP)} XP` : ""}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
