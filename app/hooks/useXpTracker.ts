@@ -97,6 +97,10 @@ function sanitizeLevel(value: number) {
   return Math.max(0, Math.floor(value));
 }
 
+function getTotalXPFromHistory(history: HistoryEntry[] | null | undefined) {
+  return (history ?? []).reduce((sum, entry) => sum + entry.xpGained, 0);
+}
+
 function isMissingProgressColumn(error: {
   code?: string;
   message?: string;
@@ -386,16 +390,19 @@ export function useXpTracker() {
   }
 
   function applyProgress(data: XpProgressRow) {
+    const nextHistory = data.history ?? [];
+    const userTotalXPFromHistory = getTotalXPFromHistory(nextHistory);
+
     setTotalXP(data.total_xp);
     setCurrentXP(data.current_xp);
     setDailyGoal(data.daily_goal);
-    setHistory(data.history ?? []);
+    setHistory(nextHistory);
     setReachedMilestones(data.reached_milestones ?? []);
     setLastSavedXP(data.last_saved_xp);
     setDarkMode(data.dark_mode);
     setCurrentLevel(sanitizeLevel(data.current_level ?? DEFAULT_CURRENT_LEVEL));
     setTargetLevel(sanitizeLevel(data.target_level ?? DEFAULT_TARGET_LEVEL));
-    setUserTotalXP(Math.max(0, data.user_total_xp ?? DEFAULT_USER_TOTAL_XP));
+    setUserTotalXP(Math.max(0, data.user_total_xp ?? userTotalXPFromHistory));
   }
 
   function applyGuestProgressDraft(draft: GuestProgressDraft) {
@@ -528,7 +535,7 @@ export function useXpTracker() {
         applyGuestProgressDraft(guestDraft);
         clearGuestProgressDraft();
       } else {
-        applyProgress(created as XpProgressRow);
+        applyProgress(created as unknown as XpProgressRow);
       }
 
       setProgressLoaded(true);
@@ -542,7 +549,7 @@ export function useXpTracker() {
       applyGuestProgressDraft(guestDraft);
       clearGuestProgressDraft();
     } else {
-      applyProgress(data as XpProgressRow);
+      applyProgress(data as unknown as XpProgressRow);
     }
 
     setProgressLoaded(true);

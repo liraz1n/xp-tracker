@@ -52,6 +52,7 @@ export function SettingsPanel({
   const [draftCurrentLevel, setDraftCurrentLevel] = useState(currentLevel);
   const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -62,6 +63,7 @@ export function SettingsPanel({
     setDraftDailyGoal(dailyGoal);
     setDraftCurrentLevel(currentLevel);
     setDraftTargetLevel(targetLevel);
+    setSettingsError(null);
   }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel, targetLevel]);
 
   if (!open) return null;
@@ -78,6 +80,7 @@ export function SettingsPanel({
 
   async function saveSettings() {
     setIsSavingSettings(true);
+    setSettingsError(null);
 
     const saved = await onSave({
       totalXP: draftTotalXP,
@@ -92,7 +95,12 @@ export function SettingsPanel({
 
     if (saved !== false) {
       onClose();
+      return;
     }
+
+    setSettingsError(
+      "Nao foi possivel salvar o XP total do usuario. Verifique se a coluna user_total_xp existe no Supabase."
+    );
   }
 
   return (
@@ -172,6 +180,11 @@ export function SettingsPanel({
             {xpGainedInSettings > 0 && (
               <p className="mt-2 text-sm font-bold text-emerald-300">
                 +{xpGainedInSettings.toLocaleString("pt-BR")} XP será somado. Total após salvar: {userTotalAfterSave.toLocaleString("pt-BR")}.
+              </p>
+            )}
+            {settingsError && (
+              <p className="mt-2 text-sm font-bold text-red-300">
+                {settingsError}
               </p>
             )}
           </div>

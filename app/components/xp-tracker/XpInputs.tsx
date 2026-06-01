@@ -19,7 +19,7 @@ function sanitizeNumber(value: number) {
 }
 
 function formatInputValue(value: number) {
-  return value === 0 ? "" : value;
+  return value;
 }
 
 export function XpInputs({

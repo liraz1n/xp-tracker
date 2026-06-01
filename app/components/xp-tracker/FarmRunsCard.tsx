@@ -463,7 +463,7 @@ function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
   return activity.name.includes(levelByTab[tab]);
 }
 
-function addPlanItem(plan: FarmPlanItem[], activity: FarmActivity, runs: number) {
+function addPlanItem(plan: FarmPlanItem[], activity: ResolvedFarmActivity, runs: number) {
   const existingItem = plan.find((item) => item.activity.id === activity.id);
 
   if (existingItem) {
