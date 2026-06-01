@@ -5,6 +5,7 @@ import {
   PLAN_ID,
   PREMIUM_PRICE,
   resolveCouponForCheckout,
+  securityHeaders,
   type BillingEnv,
   type MercadoPagoPreferenceResponse,
 } from "../../../_shared/billing";
@@ -126,9 +127,12 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     return jsonError("Could not create Mercado Pago checkout.", 502);
   }
 
-  return Response.json({
-    id: preference.id,
-    initPoint: preference.init_point,
-    sandboxInitPoint: preference.sandbox_init_point,
-  });
+  return Response.json(
+    {
+      id: preference.id,
+      initPoint: preference.init_point,
+      sandboxInitPoint: preference.sandbox_init_point,
+    },
+    { headers: securityHeaders }
+  );
 };

@@ -46,46 +46,20 @@ export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
 export const PLAN_ID = "premium_monthly";
 const ALLOWED_COUPONS = new Set(["BETA50", "TOFUS", "FOUNDERS"]);
-const FALLBACK_COUPONS: Record<string, DiscountCouponRow> = {
-  BETA50: {
-    id: "fallback:BETA50",
-    code: "BETA50",
-    discount_type: "percent",
-    discount_value: 50,
-    duration_type: "repeating",
-    duration_months: 6,
-    max_redemptions: null,
-    redeemed_count: 0,
-    expires_at: null,
-  },
-  TOFUS: {
-    id: "fallback:TOFUS",
-    code: "TOFUS",
-    discount_type: "percent",
-    discount_value: 50,
-    duration_type: "once",
-    duration_months: 1,
-    max_redemptions: 10,
-    redeemed_count: 0,
-    expires_at: null,
-  },
-  FOUNDERS: {
-    id: "fallback:FOUNDERS",
-    code: "FOUNDERS",
-    discount_type: "fixed_price_cents",
-    discount_value: 250,
-    duration_type: "forever",
-    duration_months: null,
-    max_redemptions: 10,
-    redeemed_count: 0,
-    expires_at: null,
-  },
+
+export const securityHeaders = {
+  "cache-control": "no-store",
+  "content-security-policy":
+    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
 };
 
 export function jsonError(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...securityHeaders },
   });
 }
 
@@ -269,8 +243,6 @@ async function redeemCoupon({
 
   if (!coupon) return null;
 
-  if (coupon.id.startsWith("fallback:")) return applyCoupon(coupon);
-
   const alreadyRedeemed = await userAlreadyRedeemedCoupon({
     couponId: coupon.id,
     userId,
@@ -330,16 +302,12 @@ async function getActiveCoupon(code: string, serviceRoleKey: string) {
   );
 
   if (!response.ok) {
-    const fallbackCoupon = FALLBACK_COUPONS[code];
-
-    if (fallbackCoupon) return fallbackCoupon;
-
     throw new Error(await response.text());
   }
 
   const [coupon] = (await response.json()) as DiscountCouponRow[];
 
-  if (!coupon) return FALLBACK_COUPONS[code] ?? null;
+  if (!coupon) return null;
 
   if (coupon.expires_at && new Date(coupon.expires_at).getTime() <= Date.now()) {
     return null;

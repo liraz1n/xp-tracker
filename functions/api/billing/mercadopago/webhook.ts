@@ -1,5 +1,6 @@
 import {
   jsonError,
+  securityHeaders,
   upsertActiveSubscription,
   verifyMercadoPagoWebhookSignature,
   type BillingEnv,
@@ -43,7 +44,10 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     url.searchParams.get("id");
 
   if (eventType !== "payment" || !paymentId) {
-    return Response.json({ ok: true, ignored: true });
+    return Response.json(
+      { ok: true, ignored: true },
+      { headers: securityHeaders }
+    );
   }
 
   const paymentResponse = await fetch(
@@ -63,7 +67,10 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   }
 
   if (payment.status !== "approved") {
-    return Response.json({ ok: true, status: payment.status });
+    return Response.json(
+      { ok: true, status: payment.status },
+      { headers: securityHeaders }
+    );
   }
 
   const userId = payment.external_reference ?? payment.metadata?.user_id;
@@ -80,5 +87,5 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     serviceRoleKey,
   });
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true }, { headers: securityHeaders });
 };
