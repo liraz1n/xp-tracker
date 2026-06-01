@@ -29,7 +29,6 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
                 onClick={onGuestLogin}
                 className="bg-gradient-to-r from-yellow-300 to-amber-600 text-black px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all flex items-center justify-center gap-2"
               >
-                <span className="text-lg">👤</span>
                 Entrar como visitante
               </button>
 
@@ -50,6 +49,9 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
               <p>
                 Se gostar, clique em salvar com Google dentro do painel; o progresso feito como visitante será levado para sua conta.
               </p>
+              <p className="text-yellow-300">
+                Com Google, o salvamento na nuvem fica liberado durante o teste grátis de 7 dias. Depois disso, é preciso assinar para continuar sincronizando.
+              </p>
             </div>
           </div>
 
@@ -59,10 +61,10 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
             </h2>
 
             <div className="space-y-4 text-zinc-300">
-              <p>🏆 Marcos de progresso</p>
-              <p>📈 Gráfico de evolução</p>
-              <p>📜 Histórico de XP</p>
-              <p>📅 Estimativa de conclusão</p>
+              <p>Marcos de progresso</p>
+              <p>Gráfico de evolução</p>
+              <p>Histórico de XP</p>
+              <p>Estimativa de conclusão</p>
             </div>
           </div>
         </div>
