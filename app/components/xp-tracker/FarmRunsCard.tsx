@@ -537,7 +537,7 @@ function getQuickBaseActivities(tab: QuickRunTab, playerCount: number) {
   );
 }
 
-function getAvailableQuickPlayerCounts(tab: QuickRunTab, currentLevel: number) {
+function getAvailableQuickPlayerCounts(tab: QuickRunTab) {
   const orderedPlayers = QUICK_RUN_ORDER[tab];
   const counts = orderedPlayers
     ? Object.keys(orderedPlayers).map(Number)
@@ -545,15 +545,7 @@ function getAvailableQuickPlayerCounts(tab: QuickRunTab, currentLevel: number) {
         .map((activity) => activity.players)
         .filter((players): players is number => typeof players === "number");
 
-  return Array.from(new Set(counts))
-    .sort((a, b) => a - b)
-    .filter(
-      (players) =>
-        resolveActivitiesForLevel(
-          getQuickBaseActivities(tab, players),
-          currentLevel
-        ).length > 0
-    );
+  return Array.from(new Set(counts)).sort((a, b) => a - b);
 }
 
 function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
@@ -689,13 +681,6 @@ export function FarmRunsCard({
     () => QUICK_RUN_TABS.filter((tab) => canShowCriptas || !isCriptaTab(tab.id)),
     [canShowCriptas]
   );
-  const visibleQuickRunTabsWithActivities = useMemo(
-    () =>
-      visibleQuickRunTabs.filter(
-        (tab) => getAvailableQuickPlayerCounts(tab.id, currentLevel).length > 0
-      ),
-    [currentLevel, visibleQuickRunTabs]
-  );
 
   const resolvedSiteActivities = useMemo(
     () =>
@@ -714,14 +699,10 @@ export function FarmRunsCard({
   }, [categoryFilter, resolvedSiteActivities]);
 
   useEffect(() => {
-    if (
-      visibleQuickRunTabsWithActivities.some((tab) => tab.id === quickRunTab)
-    ) {
-      return;
-    }
+    if (visibleQuickRunTabs.some((tab) => tab.id === quickRunTab)) return;
 
-    setQuickRunTab(visibleQuickRunTabsWithActivities[0]?.id ?? "masmorras");
-  }, [quickRunTab, visibleQuickRunTabsWithActivities]);
+    setQuickRunTab(visibleQuickRunTabs[0]?.id ?? "masmorras");
+  }, [quickRunTab, visibleQuickRunTabs]);
 
   useEffect(() => {
     if (visibleActivities.some((activity) => activity.id === selectedActivityId)) {
@@ -783,8 +764,8 @@ export function FarmRunsCard({
   }, [currentXP, planActivities, planMode]);
 
   const availableQuickPlayerCounts = useMemo(() => {
-    return getAvailableQuickPlayerCounts(quickRunTab, currentLevel);
-  }, [currentLevel, quickRunTab]);
+    return getAvailableQuickPlayerCounts(quickRunTab);
+  }, [quickRunTab]);
 
   useEffect(() => {
     if (availableQuickPlayerCounts.length === 0) return;
@@ -1012,7 +993,7 @@ export function FarmRunsCard({
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
-                {visibleQuickRunTabsWithActivities.map((tab) => (
+                {visibleQuickRunTabs.map((tab) => (
                   <button
                     type="button"
                     key={tab.id}
