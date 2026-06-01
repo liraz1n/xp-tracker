@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { ChartIcon, ScrollIcon } from "~/components/xp-tracker/UiIcons";
 
 interface HistoryEntry {
   date: string;
@@ -51,10 +52,10 @@ interface ChartPoint {
   progress: number;
 }
 
-const tabs: { id: SidebarTab; label: string; icon: string }[] = [
-  { id: "historico", label: "Histórico", icon: "📜" },
-  { id: "grafico", label: "Gráfico", icon: "📈" },
-];
+const tabs = [
+  { id: "historico", label: "Historico", icon: ScrollIcon },
+  { id: "grafico", label: "Grafico", icon: ChartIcon },
+] as const;
 
 const chartFilters: { id: ChartFilter; label: string }[] = [
   { id: "all", label: "Tudo" },
@@ -185,7 +186,10 @@ export function HistorySidebar({
       >
         <div className="flex items-center justify-between px-4 pt-4 pb-0 border-b border-inherit">
           <div className="flex gap-1">
-            {tabs.map((tab) => (
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+
+              return (
               <button
                 type="button"
                 key={tab.id}
@@ -194,9 +198,13 @@ export function HistorySidebar({
                   sidebarTab === tab.id ? theme.tabActive : theme.tabInactive
                 }`}
               >
-                {tab.icon} {tab.label}
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </span>
               </button>
-            ))}
+              );
+            })}
           </div>
 
           <button

@@ -1,5 +1,6 @@
 export type BillingEnv = {
   MERCADO_PAGO_ACCESS_TOKEN?: string;
+  MERCADO_PAGO_WEBHOOK_SECRET?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
   APP_BASE_URL?: string;
 };
@@ -77,6 +78,60 @@ export async function getAuthenticatedUser(request: Request) {
   if (!response.ok) return null;
 
   return response.json() as Promise<{ id: string; email?: string }>;
+}
+
+export async function verifyMercadoPagoWebhookSignature(
+  request: Request,
+  url: URL,
+  webhookSecret: string
+) {
+  const xSignature = request.headers.get("x-signature");
+  const xRequestId = request.headers.get("x-request-id");
+  const dataId = url.searchParams.get("data.id") ?? url.searchParams.get("id");
+
+  if (!xSignature || !xRequestId || !dataId) return false;
+
+  const signatureParts = Object.fromEntries(
+    xSignature.split(",").map((part) => {
+      const [key, ...value] = part.split("=");
+      return [key.trim(), value.join("=").trim()];
+    })
+  );
+  const timestamp = signatureParts.ts;
+  const signature = signatureParts.v1;
+
+  if (!timestamp || !signature) return false;
+
+  const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${timestamp};`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(webhookSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const digest = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(manifest)
+  );
+  const expectedSignature = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+  return timingSafeEqual(expectedSignature, signature);
+}
+
+function timingSafeEqual(left: string, right: string) {
+  if (left.length !== right.length) return false;
+
+  let mismatch = 0;
+
+  for (let index = 0; index < left.length; index += 1) {
+    mismatch |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+
+  return mismatch === 0;
 }
 
 export async function upsertActiveSubscription({

@@ -1,3 +1,13 @@
+import {
+  CloudIcon,
+  CreditCardIcon,
+  MoonIcon,
+  PowerIcon,
+  ScrollIcon,
+  SettingsIcon,
+  SunIcon,
+} from "~/components/xp-tracker/UiIcons";
+
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface DashboardHeaderProps {
@@ -59,8 +69,9 @@ export function DashboardHeader({
     },
   }[saveStatus];
 
-  const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-yellow-400 transition-all`;
+  const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 text-yellow-300 hover:border-yellow-400 transition-all`;
   const iconLabelClass = "text-[9px] md:text-[10px] font-bold leading-none text-zinc-400";
+  const iconClass = "h-4 w-4 md:h-5 md:w-5";
 
   return (
     <div className="flex flex-col gap-4 md:gap-6 md:flex-row md:justify-between md:items-start mb-6 md:mb-10">
@@ -94,7 +105,11 @@ export function DashboardHeader({
             onClick={onToggleDarkMode}
             className={iconButtonClass}
           >
-            <span className="text-base md:text-lg leading-none">{darkMode ? "🌙" : "☀️"}</span>
+            {darkMode ? (
+              <MoonIcon className={iconClass} />
+            ) : (
+              <SunIcon className={iconClass} />
+            )}
             <span className={iconLabelClass}>Tema</span>
           </button>
 
@@ -104,7 +119,7 @@ export function DashboardHeader({
             onClick={onToggleSidebar}
             className={`${iconButtonClass} relative`}
           >
-            <span className="text-base md:text-lg leading-none">📜</span>
+            <ScrollIcon className={iconClass} />
             <span className={iconLabelClass}>Histórico</span>
             {historyCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -119,7 +134,7 @@ export function DashboardHeader({
             onClick={onOpenSubscription}
             className={iconButtonClass}
           >
-            <span className="text-base md:text-lg leading-none">💳</span>
+            <CreditCardIcon className={iconClass} />
             <span className={iconLabelClass}>Plano</span>
           </button>
 
@@ -128,7 +143,7 @@ export function DashboardHeader({
             onClick={onOpenSettings}
             className={iconButtonClass}
           >
-            <span className="text-base md:text-lg leading-none">⚙️</span>
+            <SettingsIcon className={iconClass} />
             <span className={iconLabelClass}>Config.</span>
           </button>
 
@@ -138,7 +153,7 @@ export function DashboardHeader({
               onClick={onLoginWithGoogle}
               className={iconButtonClass}
             >
-              <span className="text-base md:text-lg leading-none">☁️</span>
+              <CloudIcon className={iconClass} />
               <span className={iconLabelClass}>Salvar</span>
             </button>
           )}
@@ -148,7 +163,7 @@ export function DashboardHeader({
             onClick={onLogout}
             className={iconButtonClass}
           >
-            <span className="text-base md:text-lg leading-none">⏻</span>
+            <PowerIcon className={iconClass} />
             <span className={iconLabelClass}>Sair</span>
           </button>
         </div>

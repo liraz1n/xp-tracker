@@ -1,6 +1,7 @@
 import {
   jsonError,
   upsertActiveSubscription,
+  verifyMercadoPagoWebhookSignature,
   type BillingEnv,
   type MercadoPagoPaymentResponse,
 } from "../../../_shared/billing";
@@ -11,12 +12,21 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
 }) => {
   const accessToken = env.MERCADO_PAGO_ACCESS_TOKEN;
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const webhookSecret = env.MERCADO_PAGO_WEBHOOK_SECRET;
 
   if (!accessToken || !serviceRoleKey) {
     return jsonError("Billing webhook is not configured.", 500);
   }
 
   const url = new URL(request.url);
+
+  if (
+    webhookSecret &&
+    !(await verifyMercadoPagoWebhookSignature(request, url, webhookSecret))
+  ) {
+    return jsonError("Invalid Mercado Pago webhook signature.", 401);
+  }
+
   const body = (await request.json().catch(() => ({}))) as {
     type?: string;
     topic?: string;

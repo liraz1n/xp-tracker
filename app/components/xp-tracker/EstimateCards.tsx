@@ -1,3 +1,5 @@
+import { CalendarIcon, ChartIcon } from "~/components/xp-tracker/UiIcons";
+
 interface EstimateCardsProps {
   daysGoal: number | null;
   daysAvg: number | null;
@@ -22,8 +24,9 @@ export function EstimateCards({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div className={`${theme.card} border rounded-3xl p-6`}>
-        <p className={`${theme.muted} text-sm mb-1`}>
-          📅 Estimativa — Meta diária
+        <p className={`${theme.muted} mb-1 flex items-center gap-2 text-sm`}>
+          <CalendarIcon className="h-4 w-4 text-yellow-300" />
+          Estimativa - Meta diária
         </p>
 
         {daysGoal ? (
@@ -45,8 +48,9 @@ export function EstimateCards({
       </div>
 
       <div className={`${theme.card} border rounded-3xl p-6`}>
-        <p className={`${theme.muted} text-sm mb-1`}>
-          📊 Estimativa — Média histórica
+        <p className={`${theme.muted} mb-1 flex items-center gap-2 text-sm`}>
+          <ChartIcon className="h-4 w-4 text-emerald-300" />
+          Estimativa - Média histórica
         </p>
 
         {daysAvg && averageDailyXP ? (

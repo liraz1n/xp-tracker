@@ -1,4 +1,11 @@
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
+import {
+  ChartIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  FlagIcon,
+  ScrollIcon,
+} from "~/components/xp-tracker/UiIcons";
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -6,6 +13,13 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
+  const trackedFeatures = [
+    { label: "Marcos de progresso", icon: FlagIcon },
+    { label: "Gráfico de evolução", icon: ChartIcon },
+    { label: "Histórico de XP", icon: ScrollIcon },
+    { label: "Estimativa de conclusão", icon: ClockIcon },
+  ];
+
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
       <div className="flex-1 flex items-center justify-center p-6 md:p-8">
@@ -61,10 +75,20 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
             </h2>
 
             <div className="space-y-4 text-zinc-300">
-              <p>Marcos de progresso</p>
-              <p>Gráfico de evolução</p>
-              <p>Histórico de XP</p>
-              <p>Estimativa de conclusão</p>
+              {trackedFeatures.map(({ label, icon: Icon }) => (
+                <p key={label} className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-400/10 text-yellow-300">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span>{label}</span>
+                </p>
+              ))}
+              <p className="flex items-center gap-3 text-emerald-300">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-400/10">
+                  <CheckCircleIcon className="h-4 w-4" />
+                </span>
+                <span>Salvamento em nuvem no teste grátis</span>
+              </p>
             </div>
           </div>
         </div>
