@@ -2,8 +2,8 @@ interface SiteFooterProps {
   darkMode?: boolean;
 }
 
-const BUILD_LABEL = "1.4.6";
-const BUILD_DATE = "27/05/2026";
+const BUILD_LABEL = "1.4.7";
+const BUILD_DATE = "01/06/2026";
 const HOSTING_LABEL = "Cloudflare Pages";
 const SITE_URL = "xp-tracker.pages.dev";
 const BRAND_NAME = "Lira Labs";
