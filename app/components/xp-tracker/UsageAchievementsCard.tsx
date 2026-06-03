@@ -14,6 +14,7 @@ interface UsageAchievementsCardProps {
 type AchievementTab = "pending" | "completed";
 
 interface Achievement {
+  groupKey: string;
   title: string;
   description: string;
   current: number;
@@ -69,6 +70,7 @@ function getCurrentStreak(history: HistoryEntry[]) {
 }
 
 function buildThresholdAchievements({
+  groupKey,
   prefix,
   description,
   current,
@@ -76,6 +78,7 @@ function buildThresholdAchievements({
   suffix,
   tone,
 }: {
+  groupKey: string;
   prefix: string;
   description: string;
   current: number;
@@ -84,6 +87,7 @@ function buildThresholdAchievements({
   tone: Achievement["tone"];
 }) {
   return thresholds.map((target) => ({
+    groupKey,
     title: `${prefix} ${suffix === "XP" ? formatXP(target) : target} ${suffix}`,
     description,
     current,
@@ -99,6 +103,7 @@ export function UsageAchievementsCard({
   theme,
 }: UsageAchievementsCardProps) {
   const [activeTab, setActiveTab] = useState<AchievementTab>("pending");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const today = new Date();
   const todayXP = history
@@ -135,6 +140,7 @@ export function UsageAchievementsCard({
   const achievements = useMemo<Achievement[]>(() => {
     return [
       ...buildThresholdAchievements({
+        groupKey: "farm-runs",
         prefix: "Farmador",
         description: "Acumule runs registradas por atalhos, criptas, masmorras ou plano.",
         current: farmRuns,
@@ -143,6 +149,7 @@ export function UsageAchievementsCard({
         tone: "emerald",
       }),
       ...buildThresholdAchievements({
+        groupKey: "total-xp",
         prefix: "XP acumulado",
         description: "Some XP registrado em qualquer fonte do histórico.",
         current: totalXP,
@@ -151,6 +158,7 @@ export function UsageAchievementsCard({
         tone: "yellow",
       }),
       ...buildThresholdAchievements({
+        groupKey: "cripta-runs",
         prefix: "Cripta dominada",
         description: "Registre runs de cripta e avance nos marcos de exploração.",
         current: criptaRuns,
@@ -159,6 +167,7 @@ export function UsageAchievementsCard({
         tone: "cyan",
       }),
       ...buildThresholdAchievements({
+        groupKey: "cripta-xp",
         prefix: "XP de cripta",
         description: "Some XP vindo especificamente de criptas.",
         current: criptaXP,
@@ -167,6 +176,7 @@ export function UsageAchievementsCard({
         tone: "cyan",
       }),
       ...buildThresholdAchievements({
+        groupKey: "masmorra-runs",
         prefix: "Masmorra limpa",
         description: "Registre masmorras para criar uma rotina de farm consistente.",
         current: masmorraRuns,
@@ -175,6 +185,7 @@ export function UsageAchievementsCard({
         tone: "violet",
       }),
       ...buildThresholdAchievements({
+        groupKey: "masmorra-xp",
         prefix: "XP de masmorra",
         description: "Some XP vindo especificamente de masmorras.",
         current: masmorraXP,
@@ -183,6 +194,7 @@ export function UsageAchievementsCard({
         tone: "violet",
       }),
       ...buildThresholdAchievements({
+        groupKey: "streak-days",
         prefix: "Sequência",
         description: "Registre progresso em dias seguidos.",
         current: currentStreak,
@@ -191,6 +203,7 @@ export function UsageAchievementsCard({
         tone: "emerald",
       }),
       ...buildThresholdAchievements({
+        groupKey: "active-days",
         prefix: "Dias ativos",
         description: "Volte ao XP Tracker em dias diferentes e mantenha o hábito vivo.",
         current: activeDays,
@@ -199,6 +212,7 @@ export function UsageAchievementsCard({
         tone: "yellow",
       }),
       ...buildThresholdAchievements({
+        groupKey: "best-run",
         prefix: "Melhor registro",
         description: "Faça um registro grande de XP em uma única entrada.",
         current: bestRunXP,
@@ -207,6 +221,7 @@ export function UsageAchievementsCard({
         tone: "cyan",
       }),
       {
+        groupKey: "daily-goal",
         title: "Meta diária batida",
         description: "Alcance a meta diária usando registros de hoje.",
         current: dailyGoal > 0 ? todayXP : 0,
@@ -235,11 +250,21 @@ export function UsageAchievementsCard({
   const completedAchievements = achievements.filter(
     (achievement) => achievement.current >= achievement.target
   );
-  const pendingAchievements = achievements.filter(
-    (achievement) => achievement.current < achievement.target
+  const nextPendingAchievements = achievements.reduce<Achievement[]>(
+    (nextAchievements, achievement) => {
+      if (achievement.current >= achievement.target) return nextAchievements;
+
+      const alreadyHasGroup = nextAchievements.some(
+        (item) => item.groupKey === achievement.groupKey
+      );
+      if (!alreadyHasGroup) nextAchievements.push(achievement);
+
+      return nextAchievements;
+    },
+    []
   );
   const visibleAchievements =
-    activeTab === "completed" ? completedAchievements : pendingAchievements;
+    activeTab === "completed" ? completedAchievements : nextPendingAchievements;
 
   const toneClass = {
     yellow: "border-yellow-500/20 bg-yellow-500/5 text-yellow-300",
@@ -259,7 +284,7 @@ export function UsageAchievementsCard({
             Marcos do seu farm
           </h2>
           <p className={`${theme.muted} mt-1.5 text-xs md:text-sm`}>
-            Marcos concluídos saem da visão principal e ficam guardados na guia própria.
+            Pendentes mostram apenas o próximo objetivo de cada trilha.
           </p>
         </div>
 
@@ -280,49 +305,67 @@ export function UsageAchievementsCard({
               {completedAchievements.length}
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="col-span-2 rounded-2xl border border-yellow-500/25 bg-yellow-500/10 px-4 py-2 text-xs font-black text-yellow-200 transition-all hover:bg-yellow-500 hover:text-black sm:col-span-1"
+          >
+            {isExpanded ? "Reduzir" : "Expandir"}
+          </button>
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        {[
-          { id: "pending" as const, label: "Marcos Pendentes", count: pendingAchievements.length },
-          { id: "completed" as const, label: "Marcos concluídos", count: completedAchievements.length },
-        ].map((tab) => (
-          <button
-            type="button"
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`rounded-2xl border px-3 py-2 text-xs font-black transition-all ${
-              activeTab === tab.id
-                ? "border-yellow-400 bg-yellow-500/15 text-yellow-200"
-                : "border-yellow-500/10 bg-black/20 text-zinc-500 hover:text-yellow-200"
-            }`}
-          >
-            {tab.label}
-            <span className="ml-2 rounded-full border border-yellow-500/20 px-2 py-0.5 text-[10px]">
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {visibleAchievements.length === 0 ? (
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-          <p className="font-black text-emerald-300">
-            Nenhum marco nesta guia.
+      {!isExpanded ? (
+        <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-4">
+          <p className="text-sm font-black text-yellow-200">
+            {nextPendingAchievements.length} próximos marcos na fila
           </p>
-          <p className={`${theme.muted} mt-1 text-sm`}>
-            Continue registrando runs para movimentar sua jornada.
+          <p className={`${theme.muted} mt-1 text-xs`}>
+            Expanda para acompanhar os objetivos mais próximos e os marcos já concluídos.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 md:gap-3">
-          {visibleAchievements.map((achievement) => {
-            const unlocked = achievement.current >= achievement.target;
-            const progress = Math.min(
-              100,
-              (achievement.current / achievement.target) * 100
-            );
+        <>
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            {[
+              { id: "pending" as const, label: "Marcos Pendentes", count: nextPendingAchievements.length },
+              { id: "completed" as const, label: "Marcos concluídos", count: completedAchievements.length },
+            ].map((tab) => (
+              <button
+                type="button"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-2xl border px-3 py-2 text-xs font-black transition-all ${
+                  activeTab === tab.id
+                    ? "border-yellow-400 bg-yellow-500/15 text-yellow-200"
+                    : "border-yellow-500/10 bg-black/20 text-zinc-500 hover:text-yellow-200"
+                }`}
+              >
+                {tab.label}
+                <span className="ml-2 rounded-full border border-yellow-500/20 px-2 py-0.5 text-[10px]">
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {visibleAchievements.length === 0 ? (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <p className="font-black text-emerald-300">
+                Nenhum marco nesta guia.
+              </p>
+              <p className={`${theme.muted} mt-1 text-sm`}>
+                Continue registrando runs para movimentar sua jornada.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 md:gap-3">
+              {visibleAchievements.map((achievement) => {
+                const unlocked = achievement.current >= achievement.target;
+                const progress = Math.min(
+                  100,
+                  (achievement.current / achievement.target) * 100
+                );
 
             return (
               <div
@@ -368,6 +411,8 @@ export function UsageAchievementsCard({
             );
           })}
         </div>
+      )}
+        </>
       )}
     </section>
   );
