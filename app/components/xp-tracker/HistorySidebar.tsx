@@ -95,6 +95,15 @@ function getEntryProgress(entry: HistoryEntry, fallbackTotalXP: number) {
   return Math.min(100, Math.max(0, (completedXP / entryTotalXP) * 100));
 }
 
+function formatSignedXP(value: number) {
+  const absoluteValue = Math.abs(value).toLocaleString("pt-BR");
+
+  if (value > 0) return `+${absoluteValue}`;
+  if (value < 0) return `-${absoluteValue}`;
+
+  return "0";
+}
+
 function filterHistoryByPeriod(history: HistoryEntry[], filter: ChartFilter) {
   if (filter === "all") return history;
 
@@ -143,8 +152,8 @@ function ChartTooltip({
       <div className="space-y-1 text-xs">
         <p>
           <span className="text-zinc-500">XP ganho: </span>
-          <span className="font-bold text-emerald-400">
-            +{point.xpGained.toLocaleString("pt-BR")} XP
+          <span className={`font-bold ${point.xpGained < 0 ? "text-red-400" : "text-emerald-400"}`}>
+            {formatSignedXP(point.xpGained)} XP
           </span>
         </p>
         <p>
@@ -322,8 +331,8 @@ export function HistorySidebar({
                       >
                         <div className="flex justify-between items-start gap-3">
                           <div>
-                            <span className="text-emerald-400 font-bold">
-                              +{entry.xpGained.toLocaleString("pt-BR")} XP
+                            <span className={`${entry.xpGained < 0 ? "text-red-400" : "text-emerald-400"} font-bold`}>
+                              {formatSignedXP(entry.xpGained)} XP
                             </span>
                             <p className={`${theme.muted} text-xs mt-0.5`}>
                               {formatEntryDate(entry.date)}
@@ -427,8 +436,8 @@ export function HistorySidebar({
                         <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
                           XP no período
                         </p>
-                        <p className="text-sm font-black text-emerald-400">
-                          +{totalFilteredXp.toLocaleString("pt-BR")}
+                        <p className={`text-sm font-black ${totalFilteredXp < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                          {formatSignedXP(totalFilteredXp)}
                         </p>
                       </div>
                       <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">

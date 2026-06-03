@@ -153,3 +153,12 @@ export function XIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function AlertTriangleIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M10.3 4.1 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 4.1a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4M12 17h.01" />
+    </svg>
+  );
+}

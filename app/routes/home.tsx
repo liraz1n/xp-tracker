@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "~/supabase";
 import { LoginScreen } from "~/components/xp-tracker/LoginScreen";
 import { DashboardHeader } from "~/components/xp-tracker/DashboardHeader";
+import { DeathAction } from "~/components/xp-tracker/DeathAction";
 import { StatsCards } from "~/components/xp-tracker/StatsCards";
 import { ProgressCard } from "~/components/xp-tracker/ProgressCard";
 import { EstimateCards } from "~/components/xp-tracker/EstimateCards";
@@ -135,6 +136,15 @@ export default function Home() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function formatSignedXP(value: number) {
+    const absoluteValue = Math.abs(value).toLocaleString("pt-BR");
+
+    if (value > 0) return `+${absoluteValue}`;
+    if (value < 0) return `-${absoluteValue}`;
+
+    return "0";
   }
 
   async function confirmReset() {
@@ -570,6 +580,15 @@ export default function Home() {
         onClose={() => setShowSubscriptionPanel(false)}
       />
 
+      {!shouldShowOnboarding && !premiumLocked && (
+        <DeathAction
+          userTotalXP={tracker.userTotalXP}
+          disabled={tracker.userTotalXP <= 0}
+          theme={theme}
+          onConfirm={tracker.registerDeath}
+        />
+      )}
+
       <EditHistoryEntryModal
         entry={pendingEditEntry ?? null}
         fallbackTotalXP={tracker.totalXP}
@@ -591,8 +610,12 @@ export default function Home() {
             </p>
 
             <div className="bg-black/40 border border-red-500/20 rounded-2xl p-4 mb-8">
-              <p className="text-emerald-400 font-black text-lg">
-                +{pendingDeleteEntry.xpGained.toLocaleString("pt-BR")} XP
+              <p
+                className={`font-black text-lg ${
+                  pendingDeleteEntry.xpGained < 0 ? "text-red-300" : "text-emerald-400"
+                }`}
+              >
+                {formatSignedXP(pendingDeleteEntry.xpGained)} XP
               </p>
               <p className="text-zinc-400 text-sm mt-1">
                 Restaram {pendingDeleteEntry.xpRemaining.toLocaleString("pt-BR")} XP

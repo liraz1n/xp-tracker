@@ -67,6 +67,7 @@ interface ProgressSnapshot {
 }
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
+export type DeathPenaltyMode = "peace-necklace" | "no-necklace";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -850,6 +851,33 @@ export function useXpTracker() {
     setLastSavedXP(newCurrentXP);
   }
 
+  function registerDeath(mode: DeathPenaltyMode) {
+    if (userTotalXP <= 0) return;
+
+    const penaltyPercent = mode === "peace-necklace" ? 2 : 10;
+    const xpLost = Math.floor(userTotalXP * (penaltyPercent / 100));
+
+    if (xpLost <= 0) return;
+
+    const newCurrentXP = currentXP + xpLost;
+    const newUserTotalXP = Math.max(0, userTotalXP - xpLost);
+    const entry: HistoryEntry = {
+      date: new Date().toISOString(),
+      xpGained: -xpLost,
+      xpRemaining: newCurrentXP,
+      totalXP,
+      source:
+        mode === "peace-necklace"
+          ? "Morte com Colar da Paz (Huaguilli)"
+          : "Morte sem Colar da Paz",
+    };
+
+    setCurrentXP(newCurrentXP);
+    setUserTotalXP(newUserTotalXP);
+    setHistory((prev) => [entry, ...prev]);
+    setLastSavedXP(newCurrentXP);
+  }
+
   function configureInitialProgress({
     totalXP,
     currentXP,
@@ -1092,6 +1120,7 @@ export function useXpTracker() {
     loadProgress,
     saveProgress,
     applyFarmProgress,
+    registerDeath,
     undoLastProgress,
     canUndoLastProgress,
     configureInitialProgress,
