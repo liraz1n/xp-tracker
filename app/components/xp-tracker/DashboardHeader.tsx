@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   NotificationDropdown,
   type AppNotification,
@@ -11,8 +12,6 @@ interface DashboardHeaderProps {
   saveStatus: SaveStatus;
   historyCount: number;
   guestMode: boolean;
-  planBadge?: string | null;
-  isSuperAdmin?: boolean;
   notifications: AppNotification[];
   unreadNotificationsCount: number;
   notificationsOpen: boolean;
@@ -23,6 +22,7 @@ interface DashboardHeaderProps {
   onToggleDarkMode: () => void;
   onToggleSidebar: () => void;
   onToggleNotifications: () => void;
+  onCloseNotifications: () => void;
   onOpenSubscription: () => void;
   onOpenSettings: () => void;
   onLoginWithGoogle: () => void;
@@ -35,8 +35,6 @@ export function DashboardHeader({
   saveStatus,
   historyCount,
   guestMode,
-  planBadge,
-  isSuperAdmin = false,
   notifications,
   unreadNotificationsCount,
   notificationsOpen,
@@ -44,6 +42,7 @@ export function DashboardHeader({
   onToggleDarkMode,
   onToggleSidebar,
   onToggleNotifications,
+  onCloseNotifications,
   onOpenSubscription,
   onOpenSettings,
   onLoginWithGoogle,
@@ -75,9 +74,27 @@ export function DashboardHeader({
         : "bg-red-50 text-red-700 border-red-300",
     },
   }[saveStatus];
+  const [showSaveStatus, setShowSaveStatus] = useState(false);
 
   const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-yellow-400 transition-all`;
   const iconLabelClass = "text-[9px] md:text-[10px] font-bold leading-none text-zinc-400";
+
+  useEffect(() => {
+    if (saveStatus === "idle") {
+      setShowSaveStatus(false);
+      return;
+    }
+
+    setShowSaveStatus(true);
+
+    if (saveStatus !== "saved") return;
+
+    const timer = window.setTimeout(() => {
+      setShowSaveStatus(false);
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [saveStatus]);
 
   return (
     <div className="flex flex-col gap-4 md:gap-6 md:flex-row md:justify-between md:items-start mb-6 md:mb-10">
@@ -97,29 +114,17 @@ export function DashboardHeader({
 
       <div className="flex flex-col md:items-end gap-3">
         <div className="flex flex-col md:items-end gap-2">
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            <p className="text-yellow-300 font-bold text-base md:text-lg">
-              Bem-vindo, {userName}
-            </p>
+          <p className="text-yellow-300 font-bold text-base md:text-lg">
+            Bem-vindo, {userName}
+          </p>
 
-            {planBadge && (
-              <span
-                className={`rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-wide ${
-                  isSuperAdmin
-                    ? "border-yellow-400/40 bg-yellow-500/15 text-yellow-200"
-                    : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                }`}
-              >
-                {planBadge}
-              </span>
-            )}
-          </div>
-
-          <span
-            className={`border rounded-full px-3 py-1 text-xs font-bold ${saveStatusInfo.className}`}
-          >
-            {saveStatusInfo.label}
-          </span>
+          {showSaveStatus && (
+            <span
+              className={`border rounded-full px-3 py-1 text-xs font-bold ${saveStatusInfo.className}`}
+            >
+              {saveStatusInfo.label}
+            </span>
+          )}
         </div>
 
         <div className="flex gap-2.5 md:gap-3 flex-wrap justify-start md:justify-end">
@@ -153,6 +158,7 @@ export function DashboardHeader({
             unreadCount={unreadNotificationsCount}
             open={notificationsOpen}
             onToggle={onToggleNotifications}
+            onClose={onCloseNotifications}
             buttonClassName={iconButtonClass}
             labelClassName={iconLabelClass}
             theme={theme}

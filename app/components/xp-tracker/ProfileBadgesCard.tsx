@@ -42,7 +42,7 @@ export function ProfileBadgesCard({ billing }: ProfileBadgesCardProps) {
   return (
     <section className="mb-4 md:mb-5 flex flex-wrap items-center gap-2">
       <span className="text-xs font-black uppercase text-yellow-400">
-        Badges
+        Selos:
       </span>
 
       <div className="flex flex-wrap gap-2">

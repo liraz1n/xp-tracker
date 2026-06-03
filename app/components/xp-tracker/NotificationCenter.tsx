@@ -1,4 +1,5 @@
 import type { BillingState } from "~/hooks/useBilling";
+import { XIcon } from "~/components/xp-tracker/UiIcons";
 
 export interface AppNotification {
   title: string;
@@ -11,6 +12,7 @@ interface NotificationDropdownProps {
   unreadCount: number;
   open: boolean;
   onToggle: () => void;
+  onClose: () => void;
   buttonClassName: string;
   labelClassName: string;
   theme: {
@@ -97,6 +99,7 @@ export function NotificationDropdown({
   unreadCount,
   open,
   onToggle,
+  onClose,
   buttonClassName,
   labelClassName,
   theme,
@@ -126,14 +129,31 @@ export function NotificationDropdown({
       </button>
 
       {open && (
+        <>
+        <button
+          type="button"
+          aria-label="Fechar avisos"
+          className="fixed inset-0 z-40 cursor-default bg-transparent"
+          onClick={onClose}
+        />
         <div className={`${theme.card} fixed left-4 right-4 top-24 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border p-3 shadow-[0_0_40px_rgba(234,179,8,0.18)] md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-none md:overflow-visible`}>
           <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-sm font-black text-yellow-300">
               Notificações
             </p>
-            <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">
-              {notifications.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">
+                {notifications.length}
+              </span>
+              <button
+                type="button"
+                aria-label="Fechar avisos"
+                onClick={onClose}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-red-300 transition-all hover:bg-red-500 hover:text-white"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           {notifications.length === 0 ? (
@@ -158,6 +178,7 @@ export function NotificationDropdown({
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

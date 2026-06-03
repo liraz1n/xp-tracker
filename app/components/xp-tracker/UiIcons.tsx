@@ -116,3 +116,40 @@ export function CheckCircleIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+export function CopyIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <rect x="8" y="8" width="11" height="11" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v5M14 11v5" />
+    </svg>
+  );
+}
+
+export function XIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}

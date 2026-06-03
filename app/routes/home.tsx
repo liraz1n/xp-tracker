@@ -180,6 +180,10 @@ export default function Home() {
     setNotificationsOpen((prev) => !prev);
   }
 
+  function closeNotifications() {
+    setNotificationsOpen(false);
+  }
+
   const theme = {
     bg: tracker.darkMode ? "bg-black" : "bg-zinc-100",
     card: tracker.darkMode
@@ -215,12 +219,6 @@ export default function Home() {
   const xpToday = tracker.history
     .filter((entry) => new Date(entry.date).toISOString().slice(0, 10) === todayKey)
     .reduce((sum, entry) => sum + entry.xpGained, 0);
-  const planBadge =
-    tracker.billing.isSuperAdmin
-      ? "Superadmin"
-      : tracker.billing.accessStatus === "active"
-        ? "Premium"
-        : null;
   const notifications = useMemo(
     () =>
       buildNotifications({
@@ -345,8 +343,6 @@ export default function Home() {
             saveStatus={tracker.saveStatus}
             historyCount={unreadHistoryCount}
             guestMode={tracker.guestMode}
-            planBadge={planBadge}
-            isSuperAdmin={tracker.billing.isSuperAdmin}
             notifications={notifications}
             unreadNotificationsCount={unreadNotificationsCount}
             notificationsOpen={notificationsOpen}
@@ -354,6 +350,7 @@ export default function Home() {
             onToggleDarkMode={() => tracker.setDarkMode((prev) => !prev)}
             onToggleSidebar={toggleHistorySidebar}
             onToggleNotifications={() => toggleNotifications(notificationKey)}
+            onCloseNotifications={closeNotifications}
             onOpenSubscription={() => setShowSubscriptionPanel(true)}
             onOpenSettings={() => setShowSettings(true)}
             onLoginWithGoogle={tracker.loginWithGoogle}

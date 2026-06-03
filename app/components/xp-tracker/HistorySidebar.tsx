@@ -8,7 +8,14 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { ChartIcon, ScrollIcon } from "~/components/xp-tracker/UiIcons";
+import {
+  ChartIcon,
+  CopyIcon,
+  PencilIcon,
+  ScrollIcon,
+  TrashIcon,
+  XIcon,
+} from "~/components/xp-tracker/UiIcons";
 
 interface HistoryEntry {
   date: string;
@@ -249,9 +256,9 @@ export function HistorySidebar({
             type="button"
             aria-label="Fechar histórico"
             onClick={onClose}
-            className={`${theme.muted} text-lg mb-2 ml-2`}
+            className="mb-2 ml-2 flex h-9 w-9 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-red-300 transition-all hover:bg-red-500 hover:text-white"
           >
-            X
+            <XIcon className="h-4 w-4" />
           </button>
         </div>
 
@@ -333,25 +340,25 @@ export function HistorySidebar({
                               type="button"
                               aria-label="Editar registro"
                               onClick={() => onEditHistoryEntry(index)}
-                              className="w-7 h-7 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 hover:bg-yellow-500 hover:text-black transition-all"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
                             >
-                              E
+                              <PencilIcon className="h-3.5 w-3.5" />
                             </button>
                             <button
                               type="button"
                               aria-label="Duplicar registro"
                               onClick={() => onDuplicateHistoryEntry(index)}
-                              className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black transition-all"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 transition-all hover:bg-cyan-500 hover:text-black"
                             >
-                              D
+                              <CopyIcon className="h-3.5 w-3.5" />
                             </button>
                             <button
                               type="button"
                               aria-label="Excluir registro"
                               onClick={() => onDeleteHistoryEntry(index)}
-                              className="w-7 h-7 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-red-400 transition-all hover:bg-red-500 hover:text-white"
                             >
-                              X
+                              <TrashIcon className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </div>
