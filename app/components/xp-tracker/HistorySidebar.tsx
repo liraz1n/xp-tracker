@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 import {
+  Bar,
+  BarChart,
+  Cell,
   LineChart,
   Line,
+  ReferenceLine,
   XAxis,
   YAxis,
   Tooltip,
@@ -27,6 +31,7 @@ interface HistoryEntry {
 
 type SidebarTab = "historico" | "grafico";
 type ChartFilter = "all" | "7d" | "30d" | "month";
+type ChartView = "daily" | "remaining";
 type HistoryTypeFilter = "all" | "cripta" | "masmorra" | "manual";
 type HistorySort = "recent" | "xp_desc" | "xp_asc";
 
@@ -59,6 +64,17 @@ interface ChartPoint {
   xpGained: number;
   xpRestante: number;
   progress: number;
+}
+
+interface DailyChartPoint {
+  dateKey: string;
+  name: string;
+  label: string;
+  netXP: number;
+  gainedXP: number;
+  lostXP: number;
+  runs: number;
+  bestXP: number;
 }
 
 const tabs = [
@@ -104,6 +120,24 @@ function formatSignedXP(value: number) {
   return "0";
 }
 
+function getDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
 function filterHistoryByPeriod(history: HistoryEntry[], filter: ChartFilter) {
   if (filter === "all") return history;
 
@@ -133,12 +167,50 @@ function ChartTooltip({
   darkMode,
 }: {
   active?: boolean;
-  payload?: Array<{ payload: ChartPoint }>;
+  payload?: Array<{ payload: ChartPoint | DailyChartPoint }>;
   darkMode: boolean;
 }) {
   if (!active || !payload?.length) return null;
 
   const point = payload[0].payload;
+
+  if ("netXP" in point) {
+    return (
+      <div
+        className={`rounded-2xl border p-3 shadow-xl ${
+          darkMode
+            ? "bg-zinc-950 border-yellow-500/20 text-white"
+            : "bg-white border-yellow-300 text-zinc-900"
+        }`}
+      >
+        <p className="text-xs font-bold text-yellow-400 mb-2">{point.label}</p>
+        <div className="space-y-1 text-xs">
+          <p>
+            <span className="text-zinc-500">Saldo: </span>
+            <span className={`font-bold ${point.netXP < 0 ? "text-red-400" : "text-emerald-400"}`}>
+              {formatSignedXP(point.netXP)} XP
+            </span>
+          </p>
+          <p>
+            <span className="text-zinc-500">Ganho: </span>
+            <span className="font-bold text-emerald-400">
+              +{point.gainedXP.toLocaleString("pt-BR")} XP
+            </span>
+          </p>
+          <p>
+            <span className="text-zinc-500">Perda: </span>
+            <span className="font-bold text-red-400">
+              -{point.lostXP.toLocaleString("pt-BR")} XP
+            </span>
+          </p>
+          <p>
+            <span className="text-zinc-500">Registros: </span>
+            <span className="font-bold text-yellow-300">{point.runs}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -188,6 +260,8 @@ export function HistorySidebar({
   theme,
 }: HistorySidebarProps) {
   const [chartFilter, setChartFilter] = useState<ChartFilter>("all");
+  const [chartView, setChartView] = useState<ChartView>("daily");
+  const [selectedDate, setSelectedDate] = useState(() => getDateKey(new Date()));
   const [historyTypeFilter, setHistoryTypeFilter] = useState<HistoryTypeFilter>("all");
   const [historySort, setHistorySort] = useState<HistorySort>("recent");
 
@@ -225,9 +299,65 @@ export function HistorySidebar({
     }));
   }, [chartFilter, formatEntryDate, history, totalXP]);
 
+  const dailyChartData = useMemo<DailyChartPoint[]>(() => {
+    const filteredHistory = filterHistoryByPeriod(history, chartFilter);
+    const dayTotals = filteredHistory.reduce<Record<string, DailyChartPoint>>(
+      (totals, entry) => {
+        const dateKey = getDateKey(new Date(entry.date));
+        const current = totals[dateKey] ?? {
+          dateKey,
+          name: formatDateLabel(dateKey),
+          label: formatDateLabel(dateKey),
+          netXP: 0,
+          gainedXP: 0,
+          lostXP: 0,
+          runs: 0,
+          bestXP: 0,
+        };
+
+        current.netXP += entry.xpGained;
+        current.gainedXP += Math.max(0, entry.xpGained);
+        current.lostXP += Math.abs(Math.min(0, entry.xpGained));
+        current.runs += 1;
+        current.bestXP = Math.max(current.bestXP, entry.xpGained);
+        totals[dateKey] = current;
+
+        return totals;
+      },
+      {}
+    );
+
+    return Object.values(dayTotals).sort((left, right) =>
+      left.dateKey.localeCompare(right.dateKey)
+    );
+  }, [chartFilter, history]);
+
+  const selectedDayEntries = useMemo(() => {
+    return history.filter(
+      (entry) => getDateKey(new Date(entry.date)) === selectedDate
+    );
+  }, [history, selectedDate]);
+
   const totalFilteredXp = chartData.reduce(
     (sum, point) => sum + point.xpGained,
     0
+  );
+  const totalDailyNetXP = dailyChartData.reduce((sum, point) => sum + point.netXP, 0);
+  const selectedDayGainedXP = selectedDayEntries.reduce(
+    (sum, entry) => sum + Math.max(0, entry.xpGained),
+    0
+  );
+  const selectedDayLostXP = selectedDayEntries.reduce(
+    (sum, entry) => sum + Math.abs(Math.min(0, entry.xpGained)),
+    0
+  );
+  const selectedDayNetXP = selectedDayEntries.reduce(
+    (sum, entry) => sum + entry.xpGained,
+    0
+  );
+  const selectedDayBestEntry = selectedDayEntries.reduce<HistoryEntry | null>(
+    (best, entry) => (!best || entry.xpGained > best.xpGained ? entry : best),
+    null
   );
   const latestPoint = chartData[chartData.length - 1];
 
@@ -399,7 +529,7 @@ export function HistorySidebar({
           )}
 
           {sidebarTab === "grafico" && (
-            history.length < 2 ? (
+            history.length === 0 ? (
               <p className={`${theme.muted} text-sm text-center mt-12`}>
                 Salve pelo menos 2 atualizações
                 <br />
@@ -407,9 +537,32 @@ export function HistorySidebar({
               </p>
             ) : (
               <div>
-                <p className={`${theme.muted} text-xs mb-3`}>
-                  XP restante ao longo do tempo
-                </p>
+                <div className="mb-3">
+                  <p className="text-sm font-black text-yellow-300">
+                    Análise de XP
+                  </p>
+                  <p className={`${theme.muted} mt-1 text-xs`}>
+                    Ganhos, perdas e consultas por data.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1 mb-3">
+                  {[
+                    { id: "daily" as const, label: "Diário" },
+                    { id: "remaining" as const, label: "XP restante" },
+                  ].map((view) => (
+                    <button
+                      key={view.id}
+                      type="button"
+                      onClick={() => setChartView(view.id)}
+                      className={`rounded-xl border px-2 py-1.5 text-[11px] font-black transition-all ${
+                        chartView === view.id ? theme.tabActive : theme.tabInactive
+                      }`}
+                    >
+                      {view.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="grid grid-cols-4 gap-1 mb-4">
                   {chartFilters.map((filter) => (
                     <button
@@ -425,7 +578,63 @@ export function HistorySidebar({
                   ))}
                 </div>
 
-                {chartData.length < 2 ? (
+                <div className="mb-4 rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-3">
+                  <label className={`${theme.muted} mb-1 block text-[10px] font-black uppercase`}>
+                    Consultar data
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                    className="w-full rounded-xl border border-cyan-500/20 bg-black/30 px-3 py-2 text-sm font-bold text-cyan-100 outline-none focus:border-cyan-300"
+                  />
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div>
+                      <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                        Saldo do dia
+                      </p>
+                      <p className={`text-sm font-black ${selectedDayNetXP < 0 ? "text-red-400" : "text-emerald-300"}`}>
+                        {formatSignedXP(selectedDayNetXP)} XP
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                        Registros
+                      </p>
+                      <p className="text-sm font-black text-cyan-200">
+                        {selectedDayEntries.length}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                        Ganho
+                      </p>
+                      <p className="text-sm font-black text-emerald-300">
+                        +{selectedDayGainedXP.toLocaleString("pt-BR")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                        Perda
+                      </p>
+                      <p className="text-sm font-black text-red-300">
+                        -{selectedDayLostXP.toLocaleString("pt-BR")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className={`${theme.muted} mt-3 text-xs`}>
+                    Melhor registro:{" "}
+                    <span className="font-black text-yellow-300">
+                      {selectedDayBestEntry
+                        ? `${formatSignedXP(selectedDayBestEntry.xpGained)} XP`
+                        : "sem dados"}
+                    </span>
+                  </p>
+                </div>
+
+                {chartView === "daily" && dailyChartData.length < 1 ? (
                   <p className={`${theme.muted} text-sm text-center mt-12`}>
                     Sem dados suficientes para este período.
                   </p>
@@ -449,7 +658,45 @@ export function HistorySidebar({
                         </p>
                       </div>
                     </div>
-                    <ResponsiveContainer width="100%" height={260}>
+                    {chartView === "daily" ? (
+                      <ResponsiveContainer width="100%" height={260}>
+                        <BarChart
+                          data={dailyChartData}
+                          margin={{ top: 8, right: 8, left: -24, bottom: 0 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke={theme.chartGrid} />
+                          <XAxis
+                            dataKey="name"
+                            stroke={theme.chartText}
+                            tick={{ fontSize: 10 }}
+                          />
+                          <YAxis
+                            stroke={theme.chartText}
+                            tick={{ fontSize: 10 }}
+                            tickFormatter={(value) => `${(Number(value) / 1000).toFixed(0)}k`}
+                          />
+                          <ReferenceLine y={0} stroke="#71717a" strokeDasharray="3 3" />
+                          <Tooltip
+                            content={<ChartTooltip darkMode={darkMode} />}
+                            cursor={{ fill: "rgba(234,179,8,0.08)" }}
+                          />
+                          <Bar
+                            dataKey="netXP"
+                            fill="#34d399"
+                            radius={[8, 8, 4, 4]}
+                            maxBarSize={34}
+                          >
+                            {dailyChartData.map((point) => (
+                              <Cell
+                                key={point.dateKey}
+                                fill={point.netXP < 0 ? "#f87171" : "#34d399"}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={260}>
                       <LineChart
                         data={chartData}
                         margin={{ top: 6, right: 10, left: -20, bottom: 0 }}
@@ -487,7 +734,8 @@ export function HistorySidebar({
                           }}
                         />
                       </LineChart>
-                    </ResponsiveContainer>
+                      </ResponsiveContainer>
+                    )}
                   </>
                 )}
               </div>
