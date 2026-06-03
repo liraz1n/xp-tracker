@@ -1,6 +1,6 @@
 {
 	"name": "xp-tracker",
-	"description": "A modern full-stack template powered by Cloudflare Workers, using Hono for backend APIs, React Router for frontend routing, and shadcn/ui for beautiful, accessible components styled with Tailwind CSS",
+	"description": "XP Tracker para acompanhar progresso, runs, metas, assinatura premium e historico de farm",
 	"cloudflare": {
 		"label": "React Router + Hono Fullstack App",
 		"products": [

@@ -1,49 +1,91 @@
-# Hono + React Router + Vite + ShadCN UI on Cloudflare Workers
+# XP Tracker
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/react-router-hono-fullstack-template)
-![Build modern full-stack apps with Hono, React Router, and ShadCN UI on Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/24c5a7dd-e1e3-43a9-b912-d78d9a4293bc/public)
+Aplicacao web para acompanhar progresso de XP, runs de farm, metas diarias, historico e assinatura premium. O projeto usa React Router em modo SPA, Supabase para autenticacao/dados e Cloudflare Pages Functions para checkout e webhooks do Mercado Pago.
 
-<!-- dash-content-start -->
+## O que existe hoje
 
-A modern full-stack template powered by [Cloudflare Workers](https://workers.cloudflare.com/), using [Hono](https://hono.dev/) for backend APIs, [React Router](https://reactrouter.com/) for frontend routing, and [shadcn/ui](https://ui.shadcn.com/) for beautiful, accessible components styled with [Tailwind CSS](https://tailwindcss.com/).
+- Login com Google via Supabase Auth e modo visitante.
+- Onboarding para configurar XP total, XP atual, meta diaria e niveis.
+- Dashboard com progresso, estimativas, ranking de metas, marcos de uso e historico inteligente.
+- Registro rapido de runs, duplicacao de registros, desfazer ultimo progresso e penalidade de morte.
+- Persistencia em nuvem para usuarios autenticados com acesso liberado.
+- Trial de 7 dias, bloqueio apos trial, checkout Mercado Pago, cupons e webhook de pagamento.
+- Painel superadmin com visao de usuarios, plano, cupons, pagamentos e progresso.
+- Scripts SQL versionados em `supabase/sql`.
 
-Built with the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/) for optimized static asset delivery and seamless local development. React is configured in single-page app (SPA) mode via Workers.
+## Stack
 
-A perfect starting point for building interactive, styled, and edge-deployed SPAs with minimal configuration.
+- React 19 + React Router 7
+- Vite 6
+- Tailwind CSS 4
+- Supabase
+- Cloudflare Pages Functions / Wrangler
+- Mercado Pago Checkout
+- Recharts
 
-## Features
+## Desenvolvimento local
 
-- ⚡ Full-stack app on Cloudflare Workers
-- 🔁 Hono for backend API endpoints
-- 🧭 React Router for client-side routing
-- 🎨 ShadCN UI with Tailwind CSS for components and styling
-- 🧱 File-based route separation
-- 🚀 Zero-config Vite build for Workers
-- 🛠️ Automatically deploys with Wrangler
-- 🔎 Built-in Observability to monitor your Worker
-<!-- dash-content-end -->
+Instale dependencias:
 
-## Tech Stack
+```bash
+npm install
+```
 
-- **Frontend**: React + React Router + ShadCN UI
-  - SPA architecture powered by React Router
-  - Includes accessible, themeable UI from ShadCN
-  - Styled with utility-first Tailwind CSS
-  - Built and optimized with Vite
+Rode o app:
 
-- **Backend**: Hono on Cloudflare Workers
-  - API routes defined and handled via Hono in `/api/*`
-  - Supports REST-like endpoints, CORS, and middleware
+```bash
+npm run dev
+```
 
-- **Deployment**: Cloudflare Workers via Wrangler
-  - Vite plugin auto-bundles frontend and backend together
-  - Deployed worldwide on Cloudflare’s edge network
+Valide tipos e build:
 
-## Resources
+```bash
+npm run typecheck
+npm run build
+```
 
-- 🧩 [Hono on Cloudflare Workers](https://hono.dev/docs/getting-started/cloudflare-workers)
-- 📦 [Vite Plugin for Cloudflare](https://developers.cloudflare.com/workers/vite-plugin/)
-- 🛠 [Wrangler CLI reference](https://developers.cloudflare.com/workers/wrangler/)
-- 🎨 [shadcn/ui](https://ui.shadcn.com)
-- 💨 [Tailwind CSS Documentation](https://tailwindcss.com/)
-- 🔀 [React Router Docs](https://reactrouter.com/)
+## Deploy
+
+Deploy para Cloudflare Pages:
+
+```bash
+npm run deploy
+```
+
+O script faz build, remove configuracoes geradas que atrapalham Pages e publica `build/client` no projeto `xp-tracker`.
+
+## Variaveis e segredos
+
+Configure os segredos no ambiente da Cloudflare:
+
+- `MERCADO_PAGO_ACCESS_TOKEN`
+- `MERCADO_PAGO_WEBHOOK_SECRET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `APP_BASE_URL` opcional, usado para montar URLs absolutas de retorno e webhook
+
+A chave publica do Supabase fica no cliente em `app/supabase.ts`. A service role deve ficar somente no ambiente seguro da Cloudflare.
+
+## Banco de dados
+
+Aplique os SQLs em ordem:
+
+1. `supabase/sql/001_xp_progress_rls.sql`
+2. `supabase/sql/002_billing_subscriptions.sql`
+3. `supabase/sql/003_user_total_xp.sql`
+4. `supabase/sql/004_security_audit.sql`
+5. `supabase/sql/005_admin_payment_logs_badges.sql`
+
+## Documentos de apoio
+
+- `docs/pagamentos-assinaturas.md`
+- `docs/dados-criptas.md`
+- `docs/xp-tracker-apresentacao-lira-labs.html`
+
+## Estado tecnico
+
+Ultima verificacao local:
+
+- `npm run typecheck`
+- `npm run build`
+
+Avisos conhecidos: React Router mostra future flags da v8 e o bundle principal passa de 500 kB. Isso nao impede o build.
