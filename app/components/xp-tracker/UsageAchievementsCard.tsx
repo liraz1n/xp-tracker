@@ -307,10 +307,12 @@ export function UsageAchievementsCard({
           </div>
           <button
             type="button"
+            aria-label={isExpanded ? "Reduzir marcos do farm" : "Expandir marcos do farm"}
+            aria-expanded={isExpanded}
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="col-span-2 rounded-2xl border border-yellow-500/25 bg-yellow-500/10 px-4 py-2 text-xs font-black text-yellow-200 transition-all hover:bg-yellow-500 hover:text-black sm:col-span-1"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-xl font-black leading-none text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
           >
-            {isExpanded ? "Reduzir" : "Expandir"}
+            {isExpanded ? "-" : "+"}
           </button>
         </div>
       </div>
@@ -321,7 +323,7 @@ export function UsageAchievementsCard({
             {nextPendingAchievements.length} próximos marcos na fila
           </p>
           <p className={`${theme.muted} mt-1 text-xs`}>
-            Expanda para acompanhar os objetivos mais próximos e os marcos já concluídos.
+            Abra para acompanhar os objetivos mais próximos e os marcos já concluídos.
           </p>
         </div>
       ) : (
