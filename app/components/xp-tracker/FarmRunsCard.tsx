@@ -319,6 +319,22 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xpByLevel: xpForExactLevel(13, 51561),
   },
   {
+    id: "cripta-n3-14",
+    category: "Cripta",
+    name: "Cripta Nível 3 até 14",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(14, 57730),
+  },
+  {
+    id: "cripta-n3-15",
+    category: "Cripta",
+    name: "Cripta Nível 3 até 15",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(15, 64331),
+  },
+  {
     id: "planicie-4",
     category: "Masmorra",
     name: "Planície",
@@ -407,6 +423,8 @@ const FARM_PLAN_MODES = [
 
 type FarmPlanMode = (typeof FARM_PLAN_MODES)[number]["id"];
 
+const SHOW_FARM_PLAN_SUGGESTION = false;
+
 const QUICK_RUN_TABS = [
   { id: "cripta-1", label: "Cripta 1" },
   { id: "cripta-2", label: "Cripta 2" },
@@ -450,6 +468,8 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n3-11",
       "cripta-n3-12",
       "cripta-n3-13",
+      "cripta-n3-14",
+      "cripta-n3-15",
     ],
   },
   masmorras: {
@@ -1194,7 +1214,7 @@ export function FarmRunsCard({
             )}
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 gap-4 ${SHOW_FARM_PLAN_SUGGESTION ? "xl:grid-cols-2" : ""}`}>
             <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
@@ -1254,6 +1274,7 @@ export function FarmRunsCard({
               )}
             </div>
 
+            {SHOW_FARM_PLAN_SUGGESTION && (
             <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <p className="text-emerald-300 font-black">
@@ -1341,6 +1362,7 @@ export function FarmRunsCard({
                 </>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>

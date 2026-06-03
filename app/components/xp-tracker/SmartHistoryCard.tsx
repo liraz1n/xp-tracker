@@ -40,6 +40,19 @@ function getActivityName(entry: HistoryEntry) {
   return entry.source.replace(/^\d+x\s*/, "");
 }
 
+const LEVEL_UP_RUN_OPTIONS = [
+  { label: "Cripta 1 ate nivel 30", detail: "4 jogadores", xp: 53942 },
+  { label: "Cripta 1 ate nivel 31", detail: "4 jogadores", xp: 58290 },
+  { label: "Cripta 1 ate nivel 32", detail: "4 jogadores", xp: 62942 },
+  { label: "Cripta 1 ate nivel 33", detail: "4 jogadores", xp: 67990 },
+  { label: "Cripta 1 ate nivel 30", detail: "5 jogadores", xp: 53942 },
+  { label: "Cripta 1 ate nivel 31", detail: "5 jogadores", xp: 58290 },
+  { label: "Masmorra Deserto", detail: "4 jogadores", xp: 9737 },
+  { label: "Masmorra Deserto", detail: "5 jogadores", xp: 7890 },
+  { label: "Masmorra Cemiterio", detail: "4 jogadores", xp: 8537 },
+  { label: "Masmorra Pantano", detail: "4 jogadores", xp: 2937 },
+];
+
 export function SmartHistoryCard({
   history,
   currentXP,
@@ -74,6 +87,21 @@ export function SmartHistoryCard({
   }, {});
 
   const favoriteActivity = Object.entries(activityTotals).sort((a, b) => b[1] - a[1])[0];
+  const levelUpSuggestions = LEVEL_UP_RUN_OPTIONS
+    .map((activity) => {
+      const runs = currentXP > 0 ? Math.ceil(currentXP / activity.xp) : 0;
+      const totalXP = runs * activity.xp;
+
+      return {
+        ...activity,
+        runs,
+        totalXP,
+        overflowXP: Math.max(0, totalXP - currentXP),
+      };
+    })
+    .filter((activity) => activity.runs > 0)
+    .sort((a, b) => a.runs - b.runs || a.overflowXP - b.overflowXP)
+    .slice(0, 4);
 
   return (
     <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8`}>
@@ -177,6 +205,55 @@ export function SmartHistoryCard({
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="sm:col-span-2 xl:col-span-4 rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+              <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-emerald-300 text-sm font-black">
+                    Plano rapido para upar
+                  </p>
+                  <p className={`${theme.muted} text-xs`}>
+                    Com base no XP restante atual: {formatXP(currentXP)} XP.
+                  </p>
+                </div>
+              </div>
+
+              {levelUpSuggestions.length === 0 ? (
+                <p className={`${theme.muted} text-sm`}>
+                  Configure seu XP restante para gerar sugestões de cripta e masmorra.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+                  {levelUpSuggestions.map((suggestion) => (
+                    <div
+                      key={`${suggestion.label}-${suggestion.detail}`}
+                      className="rounded-2xl border border-emerald-500/15 bg-black/20 p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className={`${theme.text} text-sm font-black leading-tight`}>
+                            {suggestion.label}
+                          </p>
+                          <p className={`${theme.muted} text-xs leading-tight`}>
+                            {suggestion.detail}
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-black text-emerald-300">
+                          {suggestion.runs}x
+                        </span>
+                      </div>
+
+                      <p className={`${theme.muted} mt-3 text-xs`}>
+                        Fecha com {formatXP(suggestion.totalXP)} XP
+                        {suggestion.overflowXP > 0
+                          ? ` e sobra ${formatXP(suggestion.overflowXP)} XP.`
+                          : "."}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

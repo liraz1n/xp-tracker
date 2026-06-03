@@ -44,7 +44,7 @@ export function OnboardingCard({
   const [userTotalXP, setUserTotalXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
-  const currentXPValue = Math.min(currentXP, totalXP);
+  const currentXPValue = Math.max(0, currentXP);
   const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
 
   function submitSetup() {
@@ -140,7 +140,6 @@ export function OnboardingCard({
             <input
               type="number"
               min={0}
-              max={totalXP}
               value={formatInputValue(currentXP)}
               onChange={(event) =>
                 setCurrentXP(

@@ -41,7 +41,8 @@ export function SubscriptionCard({
     !alwaysShow &&
     (billing.accessStatus === "guest" ||
       billing.accessStatus === "loading" ||
-      billing.accessStatus === "setup_pending")
+      billing.accessStatus === "setup_pending" ||
+      billing.accessStatus === "active")
   ) {
     return null;
   }
@@ -54,13 +55,15 @@ export function SubscriptionCard({
     billing.trialDaysRemaining === null ? 0 : billing.trialDaysRemaining;
 
   const statusLabel = isActive
-    ? "Premium ativo"
+    ? billing.isSuperAdmin
+      ? "Superadmin"
+      : "Premium ativo"
     : isLocked
       ? "Teste encerrado"
       : isGuest
         ? "Modo visitante"
         : isSetupPending
-          ? "Tem um Cupom?"
+          ? "Tem um cupom?"
           : `${trialDays} dias grátis restantes`;
 
   function handleCouponChange(value: string) {

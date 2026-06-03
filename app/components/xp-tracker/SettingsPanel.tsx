@@ -68,10 +68,10 @@ export function SettingsPanel({
 
   if (!open) return null;
 
-  const draftCurrentXPValue = Math.min(draftCurrentXP, draftTotalXP);
+  const draftCurrentXPValue = Math.max(0, draftCurrentXP);
 
   function updateDraftCurrentXP(value: number) {
-    const nextCurrentXP = Math.min(Math.max(0, value), draftTotalXP);
+    const nextCurrentXP = Math.max(0, value);
 
     setDraftCurrentXP(nextCurrentXP);
   }
@@ -97,7 +97,7 @@ export function SettingsPanel({
     }
 
     setSettingsError(
-      "Nao foi possivel salvar o XP total do usuario. Verifique se a coluna user_total_xp existe no Supabase."
+      "Não foi possível salvar o XP total do usuário. Verifique se a coluna user_total_xp existe no Supabase."
     );
   }
 

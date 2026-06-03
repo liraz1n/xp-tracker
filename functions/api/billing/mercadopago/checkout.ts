@@ -4,6 +4,7 @@ import {
   jsonError,
   PLAN_ID,
   PREMIUM_PRICE,
+  recordPaymentEvent,
   resolveCouponForCheckout,
   securityHeaders,
   type BillingEnv,
@@ -125,6 +126,24 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   if (!preferenceResponse.ok) {
     console.error("Mercado Pago preference error:", preference);
     return jsonError("Could not create Mercado Pago checkout.", 502);
+  }
+
+  if (serviceRoleKey) {
+    await recordPaymentEvent({
+      userId: user.id,
+      providerPaymentId: preference.id ?? null,
+      eventType: "checkout_created",
+      status: "created",
+      paymentMode,
+      couponCode,
+      amountCents: Math.round(finalPrice * 100),
+      rawEvent: {
+        preference_id: preference.id,
+        payment_mode: paymentMode,
+        coupon_code: couponCode,
+      },
+      serviceRoleKey,
+    });
   }
 
   return Response.json(

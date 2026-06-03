@@ -1,5 +1,6 @@
 import {
   jsonError,
+  recordPaymentEvent,
   securityHeaders,
   upsertActiveSubscription,
   verifyMercadoPagoWebhookSignature,
@@ -15,16 +16,13 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
   const webhookSecret = env.MERCADO_PAGO_WEBHOOK_SECRET;
 
-  if (!accessToken || !serviceRoleKey) {
+  if (!accessToken || !serviceRoleKey || !webhookSecret) {
     return jsonError("Billing webhook is not configured.", 500);
   }
 
   const url = new URL(request.url);
 
-  if (
-    webhookSecret &&
-    !(await verifyMercadoPagoWebhookSignature(request, url, webhookSecret))
-  ) {
+  if (!(await verifyMercadoPagoWebhookSignature(request, url, webhookSecret))) {
     return jsonError("Invalid Mercado Pago webhook signature.", 401);
   }
 
@@ -66,14 +64,37 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     return jsonError("Could not inspect Mercado Pago payment.", 502);
   }
 
+  const userId = payment.external_reference ?? payment.metadata?.user_id;
+  const amountCents =
+    typeof payment.transaction_amount === "number"
+      ? Math.round(payment.transaction_amount * 100)
+      : null;
+
+  await recordPaymentEvent({
+    userId,
+    providerPaymentId: String(paymentId),
+    eventType: "payment",
+    status: payment.status ?? null,
+    paymentMode: payment.metadata?.payment_mode ?? payment.payment_type_id ?? null,
+    couponCode: payment.metadata?.coupon_code ?? null,
+    amountCents,
+    rawEvent: {
+      id: paymentId,
+      status: payment.status,
+      status_detail: payment.status_detail,
+      payment_method_id: payment.payment_method_id,
+      payment_type_id: payment.payment_type_id,
+      metadata: payment.metadata,
+    },
+    serviceRoleKey,
+  });
+
   if (payment.status !== "approved") {
     return Response.json(
       { ok: true, status: payment.status },
       { headers: securityHeaders }
     );
   }
-
-  const userId = payment.external_reference ?? payment.metadata?.user_id;
 
   if (!userId) {
     console.error("Approved Mercado Pago payment without user reference:", paymentId);

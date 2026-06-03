@@ -1,3 +1,8 @@
+import {
+  NotificationDropdown,
+  type AppNotification,
+} from "~/components/xp-tracker/NotificationCenter";
+
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface DashboardHeaderProps {
@@ -6,12 +11,18 @@ interface DashboardHeaderProps {
   saveStatus: SaveStatus;
   historyCount: number;
   guestMode: boolean;
+  planBadge?: string | null;
+  isSuperAdmin?: boolean;
+  notifications: AppNotification[];
+  unreadNotificationsCount: number;
+  notificationsOpen: boolean;
   theme: {
     card: string;
     muted: string;
   };
   onToggleDarkMode: () => void;
   onToggleSidebar: () => void;
+  onToggleNotifications: () => void;
   onOpenSubscription: () => void;
   onOpenSettings: () => void;
   onLoginWithGoogle: () => void;
@@ -24,9 +35,15 @@ export function DashboardHeader({
   saveStatus,
   historyCount,
   guestMode,
+  planBadge,
+  isSuperAdmin = false,
+  notifications,
+  unreadNotificationsCount,
+  notificationsOpen,
   theme,
   onToggleDarkMode,
   onToggleSidebar,
+  onToggleNotifications,
   onOpenSubscription,
   onOpenSettings,
   onLoginWithGoogle,
@@ -65,9 +82,13 @@ export function DashboardHeader({
   return (
     <div className="flex flex-col gap-4 md:gap-6 md:flex-row md:justify-between md:items-start mb-6 md:mb-10">
       <div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 bg-clip-text text-transparent">
+        <a
+          href="/"
+          aria-label="Voltar para o início"
+          className="inline-block text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 bg-clip-text text-transparent transition-all hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+        >
           XP TRACKER
-        </h1>
+        </a>
 
         <p className={`${theme.muted} mt-1.5 md:mt-2 text-base md:text-lg`}>
           Dashboard de progresso premium
@@ -76,9 +97,23 @@ export function DashboardHeader({
 
       <div className="flex flex-col md:items-end gap-3">
         <div className="flex flex-col md:items-end gap-2">
-          <p className="text-yellow-300 font-bold text-base md:text-lg">
-            Bem-vindo, {userName}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+            <p className="text-yellow-300 font-bold text-base md:text-lg">
+              Bem-vindo, {userName}
+            </p>
+
+            {planBadge && (
+              <span
+                className={`rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-wide ${
+                  isSuperAdmin
+                    ? "border-yellow-400/40 bg-yellow-500/15 text-yellow-200"
+                    : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                }`}
+              >
+                {planBadge}
+              </span>
+            )}
+          </div>
 
           <span
             className={`border rounded-full px-3 py-1 text-xs font-bold ${saveStatusInfo.className}`}
@@ -112,6 +147,16 @@ export function DashboardHeader({
               </span>
             )}
           </button>
+
+          <NotificationDropdown
+            notifications={notifications}
+            unreadCount={unreadNotificationsCount}
+            open={notificationsOpen}
+            onToggle={onToggleNotifications}
+            buttonClassName={iconButtonClass}
+            labelClassName={iconLabelClass}
+            theme={theme}
+          />
 
           <button
             type="button"

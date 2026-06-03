@@ -20,6 +20,8 @@ interface HistoryEntry {
 
 type SidebarTab = "historico" | "grafico";
 type ChartFilter = "all" | "7d" | "30d" | "month";
+type HistoryTypeFilter = "all" | "cripta" | "masmorra" | "manual";
+type HistorySort = "recent" | "xp_desc" | "xp_asc";
 
 interface HistorySidebarProps {
   open: boolean;
@@ -31,6 +33,7 @@ interface HistorySidebarProps {
   onClose: () => void;
   onDeleteHistoryEntry: (index: number) => void;
   onEditHistoryEntry: (index: number) => void;
+  onDuplicateHistoryEntry: (index: number) => void;
   formatEntryDate: (iso: string) => string;
   theme: {
     sidebar: string;
@@ -45,7 +48,6 @@ interface HistorySidebarProps {
 
 interface ChartPoint {
   name: string;
-  date: string;
   label: string;
   xpGained: number;
   xpRestante: number;
@@ -53,8 +55,8 @@ interface ChartPoint {
 }
 
 const tabs = [
-  { id: "historico", label: "Historico", icon: ScrollIcon },
-  { id: "grafico", label: "Grafico", icon: ChartIcon },
+  { id: "historico", label: "Histórico", icon: ScrollIcon },
+  { id: "grafico", label: "Gráfico", icon: ChartIcon },
 ] as const;
 
 const chartFilters: { id: ChartFilter; label: string }[] = [
@@ -62,6 +64,19 @@ const chartFilters: { id: ChartFilter; label: string }[] = [
   { id: "7d", label: "7d" },
   { id: "30d", label: "30d" },
   { id: "month", label: "Mês" },
+];
+
+const historyTypeFilters: { id: HistoryTypeFilter; label: string }[] = [
+  { id: "all", label: "Tudo" },
+  { id: "cripta", label: "Cripta" },
+  { id: "masmorra", label: "Masmorra" },
+  { id: "manual", label: "Manual" },
+];
+
+const historySortOptions: { id: HistorySort; label: string }[] = [
+  { id: "recent", label: "Recentes" },
+  { id: "xp_desc", label: "Maior XP" },
+  { id: "xp_asc", label: "Menor XP" },
 ];
 
 function getEntryProgress(entry: HistoryEntry, fallbackTotalXP: number) {
@@ -118,7 +133,6 @@ function ChartTooltip({
       }`}
     >
       <p className="text-xs font-bold text-yellow-400 mb-2">{point.label}</p>
-
       <div className="space-y-1 text-xs">
         <p>
           <span className="text-zinc-500">XP ganho: </span>
@@ -153,17 +167,41 @@ export function HistorySidebar({
   onClose,
   onDeleteHistoryEntry,
   onEditHistoryEntry,
+  onDuplicateHistoryEntry,
   formatEntryDate,
   theme,
 }: HistorySidebarProps) {
   const [chartFilter, setChartFilter] = useState<ChartFilter>("all");
+  const [historyTypeFilter, setHistoryTypeFilter] = useState<HistoryTypeFilter>("all");
+  const [historySort, setHistorySort] = useState<HistorySort>("recent");
+
+  const displayHistory = useMemo(() => {
+    return history
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ entry }) => {
+        if (historyTypeFilter === "all") return true;
+
+        const source = entry.source ?? "";
+
+        if (historyTypeFilter === "manual") {
+          return !/Cripta|Masmorra/i.test(source);
+        }
+
+        return source.toLowerCase().includes(historyTypeFilter);
+      })
+      .sort((left, right) => {
+        if (historySort === "xp_desc") return right.entry.xpGained - left.entry.xpGained;
+        if (historySort === "xp_asc") return left.entry.xpGained - right.entry.xpGained;
+
+        return left.index - right.index;
+      });
+  }, [history, historySort, historyTypeFilter]);
 
   const chartData = useMemo(() => {
     const filteredHistory = filterHistoryByPeriod(history, chartFilter);
 
     return [...filteredHistory].reverse().map((entry, index) => ({
       name: `#${index + 1}`,
-      date: entry.date,
       label: formatEntryDate(entry.date),
       xpGained: entry.xpGained,
       xpRestante: entry.xpRemaining,
@@ -190,26 +228,26 @@ export function HistorySidebar({
               const Icon = tab.icon;
 
               return (
-              <button
-                type="button"
-                key={tab.id}
-                onClick={() => setSidebarTab(tab.id)}
-                className={`px-3 py-2 rounded-t-xl text-xs font-bold border transition-all ${
-                  sidebarTab === tab.id ? theme.tabActive : theme.tabInactive
-                }`}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <Icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                </span>
-              </button>
+                <button
+                  type="button"
+                  key={tab.id}
+                  onClick={() => setSidebarTab(tab.id)}
+                  className={`px-3 py-2 rounded-t-xl text-xs font-bold border transition-all ${
+                    sidebarTab === tab.id ? theme.tabActive : theme.tabInactive
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </span>
+                </button>
               );
             })}
           </div>
 
           <button
             type="button"
-            aria-label="Fechar sidebar"
+            aria-label="Fechar histórico"
             onClick={onClose}
             className={`${theme.muted} text-lg mb-2 ml-2`}
           >
@@ -218,95 +256,134 @@ export function HistorySidebar({
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {sidebarTab === "historico" &&
-            (history.length === 0 ? (
+          {sidebarTab === "historico" && (
+            history.length === 0 ? (
               <p className={`${theme.muted} text-sm text-center mt-8`}>
                 Nenhum registro ainda.
                 <br />
                 Salve o progresso para começar.
               </p>
             ) : (
-              history.map((entry, index) => {
-                const entryProgress = getEntryProgress(entry, totalXP);
-
-                return (
-                  <div
-                    key={`${entry.date}-${index}`}
-                    className={`py-4 border-b ${theme.histEntry}`}
-                  >
-                    <div className="flex justify-between items-start gap-3">
-                      <div>
-                        <span className="text-emerald-400 font-bold">
-                          +{entry.xpGained.toLocaleString("pt-BR")} XP
-                        </span>
-                        <p className={`${theme.muted} text-xs mt-0.5`}>
-                          {formatEntryDate(entry.date)}
-                        </p>
-                        {entry.source && (
-                          <p className="text-yellow-300 text-xs font-bold mt-1">
-                            {entry.source}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                          #{history.length - index}
-                        </span>
-
-                        <button
-                          type="button"
-                          aria-label="Editar registro"
-                          onClick={() => onEditHistoryEntry(index)}
-                          className="w-7 h-7 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 hover:bg-yellow-500 hover:text-black transition-all"
-                        >
-                          E
-                        </button>
-
-                        <button
-                          type="button"
-                          aria-label="Excluir registro"
-                          onClick={() => onDeleteHistoryEntry(index)}
-                          className="w-7 h-7 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
-                        >
-                          X
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <div className="rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2">
-                        <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
-                          Restante
-                        </p>
-                        <p className="text-sm font-black text-red-300">
-                          {entry.xpRemaining.toLocaleString("pt-BR")} XP
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
-                        <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
-                          Progresso
-                        </p>
-                        <p className="text-sm font-black text-yellow-300">
-                          {entryProgress.toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 h-1.5 rounded-full bg-zinc-900 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 transition-all duration-700"
-                        style={{ width: `${entryProgress}%` }}
-                      />
-                    </div>
+              <>
+                <div className="mb-3 space-y-2">
+                  <div className="grid grid-cols-4 gap-1">
+                    {historyTypeFilters.map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => setHistoryTypeFilter(filter.id)}
+                        className={`rounded-xl border px-2 py-1.5 text-[11px] font-black transition-all ${
+                          historyTypeFilter === filter.id
+                            ? theme.tabActive
+                            : theme.tabInactive
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
                   </div>
-                );
-              })
-            ))}
+                  <div className="grid grid-cols-3 gap-1">
+                    {historySortOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setHistorySort(option.id)}
+                        className={`rounded-xl border px-2 py-1.5 text-[11px] font-black transition-all ${
+                          historySort === option.id
+                            ? theme.tabActive
+                            : theme.tabInactive
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {sidebarTab === "grafico" &&
-            (history.length < 2 ? (
+                {displayHistory.length === 0 ? (
+                  <p className={`${theme.muted} text-sm text-center mt-8`}>
+                    Nenhum registro neste filtro.
+                  </p>
+                ) : (
+                  displayHistory.map(({ entry, index }) => {
+                    const entryProgress = getEntryProgress(entry, totalXP);
+
+                    return (
+                      <div
+                        key={`${entry.date}-${index}`}
+                        className={`py-4 border-b ${theme.histEntry}`}
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div>
+                            <span className="text-emerald-400 font-bold">
+                              +{entry.xpGained.toLocaleString("pt-BR")} XP
+                            </span>
+                            <p className={`${theme.muted} text-xs mt-0.5`}>
+                              {formatEntryDate(entry.date)}
+                            </p>
+                            {entry.source && (
+                              <p className="text-yellow-300 text-xs font-bold mt-1">
+                                {entry.source}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              aria-label="Editar registro"
+                              onClick={() => onEditHistoryEntry(index)}
+                              className="w-7 h-7 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 hover:bg-yellow-500 hover:text-black transition-all"
+                            >
+                              E
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Duplicar registro"
+                              onClick={() => onDuplicateHistoryEntry(index)}
+                              className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black transition-all"
+                            >
+                              D
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Excluir registro"
+                              onClick={() => onDeleteHistoryEntry(index)}
+                              className="w-7 h-7 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                              X
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <div className="rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2">
+                            <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                              Restante
+                            </p>
+                            <p className="text-sm font-black text-red-300">
+                              {entry.xpRemaining.toLocaleString("pt-BR")} XP
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
+                            <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                              Progresso
+                            </p>
+                            <p className="text-sm font-black text-yellow-300">
+                              {entryProgress.toFixed(2)}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </>
+            )
+          )}
+
+          {sidebarTab === "grafico" && (
+            history.length < 2 ? (
               <p className={`${theme.muted} text-sm text-center mt-12`}>
                 Salve pelo menos 2 atualizações
                 <br />
@@ -315,9 +392,8 @@ export function HistorySidebar({
             ) : (
               <div>
                 <p className={`${theme.muted} text-xs mb-3`}>
-                  XP Restante ao longo do tempo
+                  XP restante ao longo do tempo
                 </p>
-
                 <div className="grid grid-cols-4 gap-1 mb-4">
                   {chartFilters.map((filter) => (
                     <button
@@ -325,9 +401,7 @@ export function HistorySidebar({
                       type="button"
                       onClick={() => setChartFilter(filter.id)}
                       className={`rounded-xl border px-2 py-1.5 text-[11px] font-black transition-all ${
-                        chartFilter === filter.id
-                          ? theme.tabActive
-                          : theme.tabInactive
+                        chartFilter === filter.id ? theme.tabActive : theme.tabInactive
                       }`}
                     >
                       {filter.label}
@@ -350,7 +424,6 @@ export function HistorySidebar({
                           +{totalFilteredXp.toLocaleString("pt-BR")}
                         </p>
                       </div>
-
                       <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
                         <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
                           Último progresso
@@ -360,7 +433,6 @@ export function HistorySidebar({
                         </p>
                       </div>
                     </div>
-
                     <ResponsiveContainer width="100%" height={260}>
                       <LineChart
                         data={chartData}
@@ -403,7 +475,8 @@ export function HistorySidebar({
                   </>
                 )}
               </div>
-            ))}
+            )
+          )}
         </div>
       </div>
 

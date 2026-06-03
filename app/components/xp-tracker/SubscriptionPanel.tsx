@@ -21,6 +21,22 @@ export function SubscriptionPanel({
 }: SubscriptionPanelProps) {
   if (!open) return null;
 
+  const subscription = billing.subscription;
+  const renewalDate = subscription?.current_period_ends_at
+    ? new Date(subscription.current_period_ends_at).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const trialDate = billing.trialEndsAt
+    ? new Date(billing.trialEndsAt).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
       <div className={`${theme.card} max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
@@ -53,6 +69,80 @@ export function SubscriptionPanel({
           theme={theme}
           onCheckout={billing.startCheckout}
         />
+
+        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <p className={`${theme.muted} text-xs font-black uppercase`}>
+              Plano atual
+            </p>
+            <p className="mt-1 font-black text-emerald-300">
+              {billing.planLabel}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+            <p className={`${theme.muted} text-xs font-black uppercase`}>
+              Valor mensal
+            </p>
+            <p className="mt-1 font-black text-yellow-300">
+              {billing.priceLabel}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+            <p className={`${theme.muted} text-xs font-black uppercase`}>
+              Teste grátis
+            </p>
+            <p className="mt-1 font-black text-cyan-300">
+              {trialDate ?? "Não ativo"}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+            <p className={`${theme.muted} text-xs font-black uppercase`}>
+              Renovacao
+            </p>
+            <p className="mt-1 font-black text-indigo-300">
+              {renewalDate ?? "Aguardando"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div>
+              <p className={`${theme.muted} text-xs font-black uppercase`}>
+                Cupom aplicado
+              </p>
+              <p className={`${theme.text} mt-1 font-black`}>
+                {subscription?.coupon_code ?? "Nenhum"}
+              </p>
+            </div>
+            <div>
+              <p className={`${theme.muted} text-xs font-black uppercase`}>
+                Desconto
+              </p>
+              <p className={`${theme.text} mt-1 font-black`}>
+                {subscription?.discount_percent
+                  ? `${subscription.discount_percent}%`
+                  : subscription?.discount_amount_cents
+                    ? `${(subscription.discount_amount_cents / 100).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}`
+                    : "Sem desconto"}
+              </p>
+            </div>
+            <div>
+              <p className={`${theme.muted} text-xs font-black uppercase`}>
+                Checkout
+              </p>
+              <p className={`${theme.text} mt-1 font-black`}>
+                Pix ou cartão seguro
+              </p>
+            </div>
+          </div>
+        </div>
 
         {billing.checkoutError && (
           <div className="mb-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm font-bold text-red-300">

@@ -31,6 +31,23 @@ function formatXP(value: number) {
   return value.toLocaleString("pt-BR");
 }
 
+function getDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getCurrentStreak(history: HistoryEntry[]) {
+  const days = new Set(history.map((entry) => getDateKey(new Date(entry.date))));
+  let streak = 0;
+  const cursor = new Date();
+
+  while (days.has(getDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
 export function UsageAchievementsCard({
   history,
   dailyGoal,
@@ -46,6 +63,8 @@ export function UsageAchievementsCard({
     (sum, entry) => sum + getRunCountFromSource(entry.source),
     0
   );
+  const totalXP = history.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const currentStreak = getCurrentStreak(history);
 
   const achievements = [
     {
@@ -68,6 +87,34 @@ export function UsageAchievementsCard({
       current: farmXP,
       target: 100000,
       value: `${formatXP(farmXP)}/100.000`,
+    },
+    {
+      title: "500k XP no histórico",
+      description: "Some meio milhão de XP registrado em qualquer fonte.",
+      current: totalXP,
+      target: 500000,
+      value: `${formatXP(totalXP)}/500.000`,
+    },
+    {
+      title: "1M XP acumulado",
+      description: "Transforme o histórico em um marco de longo prazo.",
+      current: totalXP,
+      target: 1000000,
+      value: `${formatXP(totalXP)}/1.000.000`,
+    },
+    {
+      title: "7 dias em sequência",
+      description: "Registre progresso por uma semana seguida.",
+      current: currentStreak,
+      target: 7,
+      value: `${currentStreak}/7 dias`,
+    },
+    {
+      title: "50 runs no farm",
+      description: "Acumule cinquenta runs registradas no histórico.",
+      current: farmRuns,
+      target: 50,
+      value: `${farmRuns}/50`,
     },
     {
       title: "Meta diária batida",

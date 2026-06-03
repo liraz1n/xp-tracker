@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { supabase } from "~/supabase";
 import { LoginScreen } from "~/components/xp-tracker/LoginScreen";
 import { DashboardHeader } from "~/components/xp-tracker/DashboardHeader";
 import { StatsCards } from "~/components/xp-tracker/StatsCards";
@@ -14,6 +15,12 @@ import { OnboardingCard } from "~/components/xp-tracker/OnboardingCard";
 import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
 import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
+import { GoalsRankingCard } from "~/components/xp-tracker/GoalsRankingCard";
+import { buildNotifications } from "~/components/xp-tracker/NotificationCenter";
+import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/AdminPanelCard";
+import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
+import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
+import { ProfileBadgesCard } from "~/components/xp-tracker/ProfileBadgesCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
@@ -25,6 +32,7 @@ interface MobileDashboardSectionProps {
   title: string;
   description: string;
   defaultOpen?: boolean;
+  collapsibleOnDesktop?: boolean;
   theme: {
     card: string;
     muted: string;
@@ -37,18 +45,27 @@ function MobileDashboardSection({
   title,
   description,
   defaultOpen = false,
+  collapsibleOnDesktop = false,
   theme,
   children,
 }: MobileDashboardSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const buttonVisibilityClass = collapsibleOnDesktop
+    ? "w-full"
+    : "md:hidden w-full";
+  const contentVisibilityClass = collapsibleOnDesktop
+    ? open
+      ? "block"
+      : "hidden"
+    : `${open ? "block" : "hidden"} md:block`;
 
   return (
-    <section className="md:contents">
+    <section className={collapsibleOnDesktop ? "mb-4 md:mb-5" : "md:contents"}>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className={`${theme.card} md:hidden w-full border rounded-2xl px-4 py-3 text-left transition-all ${
+        className={`${theme.card} ${buttonVisibilityClass} border rounded-2xl px-4 py-3 text-left transition-all ${
           open ? "mb-3" : "mb-4"
         }`}
       >
@@ -68,7 +85,7 @@ function MobileDashboardSection({
         </span>
       </button>
 
-      <div className={`${open ? "block" : "hidden"} md:block`}>
+      <div className={contentVisibilityClass}>
         {children}
       </div>
     </section>
@@ -84,6 +101,21 @@ export default function Home() {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("historico");
   const [historyEntryToDelete, setHistoryEntryToDelete] = useState<number | null>(null);
   const [historyEntryToEdit, setHistoryEntryToEdit] = useState<number | null>(null);
+  const [adminUsers, setAdminUsers] = useState<AdminUserOverview[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [lastReadHistoryCount, setLastReadHistoryCount] = useState(0);
+  const [historyReadInitialized, setHistoryReadInitialized] = useState(false);
+  const [lastReadNotificationKey, setLastReadNotificationKey] = useState("");
+
+  const paymentReturnStatus = useMemo(() => {
+    if (typeof window === "undefined") return null;
+
+    const value = new URLSearchParams(window.location.search).get("payment");
+
+    return value === "success" || value === "pending" || value === "failure"
+      ? value
+      : null;
+  }, []);
 
   function formatDate(days: number) {
     const date = new Date();
@@ -127,9 +159,25 @@ export default function Home() {
   }
 
   function saveProgress() {
+    const nextHistoryCount =
+      tracker.xpGainedSinceLastSave > 0
+        ? tracker.history.length + 1
+        : tracker.history.length;
+
     tracker.saveProgress();
     setSidebarOpen(true);
     setSidebarTab("historico");
+    setLastReadHistoryCount(nextHistoryCount);
+  }
+
+  function toggleHistorySidebar() {
+    setLastReadHistoryCount(tracker.history.length);
+    setSidebarOpen((prev) => !prev);
+  }
+
+  function toggleNotifications(notificationKey: string) {
+    setLastReadNotificationKey(notificationKey);
+    setNotificationsOpen((prev) => !prev);
   }
 
   const theme = {
@@ -163,6 +211,86 @@ export default function Home() {
   const shouldShowOnboarding =
     tracker.totalXP === 0 && tracker.currentXP === 0 && tracker.history.length === 0;
   const premiumLocked = tracker.billing.accessStatus === "locked";
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const xpToday = tracker.history
+    .filter((entry) => new Date(entry.date).toISOString().slice(0, 10) === todayKey)
+    .reduce((sum, entry) => sum + entry.xpGained, 0);
+  const planBadge =
+    tracker.billing.isSuperAdmin
+      ? "Superadmin"
+      : tracker.billing.accessStatus === "active"
+        ? "Premium"
+        : null;
+  const notifications = useMemo(
+    () =>
+      buildNotifications({
+        billing: tracker.billing,
+        currentXP: tracker.currentXP,
+        totalXP: tracker.totalXP,
+        dailyGoal: tracker.dailyGoal,
+        xpToday,
+        saveStatus: tracker.saveStatus,
+      }),
+    [
+      tracker.billing,
+      tracker.currentXP,
+      tracker.totalXP,
+      tracker.dailyGoal,
+      xpToday,
+      tracker.saveStatus,
+    ]
+  );
+  const notificationKey = useMemo(
+    () =>
+      notifications
+        .map((notification) => `${notification.title}:${notification.message}`)
+        .join("|"),
+    [notifications]
+  );
+  const unreadHistoryCount = Math.max(
+    0,
+    tracker.history.length - lastReadHistoryCount
+  );
+  const unreadNotificationsCount =
+    notificationKey && notificationKey !== lastReadNotificationKey
+      ? notifications.length
+      : 0;
+
+  useEffect(() => {
+    if (!tracker.progressLoaded || historyReadInitialized) return;
+
+    setLastReadHistoryCount(tracker.history.length);
+    setHistoryReadInitialized(true);
+  }, [historyReadInitialized, tracker.history.length, tracker.progressLoaded]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAdminUsers() {
+      if (!tracker.billing.isSuperAdmin || !tracker.user) {
+        setAdminUsers([]);
+        return;
+      }
+
+      const { data, error } = await supabase.rpc("get_admin_user_overview");
+
+      if (cancelled) return;
+
+      if (error) {
+        console.warn("Visão admin ainda não está configurada:", error);
+        setAdminUsers([]);
+        return;
+      }
+
+      setAdminUsers((data as AdminUserOverview[]) ?? []);
+    }
+
+    loadAdminUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tracker.billing.isSuperAdmin, tracker.user]);
 
   if (!tracker.user && !tracker.guestMode) {
     return (
@@ -215,11 +343,17 @@ export default function Home() {
             userName={tracker.userName}
             darkMode={tracker.darkMode}
             saveStatus={tracker.saveStatus}
-            historyCount={tracker.history.length}
+            historyCount={unreadHistoryCount}
             guestMode={tracker.guestMode}
+            planBadge={planBadge}
+            isSuperAdmin={tracker.billing.isSuperAdmin}
+            notifications={notifications}
+            unreadNotificationsCount={unreadNotificationsCount}
+            notificationsOpen={notificationsOpen}
             theme={theme}
             onToggleDarkMode={() => tracker.setDarkMode((prev) => !prev)}
-            onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+            onToggleSidebar={toggleHistorySidebar}
+            onToggleNotifications={() => toggleNotifications(notificationKey)}
             onOpenSubscription={() => setShowSubscriptionPanel(true)}
             onOpenSettings={() => setShowSettings(true)}
             onLoginWithGoogle={tracker.loginWithGoogle}
@@ -232,6 +366,10 @@ export default function Home() {
             theme={theme}
             onCheckout={tracker.billing.startCheckout}
           />
+
+          <PaymentReturnCard status={paymentReturnStatus} theme={theme} />
+
+          <ProfileBadgesCard billing={tracker.billing} />
 
           {shouldShowOnboarding && (
             <OnboardingCard
@@ -270,6 +408,38 @@ export default function Home() {
             />
           )}
 
+          {!shouldShowOnboarding && (
+            <MobileDashboardSection
+              title="Metas e ranking"
+              description="Acompanhe metas, ritmo e ranking do progresso."
+              collapsibleOnDesktop
+              theme={theme}
+            >
+              <GoalsRankingCard
+                history={tracker.history}
+                currentXP={tracker.currentXP}
+                dailyGoal={tracker.dailyGoal}
+                averageDailyXP={tracker.averageDailyXP}
+                theme={theme}
+              />
+            </MobileDashboardSection>
+          )}
+
+          {!shouldShowOnboarding && !premiumLocked && (
+            <MobileDashboardSection
+              title="Planejador de farm"
+              description="Veja sugestões de runs para bater sua meta."
+              collapsibleOnDesktop
+              theme={theme}
+            >
+              <FarmPlannerCard
+                currentXP={tracker.currentXP}
+                dailyGoal={tracker.dailyGoal}
+                theme={theme}
+              />
+            </MobileDashboardSection>
+          )}
+
           <MobileDashboardSection
             title="Estimativas"
             description="Previsão por meta diária e média histórica."
@@ -294,6 +464,26 @@ export default function Home() {
               <UsageAchievementsCard
                 history={tracker.history}
                 dailyGoal={tracker.dailyGoal}
+                theme={theme}
+              />
+            </MobileDashboardSection>
+          )}
+
+          {!shouldShowOnboarding && tracker.user && tracker.billing.isSuperAdmin && (
+            <MobileDashboardSection
+              title="Painel admin"
+              description="Resumo operacional do usuário e do plano."
+              theme={theme}
+            >
+              <AdminPanelCard
+                userName={tracker.userName}
+                userEmail={tracker.user.email}
+                billing={tracker.billing}
+                history={tracker.history}
+                currentXP={tracker.currentXP}
+                totalXP={tracker.totalXP}
+                isSuperAdmin={tracker.billing.isSuperAdmin}
+                adminUsers={adminUsers}
                 theme={theme}
               />
             </MobileDashboardSection>
@@ -357,6 +547,7 @@ export default function Home() {
         onClose={() => setSidebarOpen(false)}
         onDeleteHistoryEntry={setHistoryEntryToDelete}
         onEditHistoryEntry={setHistoryEntryToEdit}
+        onDuplicateHistoryEntry={tracker.duplicateHistoryEntry}
         formatEntryDate={formatEntryDate}
         theme={theme}
       />

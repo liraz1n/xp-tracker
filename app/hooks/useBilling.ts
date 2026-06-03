@@ -4,6 +4,7 @@ import { supabase } from "~/supabase";
 
 export const PREMIUM_PRICE_CENTS = 599;
 export const TRIAL_DAYS = 7;
+export const SUPERADMIN_EMAILS = ["ewertonpro11@gmail.com"];
 
 export type BillingAccessStatus =
   | "guest"
@@ -41,6 +42,7 @@ export type CheckoutPaymentMode = "card" | "pix";
 
 export interface BillingState {
   accessStatus: BillingAccessStatus;
+  isSuperAdmin: boolean;
   canUsePremiumFeatures: boolean;
   canUseCloudSync: boolean;
   loading: boolean;
@@ -91,6 +93,10 @@ export function findCouponPreview(code: string) {
   return (
     ACTIVE_COUPON_PREVIEWS.find((coupon) => coupon.code === normalizedCode) ?? null
   );
+}
+
+export function isSuperAdminEmail(email?: string | null) {
+  return SUPERADMIN_EMAILS.includes((email ?? "").trim().toLowerCase());
 }
 
 function daysUntil(dateValue: string | null) {
@@ -147,6 +153,7 @@ export function useBilling({
   const [setupPending, setSetupPending] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const isSuperAdmin = isSuperAdminEmail(user?.email);
 
   useEffect(() => {
     let cancelled = false;
@@ -245,6 +252,7 @@ export function useBilling({
     if (guestMode) {
       return {
         accessStatus: "guest",
+        isSuperAdmin: false,
         canUsePremiumFeatures: true,
         canUseCloudSync: false,
         loading: false,
@@ -263,6 +271,7 @@ export function useBilling({
     if (loading) {
       return {
         accessStatus: "loading",
+        isSuperAdmin,
         canUsePremiumFeatures: true,
         canUseCloudSync: true,
         loading,
@@ -281,13 +290,16 @@ export function useBilling({
     const accessStatus = setupPending
       ? "setup_pending"
       : resolveAccessStatus(subscription);
+    const effectiveAccessStatus = isSuperAdmin ? "active" : accessStatus;
     const hasAccess =
-      accessStatus === "trialing" ||
-      accessStatus === "active" ||
-      accessStatus === "setup_pending";
+      isSuperAdmin ||
+      effectiveAccessStatus === "trialing" ||
+      effectiveAccessStatus === "active" ||
+      effectiveAccessStatus === "setup_pending";
 
     return {
-      accessStatus,
+      accessStatus: effectiveAccessStatus,
+      isSuperAdmin,
       canUsePremiumFeatures: hasAccess,
       canUseCloudSync: hasAccess,
       loading,
@@ -295,7 +307,11 @@ export function useBilling({
       subscription,
       trialDaysRemaining: daysUntil(subscription?.trial_ends_at ?? null),
       trialEndsAt: subscription?.trial_ends_at ?? null,
-      planLabel: accessStatus === "active" ? "Premium" : "Teste grátis",
+      planLabel: isSuperAdmin
+        ? "Superadmin"
+        : effectiveAccessStatus === "active"
+          ? "Premium"
+          : "Teste grátis",
       priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
       checkoutLoading,
       checkoutError,

@@ -13,10 +13,15 @@ export type MercadoPagoPreferenceResponse = {
 
 export type MercadoPagoPaymentResponse = {
   status?: string;
+  status_detail?: string;
   external_reference?: string;
+  transaction_amount?: number;
+  payment_method_id?: string;
+  payment_type_id?: string;
   metadata?: {
     user_id?: string;
     coupon_code?: string;
+    payment_mode?: string;
   };
 };
 
@@ -191,6 +196,48 @@ export async function upsertActiveSubscription({
 
   if (!response.ok) {
     throw new Error(await response.text());
+  }
+}
+
+export async function recordPaymentEvent({
+  userId,
+  providerPaymentId,
+  eventType,
+  status,
+  paymentMode,
+  couponCode,
+  amountCents,
+  rawEvent,
+  serviceRoleKey,
+}: {
+  userId?: string | null;
+  providerPaymentId?: string | null;
+  eventType: string;
+  status?: string | null;
+  paymentMode?: string | null;
+  couponCode?: string | null;
+  amountCents?: number | null;
+  rawEvent?: unknown;
+  serviceRoleKey: string;
+}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/payment_events`, {
+    method: "POST",
+    headers: serviceRoleHeaders(serviceRoleKey),
+    body: JSON.stringify({
+      user_id: userId ?? null,
+      provider: "mercado_pago",
+      provider_payment_id: providerPaymentId ?? null,
+      event_type: eventType,
+      status: status ?? null,
+      payment_mode: paymentMode ?? null,
+      coupon_code: couponCode ?? null,
+      amount_cents: amountCents ?? null,
+      raw_event: rawEvent ?? {},
+    }),
+  });
+
+  if (!response.ok) {
+    console.error("Could not record payment event:", await response.text());
   }
 }
 

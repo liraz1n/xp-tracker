@@ -823,6 +823,33 @@ export function useXpTracker() {
     );
   }
 
+  function duplicateHistoryEntry(indexToDuplicate: number) {
+    const entry = history[indexToDuplicate];
+
+    if (!entry) return;
+    if (currentXP <= 0 || entry.xpGained <= 0) return;
+
+    const newCurrentXP = Math.max(0, currentXP - entry.xpGained);
+    const appliedXP = currentXP - newCurrentXP;
+
+    if (appliedXP <= 0) return;
+
+    setHistory((prev) => [
+      {
+        ...entry,
+        date: new Date().toISOString(),
+        xpGained: appliedXP,
+        xpRemaining: newCurrentXP,
+        totalXP,
+        source: entry.source ? `${entry.source} (duplicado)` : "Progresso manual (duplicado)",
+      },
+      ...prev,
+    ]);
+    setCurrentXP(newCurrentXP);
+    setUserTotalXP((prev) => prev + appliedXP);
+    setLastSavedXP(newCurrentXP);
+  }
+
   function configureInitialProgress({
     totalXP,
     currentXP,
@@ -1071,6 +1098,7 @@ export function useXpTracker() {
     updateProgressSettings,
     deleteHistoryEntry,
     updateHistoryEntry,
+    duplicateHistoryEntry,
     resetProgress,
   };
 }
