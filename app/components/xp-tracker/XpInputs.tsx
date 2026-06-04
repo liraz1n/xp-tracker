@@ -68,10 +68,10 @@ export function XpInputs({
       {fields.map(({ label, value, setter, help }) => (
         <div
           key={label}
-          className={`${theme.card} relative border rounded-3xl p-6 shadow-[0_0_30px_rgba(56,189,248,0.15)]`}
+          className={`${theme.card} relative border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
-            <label className="block text-sky-400 text-sm">
+            <label className="block text-yellow-400 text-sm">
               {label}
             </label>
 
@@ -81,14 +81,14 @@ export function XpInputs({
               onClick={() =>
                 setActiveHelp((current) => current === label ? null : label)
               }
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-sky-500/30 bg-sky-500/10 text-xs font-black text-sky-300 transition-all hover:bg-sky-500 hover:text-black"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/10 text-xs font-black text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
             >
               ?
             </button>
           </div>
 
           {activeHelp === label && (
-            <div className="absolute right-4 top-14 z-20 max-w-60 rounded-2xl border border-sky-500/25 bg-zinc-950 p-3 text-xs leading-relaxed text-sky-100 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+            <div className="absolute right-4 top-14 z-20 max-w-60 rounded-2xl border border-yellow-500/25 bg-zinc-950 p-3 text-xs leading-relaxed text-yellow-100 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
               {help}
             </div>
           )}
@@ -104,7 +104,7 @@ export function XpInputs({
                   : sanitizeNumber(Number(event.target.value))
               )
             }
-            className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+            className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
           />
         </div>
       ))}

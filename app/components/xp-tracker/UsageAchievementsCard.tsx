@@ -267,7 +267,7 @@ export function UsageAchievementsCard({
     activeTab === "completed" ? completedAchievements : nextPendingAchievements;
 
   const toneClass = {
-    yellow: "border-sky-500/20 bg-sky-500/5 text-sky-300",
+    yellow: "border-yellow-500/20 bg-yellow-500/5 text-yellow-300",
     emerald: "border-emerald-500/20 bg-emerald-500/5 text-emerald-300",
     cyan: "border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
     violet: "border-violet-500/20 bg-violet-500/5 text-violet-300",
@@ -277,10 +277,10 @@ export function UsageAchievementsCard({
     <section className={`${theme.card} border rounded-3xl p-4 md:p-5 mb-4 md:mb-5`}>
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sky-400 text-xs md:text-sm font-black mb-1">
+          <p className="text-yellow-400 text-xs md:text-sm font-black mb-1">
             Conquistas de uso
           </p>
-          <h2 className="text-xl md:text-2xl font-black text-sky-300">
+          <h2 className="text-xl md:text-2xl font-black text-yellow-300">
             Marcos do seu farm
           </h2>
           <p className={`${theme.muted} mt-1.5 text-xs md:text-sm`}>
@@ -297,11 +297,11 @@ export function UsageAchievementsCard({
               {farmRuns}
             </p>
           </div>
-          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 px-3 py-2">
-            <p className="text-[11px] font-black uppercase text-sky-300">
+          <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-2">
+            <p className="text-[11px] font-black uppercase text-yellow-300">
               Feitos
             </p>
-            <p className="text-xl font-black text-sky-300">
+            <p className="text-xl font-black text-yellow-300">
               {completedAchievements.length}
             </p>
           </div>
@@ -310,7 +310,7 @@ export function UsageAchievementsCard({
             aria-label={isExpanded ? "Reduzir marcos do farm" : "Expandir marcos do farm"}
             aria-expanded={isExpanded}
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sky-500/20 bg-sky-500/10 text-xl font-black leading-none text-sky-300 transition-all hover:bg-sky-500 hover:text-black"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-xl font-black leading-none text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
           >
             {isExpanded ? "-" : "+"}
           </button>
@@ -318,8 +318,8 @@ export function UsageAchievementsCard({
       </div>
 
       {!isExpanded ? (
-        <div className="rounded-2xl border border-sky-500/10 bg-black/20 p-4">
-          <p className="text-sm font-black text-sky-200">
+        <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-4">
+          <p className="text-sm font-black text-yellow-200">
             {nextPendingAchievements.length} próximos marcos na fila
           </p>
           <p className={`${theme.muted} mt-1 text-xs`}>
@@ -339,12 +339,12 @@ export function UsageAchievementsCard({
                 onClick={() => setActiveTab(tab.id)}
                 className={`rounded-2xl border px-3 py-2 text-xs font-black transition-all ${
                   activeTab === tab.id
-                    ? "border-sky-400 bg-sky-500/15 text-sky-200"
-                    : "border-sky-500/10 bg-black/20 text-zinc-500 hover:text-sky-200"
+                    ? "border-yellow-400 bg-yellow-500/15 text-yellow-200"
+                    : "border-yellow-500/10 bg-black/20 text-zinc-500 hover:text-yellow-200"
                 }`}
               >
                 {tab.label}
-                <span className="ml-2 rounded-full border border-sky-500/20 px-2 py-0.5 text-[10px]">
+                <span className="ml-2 rounded-full border border-yellow-500/20 px-2 py-0.5 text-[10px]">
                   {tab.count}
                 </span>
               </button>
@@ -401,7 +401,7 @@ export function UsageAchievementsCard({
 
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-900">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-300 to-emerald-500 transition-all"
+                    className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-emerald-500 transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>

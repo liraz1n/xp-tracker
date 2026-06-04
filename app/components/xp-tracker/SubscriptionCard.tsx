@@ -95,15 +95,15 @@ export function SubscriptionCard({
 
   return (
     <section
-      className={`${theme.card} mb-4 md:mb-5 border rounded-3xl p-4 md:p-5 shadow-[0_0_34px_rgba(56,189,248,0.08)]`}
+      className={`${theme.card} mb-4 md:mb-5 border rounded-3xl p-4 md:p-5 shadow-[0_0_34px_rgba(234,179,8,0.08)]`}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-wide text-sky-400">
+          <p className="text-xs font-black uppercase tracking-wide text-yellow-400">
             Plano e acesso
           </p>
 
-          <h2 className="mt-1 text-xl md:text-2xl font-black text-sky-300">
+          <h2 className="mt-1 text-xl md:text-2xl font-black text-yellow-300">
             Premium por {billing.priceLabel}/mês
           </h2>
 
@@ -120,13 +120,13 @@ export function SubscriptionCard({
           </p>
 
           {billing.accessStatus === "trialing" && (
-            <p className="mt-3 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-sm font-bold text-sky-200">
+            <p className="mt-3 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-200">
               O login com Google não mantém a nuvem grátis para sempre: seu progresso sincroniza durante o teste de 7 dias. Após o teste, a assinatura mantém o acesso e o salvamento contínuo.
             </p>
           )}
         </div>
 
-        <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-sky-500/20 bg-black/30 p-3">
+        <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-yellow-500/20 bg-black/30 p-3">
           <span
             className={`rounded-full border px-3 py-1 text-center text-xs font-black ${
               isLocked
@@ -143,13 +143,13 @@ export function SubscriptionCard({
               value={couponCode}
               onChange={(event) => handleCouponChange(event.target.value)}
               placeholder="Cupom"
-              className={`${theme.input} h-10 w-28 rounded-xl border px-3 text-sm font-bold uppercase outline-none focus:border-sky-400`}
+              className={`${theme.input} h-10 w-28 rounded-xl border px-3 text-sm font-bold uppercase outline-none focus:border-yellow-400`}
             />
 
             <button
               type="button"
               onClick={applyCoupon}
-              className="h-10 rounded-xl border border-sky-500/30 px-3 text-xs font-black text-sky-300 transition-all hover:border-sky-400"
+              className="h-10 rounded-xl border border-yellow-500/30 px-3 text-xs font-black text-yellow-300 transition-all hover:border-yellow-400"
             >
               Aplicar
             </button>
@@ -161,7 +161,7 @@ export function SubscriptionCard({
                 appliedCouponPreview
                   ? "text-emerald-300"
                   : couponPreview
-                    ? "text-sky-300"
+                    ? "text-yellow-300"
                     : "text-red-300"
               }`}
             >
@@ -177,7 +177,7 @@ export function SubscriptionCard({
               type="button"
               onClick={() => onCheckout?.(appliedCouponCode, "pix")}
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
-              className="rounded-xl bg-gradient-to-r from-sky-300 to-blue-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
               {checkoutLoading
                 ? "Abrindo checkout..."
@@ -190,7 +190,7 @@ export function SubscriptionCard({
               type="button"
               onClick={() => onCheckout?.(appliedCouponCode, "card")}
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
-              className="rounded-xl border border-sky-500/35 bg-sky-400/10 px-4 py-3 text-sm font-black text-sky-300 transition-all hover:border-sky-400 hover:bg-sky-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl border border-yellow-500/35 bg-yellow-400/10 px-4 py-3 text-sm font-black text-yellow-300 transition-all hover:border-yellow-400 hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {checkoutLoading ? "Abrindo cartão..." : "Assinar com Cartão"}
             </button>

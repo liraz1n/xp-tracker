@@ -162,3 +162,23 @@ export function AlertTriangleIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function SkullIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M12 3a7 7 0 0 0-7 7v2.2a4 4 0 0 0 2 3.46V20h10v-4.34a4 4 0 0 0 2-3.46V10a7 7 0 0 0-7-7Z" />
+      <circle cx="9" cy="11" r="1" />
+      <circle cx="15" cy="11" r="1" />
+      <path d="M12 13.5 11 16h2l-1-2.5ZM9 20v-2M12 20v-2M15 20v-2" />
+    </svg>
+  );
+}
+
+export function GamepadIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M6.5 9h11A4.5 4.5 0 0 1 22 13.5v2A3.5 3.5 0 0 1 18.5 19c-1.2 0-1.8-.7-2.5-1.5l-1-1h-6l-1 1C7.3 18.3 6.7 19 5.5 19A3.5 3.5 0 0 1 2 15.5v-2A4.5 4.5 0 0 1 6.5 9Z" />
+      <path d="M8 12v3M6.5 13.5h3M16.5 13h.01M18.5 15h.01" />
+    </svg>
+  );
+}

@@ -73,10 +73,10 @@ export function AdminPanelCard({
     <section className={`${theme.card} border rounded-3xl p-4 md:p-5 mb-4 md:mb-5`}>
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sky-400 text-xs md:text-sm font-black mb-1">
+          <p className="text-yellow-400 text-xs md:text-sm font-black mb-1">
             Painel admin
           </p>
-          <h2 className="text-xl md:text-2xl font-black text-sky-300">
+          <h2 className="text-xl md:text-2xl font-black text-yellow-300">
             Operação do usuário
           </h2>
           <p className={`${theme.muted} mt-1.5 text-xs md:text-sm`}>
@@ -89,7 +89,7 @@ export function AdminPanelCard({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <div className="rounded-2xl border border-sky-500/15 bg-black/20 p-4">
+        <div className="rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
           <p className={`${theme.muted} text-xs font-black uppercase`}>
             Usuário
           </p>
@@ -141,12 +141,12 @@ export function AdminPanelCard({
       </div>
 
       {isSuperAdmin && adminUsers.length > 0 && (
-        <div className="mt-3 rounded-2xl border border-sky-500/15 bg-black/20 p-4">
+        <div className="mt-3 rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="font-black text-sky-300">
+            <p className="font-black text-yellow-300">
               Usuários do XP Tracker
             </p>
-            <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-black text-sky-300">
+            <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
               {adminUsers.length}
             </span>
           </div>
@@ -155,7 +155,7 @@ export function AdminPanelCard({
             {adminUsers.slice(0, 6).map((row) => (
               <div
                 key={row.user_id}
-                className="grid grid-cols-1 gap-2 rounded-xl border border-sky-500/10 bg-black/20 p-3 md:grid-cols-[1.4fr_1fr_1fr_auto]"
+                className="grid grid-cols-1 gap-2 rounded-xl border border-yellow-500/10 bg-black/20 p-3 md:grid-cols-[1.4fr_1fr_1fr_auto]"
               >
                 <div>
                   <p className={`${theme.text} text-sm font-black`}>

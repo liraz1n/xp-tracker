@@ -107,11 +107,11 @@ export function SmartHistoryCard({
     <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8`}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="lg:max-w-xs">
-          <p className="text-sky-400 text-sm font-black mb-2">
+          <p className="text-yellow-400 text-sm font-black mb-2">
             Histórico inteligente
           </p>
 
-          <h2 className="text-2xl md:text-3xl font-black text-sky-300">
+          <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
             Ritmo de evolução
           </h2>
 
@@ -121,7 +121,7 @@ export function SmartHistoryCard({
         </div>
 
         {history.length === 0 ? (
-          <div className="flex-1 rounded-3xl border border-sky-500/15 bg-black/20 p-6">
+          <div className="flex-1 rounded-3xl border border-yellow-500/15 bg-black/20 p-6">
             <p className={`${theme.muted} leading-relaxed`}>
               Registre runs ou salve progresso para começar a gerar estatísticas inteligentes.
             </p>
@@ -140,11 +140,11 @@ export function SmartHistoryCard({
               </p>
             </div>
 
-            <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
+            <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
               <p className={`${theme.muted} text-xs font-bold uppercase`}>
                 Últimos 7 dias
               </p>
-              <p className="text-2xl font-black text-sky-300 mt-1">
+              <p className="text-2xl font-black text-yellow-300 mt-1">
                 {formatXP(xpWeek)}
               </p>
               <p className={`${theme.muted} text-xs mt-2`}>
@@ -176,7 +176,7 @@ export function SmartHistoryCard({
               </p>
             </div>
 
-            <div className="sm:col-span-2 xl:col-span-4 rounded-2xl border border-sky-500/15 bg-black/20 p-4">
+            <div className="sm:col-span-2 xl:col-span-4 rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <p className={`${theme.muted} text-xs font-bold uppercase`}>

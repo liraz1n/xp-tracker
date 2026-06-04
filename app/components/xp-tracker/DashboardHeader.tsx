@@ -58,8 +58,8 @@ export function DashboardHeader({
     saving: {
       label: "Salvando...",
       className: darkMode
-        ? "bg-sky-500/10 text-sky-300 border-sky-500/30"
-        : "bg-sky-50 text-sky-700 border-sky-300",
+        ? "bg-yellow-500/10 text-yellow-300 border-yellow-500/30"
+        : "bg-yellow-50 text-yellow-700 border-yellow-300",
     },
     saved: {
       label: "Salvo",
@@ -76,7 +76,7 @@ export function DashboardHeader({
   }[saveStatus];
   const [showSaveStatus, setShowSaveStatus] = useState(false);
 
-  const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-sky-400 transition-all`;
+  const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-yellow-400 transition-all`;
   const iconLabelClass = "text-[9px] md:text-[10px] font-bold leading-none text-zinc-400";
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export function DashboardHeader({
         <a
           href="/"
           aria-label="Voltar para o início"
-          className="inline-block text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-sky-300 via-sky-500 to-blue-700 bg-clip-text text-transparent transition-all hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+          className="inline-block text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 bg-clip-text text-transparent transition-all hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
         >
           XP TRACKER
         </a>
@@ -114,7 +114,7 @@ export function DashboardHeader({
 
       <div className="flex flex-col md:items-end gap-3">
         <div className="flex flex-col md:items-end gap-2">
-          <p className="text-sky-300 font-bold text-base md:text-lg">
+          <p className="text-yellow-300 font-bold text-base md:text-lg">
             Bem-vindo, {userName}
           </p>
 

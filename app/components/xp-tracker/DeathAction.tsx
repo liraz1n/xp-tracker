@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangleIcon, XIcon } from "~/components/xp-tracker/UiIcons";
+import { SkullIcon, XIcon } from "~/components/xp-tracker/UiIcons";
 
 type DeathPenaltyMode = "peace-necklace" | "no-necklace";
 
@@ -69,7 +69,7 @@ export function DeathAction({
         className="fixed bottom-5 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_34px_rgba(239,68,68,0.24)] transition-all hover:bg-red-500 hover:text-white disabled:pointer-events-none disabled:opacity-40 md:bottom-7 md:right-7"
         aria-label="Registrar morte"
       >
-        <AlertTriangleIcon className="h-6 w-6" />
+        <SkullIcon className="h-6 w-6" />
       </button>
 
       {open && (

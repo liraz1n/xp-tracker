@@ -103,10 +103,10 @@ export function SettingsPanel({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`${theme.card} border rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(56,189,248,0.18)]`}>
+      <div className={`${theme.card} border rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-black text-sky-300">
+            <h2 className="text-3xl font-black text-yellow-300">
               Configurações
             </h2>
             <p className={`${theme.muted} mt-2`}>
@@ -117,15 +117,15 @@ export function SettingsPanel({
           <button
             type="button"
             onClick={onClose}
-            className={`${theme.muted} border border-sky-500/20 rounded-2xl px-4 py-2 font-bold hover:text-sky-300 transition-all`}
+            className={`${theme.muted} border border-yellow-500/20 rounded-2xl px-4 py-2 font-bold hover:text-yellow-300 transition-all`}
           >
             Fechar
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(56,189,248,0.15)]`}>
-            <label className="block text-sky-400 text-sm mb-2">
+          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
+            <label className="block text-yellow-400 text-sm mb-2">
               Nível atual
             </label>
             <input
@@ -135,12 +135,12 @@ export function SettingsPanel({
               onChange={(event) =>
                 setDraftCurrentLevel(sanitizeLevel(Number(event.target.value)))
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </div>
 
-          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(56,189,248,0.15)]`}>
-            <label className="block text-sky-400 text-sm mb-2">
+          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
+            <label className="block text-yellow-400 text-sm mb-2">
               Nível alvo
             </label>
             <input
@@ -150,7 +150,7 @@ export function SettingsPanel({
               onChange={(event) =>
                 setDraftTargetLevel(sanitizeLevel(Number(event.target.value)))
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </div>
         </div>

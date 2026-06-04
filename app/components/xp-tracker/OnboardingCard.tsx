@@ -61,14 +61,14 @@ export function OnboardingCard({
   }
 
   return (
-    <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8 shadow-[0_0_50px_rgba(56,189,248,0.14)]`}>
+    <section className={`${theme.card} border rounded-3xl p-5 md:p-8 mb-6 md:mb-8 shadow-[0_0_50px_rgba(234,179,8,0.14)]`}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 lg:gap-10 items-start">
         <div>
-          <p className="text-sky-400 text-sm font-black mb-2">
+          <p className="text-yellow-400 text-sm font-black mb-2">
             Primeiro passo
           </p>
 
-          <h2 className="text-2xl md:text-3xl font-black text-sky-300">
+          <h2 className="text-2xl md:text-3xl font-black text-yellow-300">
             Configure seu próximo nível
           </h2>
 
@@ -77,7 +77,7 @@ export function OnboardingCard({
           </p>
 
           {guestMode && (
-            <p className="mt-4 rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+            <p className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
               Você está testando como visitante. Nada será salvo na nuvem até você entrar com Google.
             </p>
           )}
@@ -85,7 +85,7 @@ export function OnboardingCard({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               Nível atual
             </span>
             <input
@@ -95,12 +95,12 @@ export function OnboardingCard({
               onChange={(event) =>
                 setCurrentLevel(sanitizeLevel(Number(event.target.value)))
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               Nível alvo
             </span>
             <input
@@ -110,12 +110,12 @@ export function OnboardingCard({
               onChange={(event) =>
                 setTargetLevel(sanitizeLevel(Number(event.target.value)))
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               XP para upar
             </span>
             <input
@@ -129,12 +129,12 @@ export function OnboardingCard({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               XP restante
             </span>
             <input
@@ -148,12 +148,12 @@ export function OnboardingCard({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               XP total do usuário
             </span>
             <input
@@ -167,12 +167,12 @@ export function OnboardingCard({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
           <label className="block">
-            <span className="block text-sky-400 text-sm mb-2">
+            <span className="block text-yellow-400 text-sm mb-2">
               Meta diária
             </span>
             <input
@@ -186,7 +186,7 @@ export function OnboardingCard({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
+              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
           </label>
 
@@ -195,7 +195,7 @@ export function OnboardingCard({
               type="button"
               onClick={submitSetup}
               disabled={!canStart}
-              className="bg-gradient-to-r from-sky-300 to-blue-600 text-black px-6 py-4 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-gradient-to-r from-yellow-300 to-amber-600 text-black px-6 py-4 rounded-2xl font-black shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               Começar acompanhamento
             </button>

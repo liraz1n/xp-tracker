@@ -18,6 +18,7 @@ import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
 import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
 import { GoalsRankingCard } from "~/components/xp-tracker/GoalsRankingCard";
 import { buildNotifications } from "~/components/xp-tracker/NotificationCenter";
+import { SuggestionBox } from "~/components/xp-tracker/SuggestionBox";
 import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/AdminPanelCard";
 import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
 import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
@@ -25,6 +26,7 @@ import { ProfileBadgesCard } from "~/components/xp-tracker/ProfileBadgesCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
+import { TeletofusLink } from "~/components/xp-tracker/TeletofusLink";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 
 type SidebarTab = "historico" | "grafico";
@@ -80,7 +82,7 @@ function MobileDashboardSection({
             </span>
           </span>
 
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sky-500/20 bg-sky-500/10 text-lg font-black text-sky-300">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-lg font-black text-yellow-300">
             {open ? "-" : "+"}
           </span>
         </span>
@@ -197,20 +199,20 @@ export default function Home() {
   const theme = {
     bg: tracker.darkMode ? "bg-black" : "bg-zinc-100",
     card: tracker.darkMode
-      ? "bg-zinc-950 border-sky-500/20"
-      : "bg-white border-sky-500/30",
+      ? "bg-zinc-950 border-yellow-500/20"
+      : "bg-white border-yellow-500/30",
     text: tracker.darkMode ? "text-white" : "text-zinc-900",
     muted: tracker.darkMode ? "text-zinc-500" : "text-zinc-500",
     input: tracker.darkMode
-      ? "bg-black border-sky-500/20 text-white"
-      : "bg-zinc-100 border-sky-500/30 text-zinc-900",
+      ? "bg-black border-yellow-500/20 text-white"
+      : "bg-zinc-100 border-yellow-500/30 text-zinc-900",
     sidebar: tracker.darkMode
-      ? "bg-zinc-950 border-sky-500/10"
+      ? "bg-zinc-950 border-yellow-500/10"
       : "bg-white border-zinc-200",
     histEntry: tracker.darkMode ? "border-zinc-800" : "border-zinc-100",
     tabActive: tracker.darkMode
-      ? "bg-sky-500/10 text-sky-400 border-sky-500/30"
-      : "bg-sky-50 text-sky-600 border-sky-300",
+      ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+      : "bg-yellow-50 text-yellow-600 border-yellow-300",
     tabInactive: tracker.darkMode
       ? "text-zinc-500 border-transparent hover:text-zinc-300"
       : "text-zinc-400 border-transparent hover:text-zinc-600",
@@ -312,7 +314,7 @@ export default function Home() {
   if (!tracker.progressLoaded) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center p-8">
-        <p className="text-sky-300 font-bold text-lg">
+        <p className="text-yellow-300 font-bold text-lg">
           Carregando seu progresso...
         </p>
       </main>
@@ -334,7 +336,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => tracker.user && tracker.loadProgress(tracker.user.id)}
-            className="bg-gradient-to-r from-sky-400 to-blue-600 text-black px-6 py-3 rounded-2xl font-bold hover:scale-105 transition-all"
+            className="bg-gradient-to-r from-yellow-400 to-amber-600 text-black px-6 py-3 rounded-2xl font-bold hover:scale-105 transition-all"
           >
             Tentar novamente
           </button>
@@ -526,7 +528,7 @@ export default function Home() {
               type="button"
               onClick={tracker.undoLastProgress}
               disabled={!tracker.canUndoLastProgress}
-              className={`${theme.card} border hover:border-sky-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed`}
+              className={`${theme.card} border hover:border-yellow-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               Voltar último progresso
             </button>
@@ -534,11 +536,17 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowSettings(true)}
-              className={`${theme.card} border hover:border-sky-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg`}
+              className={`${theme.card} border hover:border-yellow-400 transition-all duration-300 px-5 py-3 rounded-2xl font-bold shadow-lg`}
             >
               Configurações
             </button>
           </div>
+
+          <SuggestionBox
+            user={tracker.user}
+            userName={tracker.userName}
+            theme={theme}
+          />
 
           <SiteFooter darkMode={tracker.darkMode} />
         </main>
@@ -581,12 +589,15 @@ export default function Home() {
       />
 
       {!shouldShowOnboarding && !premiumLocked && (
-        <DeathAction
-          userTotalXP={tracker.userTotalXP}
-          disabled={tracker.userTotalXP <= 0}
-          theme={theme}
-          onConfirm={tracker.registerDeath}
-        />
+        <>
+          <TeletofusLink />
+          <DeathAction
+            userTotalXP={tracker.userTotalXP}
+            disabled={tracker.userTotalXP <= 0}
+            theme={theme}
+            onConfirm={tracker.registerDeath}
+          />
+        </>
       )}
 
       <EditHistoryEntryModal
