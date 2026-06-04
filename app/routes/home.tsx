@@ -579,6 +579,7 @@ export default function Home() {
         theme={theme}
         onClose={() => setShowSettings(false)}
         onReset={() => setShowResetModal(true)}
+        onDeleteAccount={tracker.deleteAccount}
         onSave={tracker.updateProgressSettings}
       />
 

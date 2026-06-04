@@ -1,4 +1,4 @@
-interface ResetModalProps {
+﻿interface ResetModalProps {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -10,14 +10,16 @@ export function ResetModal({ open, onCancel, onConfirm }: ResetModalProps) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-950 border border-red-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_60px_rgba(239,68,68,0.2)]">
-        <div className="text-4xl mb-4">⚠️</div>
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-2xl font-black text-red-300">
+          !
+        </div>
 
         <h2 className="text-2xl font-black text-white mb-2">
           Resetar tudo?
         </h2>
 
         <p className="text-zinc-400 mb-8">
-          Todo o progresso, histórico e metas serão apagados.{" "}
+          Todo o progresso, histórico e metas serão apagados.{' '}
           <span className="text-red-400 font-semibold">
             Essa ação não pode ser desfeita.
           </span>

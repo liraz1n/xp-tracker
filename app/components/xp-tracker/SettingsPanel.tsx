@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { XpInputs } from "~/components/xp-tracker/XpInputs";
 import { XIcon } from "~/components/xp-tracker/UiIcons";
 
@@ -18,6 +18,7 @@ interface SettingsPanelProps {
   };
   onClose: () => void;
   onReset: () => void;
+  onDeleteAccount: () => void | Promise<boolean | void>;
   onSave: (values: {
     totalXP: number;
     currentXP: number;
@@ -33,6 +34,10 @@ function sanitizeLevel(value: number) {
   return Math.max(0, Math.floor(value));
 }
 
+function formatInputValue(value: number) {
+  return value === 0 ? "" : value;
+}
+
 export function SettingsPanel({
   open,
   totalXP,
@@ -40,10 +45,10 @@ export function SettingsPanel({
   userTotalXP,
   dailyGoal,
   currentLevel,
-  targetLevel,
   theme,
   onClose,
   onReset,
+  onDeleteAccount,
   onSave,
 }: SettingsPanelProps) {
   const [draftTotalXP, setDraftTotalXP] = useState(totalXP);
@@ -51,9 +56,10 @@ export function SettingsPanel({
   const [draftUserTotalXP, setDraftUserTotalXP] = useState(userTotalXP);
   const [draftDailyGoal, setDraftDailyGoal] = useState(dailyGoal);
   const [draftCurrentLevel, setDraftCurrentLevel] = useState(currentLevel);
-  const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const autoSaveReady = useRef(false);
   const autoSaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onSaveRef = useRef(onSave);
@@ -70,10 +76,10 @@ export function SettingsPanel({
     setDraftUserTotalXP(userTotalXP);
     setDraftDailyGoal(dailyGoal);
     setDraftCurrentLevel(currentLevel);
-    setDraftTargetLevel(targetLevel);
     setSettingsError(null);
+    setConfirmDeleteOpen(false);
     autoSaveReady.current = false;
-  }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel, targetLevel]);
+  }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel]);
 
   useEffect(() => {
     if (!open) return;
@@ -95,7 +101,7 @@ export function SettingsPanel({
         userTotalXP: draftUserTotalXP,
         dailyGoal: draftDailyGoal,
         currentLevel: draftCurrentLevel,
-        targetLevel: draftTargetLevel,
+        targetLevel: draftCurrentLevel + 1,
       });
     }, 900);
 
@@ -111,7 +117,6 @@ export function SettingsPanel({
     draftUserTotalXP,
     draftDailyGoal,
     draftCurrentLevel,
-    draftTargetLevel,
   ]);
 
   if (!open) return null;
@@ -119,9 +124,7 @@ export function SettingsPanel({
   const draftCurrentXPValue = Math.max(0, draftCurrentXP);
 
   function updateDraftCurrentXP(value: number) {
-    const nextCurrentXP = Math.max(0, value);
-
-    setDraftCurrentXP(nextCurrentXP);
+    setDraftCurrentXP(Math.max(0, value));
   }
 
   async function saveSettings() {
@@ -134,7 +137,7 @@ export function SettingsPanel({
       userTotalXP: draftUserTotalXP,
       dailyGoal: draftDailyGoal,
       currentLevel: draftCurrentLevel,
-      targetLevel: draftTargetLevel,
+      targetLevel: draftCurrentLevel + 1,
     });
 
     setIsSavingSettings(false);
@@ -149,6 +152,23 @@ export function SettingsPanel({
     );
   }
 
+  async function confirmDeleteAccount() {
+    setIsDeletingAccount(true);
+    setSettingsError(null);
+
+    const deleted = await onDeleteAccount();
+
+    setIsDeletingAccount(false);
+
+    if (deleted === false) {
+      setSettingsError("Não foi possível deletar seus dados agora. Tente novamente em instantes.");
+      return;
+    }
+
+    setConfirmDeleteOpen(false);
+    onClose();
+  }
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-4">
       <div className={`${theme.card} relative border rounded-3xl p-4 md:p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
@@ -158,7 +178,7 @@ export function SettingsPanel({
               Configurações
             </h2>
             <p className={`${theme.muted} mt-2`}>
-              Ajuste nível, XP restante, XP para upar e meta diária.
+              Ajuste nível atual, XP restante, XP para upar e meta diária.
             </p>
           </div>
 
@@ -180,27 +200,19 @@ export function SettingsPanel({
             <input
               type="number"
               min={0}
-              value={draftCurrentLevel}
+              value={formatInputValue(draftCurrentLevel)}
               onChange={(event) =>
-                setDraftCurrentLevel(sanitizeLevel(Number(event.target.value)))
+                setDraftCurrentLevel(
+                  event.target.value === ""
+                    ? 0
+                    : sanitizeLevel(Number(event.target.value))
+                )
               }
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
-          </div>
-
-          <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
-            <label className="block text-yellow-400 text-sm mb-2">
-              Nível alvo
-            </label>
-            <input
-              type="number"
-              min={draftCurrentLevel + 1}
-              value={draftTargetLevel}
-              onChange={(event) =>
-                setDraftTargetLevel(sanitizeLevel(Number(event.target.value)))
-              }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
-            />
+            <p className={`${theme.muted} mt-2 text-xs`}>
+              Próximo nível: {draftCurrentLevel + 1}
+            </p>
           </div>
         </div>
 
@@ -222,7 +234,7 @@ export function SettingsPanel({
               Salvar ajustes
             </h3>
             <p className={`${theme.muted} mt-2`}>
-              Os ajustes s�o salvos automaticamente e tamb�m podem ser confirmados aqui.
+              Os ajustes são salvos automaticamente e também podem ser confirmados aqui.
             </p>
             {settingsError && (
               <p className="mt-2 text-sm font-bold text-red-300">
@@ -243,20 +255,62 @@ export function SettingsPanel({
 
         <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-4 md:p-6">
           <h3 className="text-xl font-black text-red-300">
-            Zona de reset
+            Zona de risco
           </h3>
           <p className={`${theme.muted} mt-2 mb-5`}>
-            Volta para os valores padrão e apaga histórico, conquistas e progresso.
+            Você pode resetar seu progresso ou deletar os dados da sua conta no XP Tracker.
           </p>
 
-          <button
-            type="button"
-            onClick={onReset}
-            className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white"
-          >
-            Resetar progresso
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={onReset}
+              className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white"
+            >
+              Resetar progresso
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteOpen(true)}
+              className="w-full sm:w-auto rounded-2xl border border-red-500/35 bg-red-500/10 px-5 py-3 md:px-6 md:py-4 font-bold text-red-200 transition-all hover:bg-red-500 hover:text-white"
+            >
+              Deletar conta
+            </button>
+          </div>
         </div>
+
+        {confirmDeleteOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-zinc-950 p-6 shadow-[0_0_60px_rgba(239,68,68,0.22)]">
+              <h3 className="text-2xl font-black text-red-200">
+                Deletar conta?
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                Isso apaga seus dados de progresso salvos no XP Tracker e encerra sua sessão. Essa ação não pode ser desfeita.
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteOpen(false)}
+                  className="flex-1 rounded-2xl bg-zinc-800 px-5 py-3 font-bold text-white transition-all hover:bg-zinc-700"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={confirmDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="flex-1 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 px-5 py-3 font-black text-white transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {isDeletingAccount ? "Deletando..." : "Sim, deletar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

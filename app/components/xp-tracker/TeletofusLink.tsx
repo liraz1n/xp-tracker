@@ -8,7 +8,7 @@ export function TeletofusLink() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-24 right-5 z-30 md:bottom-24 md:right-7">
+    <div className="fixed bottom-24 right-5 z-30">
       {open && (
         <>
           <button

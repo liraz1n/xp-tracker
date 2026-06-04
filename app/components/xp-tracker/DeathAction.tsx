@@ -66,7 +66,7 @@ export function DeathAction({
         type="button"
         disabled={disabled}
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_34px_rgba(239,68,68,0.24)] transition-all hover:bg-red-500 hover:text-white disabled:pointer-events-none disabled:opacity-40 md:bottom-7 md:right-7"
+        className="fixed bottom-5 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_34px_rgba(239,68,68,0.24)] transition-all hover:bg-red-500 hover:text-white disabled:pointer-events-none disabled:opacity-40"
         aria-label="Registrar morte"
       >
         <SkullIcon className="h-6 w-6" />

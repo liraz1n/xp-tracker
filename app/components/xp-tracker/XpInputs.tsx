@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 interface XpInputsProps {
   totalXP: number;
@@ -21,8 +21,15 @@ function sanitizeNumber(value: number) {
 }
 
 function formatInputValue(value: number) {
-  return value;
+  return value === 0 ? "" : value;
 }
+
+export const XP_FIELD_HELP = {
+  totalXP: "Adicione abaixo o XP que falta para você upar de nível.",
+  userXP: "Adicione abaixo o XP total do seu personagem.",
+  currentXP: "Adicione abaixo o XP restante para você upar de nível.",
+  dailyGoal: "Adicione abaixo o XP que você almeja fazer diariamente.",
+} as const;
 
 export function XpInputs({
   totalXP,
@@ -41,25 +48,25 @@ export function XpInputs({
       label: "XP para Upar",
       value: totalXP,
       setter: onTotalXPChange,
-      help: "Adicione abaixo o XP que falta para você upar de nível.",
+      help: XP_FIELD_HELP.totalXP,
     },
     {
       label: "XP Total do Usuário",
       value: userXP,
       setter: onUserXPChange,
-      help: "Adicione abaixo o XP total do seu personagem.",
+      help: XP_FIELD_HELP.userXP,
     },
     {
       label: "XP Restante",
       value: currentXP,
       setter: onCurrentXPChange,
-      help: "Adicione abaixo o XP restante para você upar de nível.",
+      help: XP_FIELD_HELP.currentXP,
     },
     {
-      label: "Meta Diária de XP",
+      label: "Meta diária de XP",
       value: dailyGoal,
       setter: onDailyGoalChange,
-      help: "Adicione abaixo o XP que você almeja fazer diariamente.",
+      help: XP_FIELD_HELP.dailyGoal,
     },
   ];
 

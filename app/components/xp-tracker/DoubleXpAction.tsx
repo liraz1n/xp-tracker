@@ -34,7 +34,7 @@ export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
   }
 
   return (
-    <div className="fixed bottom-44 right-5 z-30 md:bottom-44 md:right-7">
+    <div className="fixed bottom-[10.75rem] right-5 z-30">
       {open && (
         <>
           <button

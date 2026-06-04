@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 interface OnboardingCardProps {
   guestMode: boolean;
@@ -38,14 +38,14 @@ export function OnboardingCard({
   onStart,
 }: OnboardingCardProps) {
   const [currentLevel, setCurrentLevel] = useState(0);
-  const [targetLevel, setTargetLevel] = useState(1);
   const [totalXP, setTotalXP] = useState(0);
   const [currentXP, setCurrentXP] = useState(0);
   const [userTotalXP, setUserTotalXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(0);
 
   const currentXPValue = Math.max(0, currentXP);
-  const canStart = totalXP > 0 && currentXPValue > 0 && targetLevel > currentLevel;
+  const targetLevel = currentLevel + 1;
+  const canStart = totalXP > 0 && currentXPValue > 0;
 
   function submitSetup() {
     if (!canStart) return;
@@ -73,7 +73,7 @@ export function OnboardingCard({
           </h2>
 
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Informe seu nível atual, o próximo nível e quanto XP falta para upar. O XP Tracker usa esses dados para calcular progresso, runs, mortes e metas.
+            Resgate seus dados no game e informe seu nível atual, quanto XP falta para upar, seu XP total e a meta diária.
           </p>
 
           {guestMode && (
@@ -91,32 +91,24 @@ export function OnboardingCard({
             <input
               type="number"
               min={0}
-              value={currentLevel}
+              value={formatInputValue(currentLevel)}
               onChange={(event) =>
-                setCurrentLevel(sanitizeLevel(Number(event.target.value)))
+                setCurrentLevel(
+                  event.target.value === ""
+                    ? 0
+                    : sanitizeLevel(Number(event.target.value))
+                )
               }
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
+            <p className={`${theme.muted} mt-2 text-xs`}>
+              Próximo nível: {targetLevel}
+            </p>
           </label>
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              Nível alvo
-            </span>
-            <input
-              type="number"
-              min={currentLevel + 1}
-              value={targetLevel}
-              onChange={(event) =>
-                setTargetLevel(sanitizeLevel(Number(event.target.value)))
-              }
-              className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-yellow-400 text-sm mb-2">
-              XP para upar
+              XP para Upar
             </span>
             <input
               type="number"
@@ -135,7 +127,7 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              XP restante
+              XP Restante
             </span>
             <input
               type="number"
@@ -154,7 +146,7 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              XP total do usuário
+              XP Total do Usuário
             </span>
             <input
               type="number"
@@ -173,7 +165,7 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              Meta diária
+              Meta diária de XP
             </span>
             <input
               type="number"

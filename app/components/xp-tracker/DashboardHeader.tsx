@@ -1,8 +1,17 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   NotificationDropdown,
   type AppNotification,
 } from "~/components/xp-tracker/NotificationCenter";
+import {
+  CloudIcon,
+  CreditCardIcon,
+  MoonIcon,
+  PowerIcon,
+  ScrollIcon,
+  SettingsIcon,
+  SunIcon,
+} from "~/components/xp-tracker/UiIcons";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -128,23 +137,13 @@ export function DashboardHeader({
         </div>
 
         <div className="flex gap-2.5 md:gap-3 flex-wrap justify-start md:justify-end">
-          <button
-            type="button"
-            aria-label="Alternar tema"
-            onClick={onToggleDarkMode}
-            className={iconButtonClass}
-          >
-            <span className="text-base md:text-lg leading-none">{darkMode ? "🌙" : "☀️"}</span>
+          <button type="button" aria-label="Alternar tema" onClick={onToggleDarkMode} className={iconButtonClass}>
+            {darkMode ? <MoonIcon className="h-5 w-5 text-yellow-300" /> : <SunIcon className="h-5 w-5 text-yellow-500" />}
             <span className={iconLabelClass}>Tema</span>
           </button>
 
-          <button
-            type="button"
-            aria-label="Abrir histórico"
-            onClick={onToggleSidebar}
-            className={`${iconButtonClass} relative`}
-          >
-            <span className="text-base md:text-lg leading-none">📜</span>
+          <button type="button" aria-label="Abrir histórico" onClick={onToggleSidebar} className={`${iconButtonClass} relative`}>
+            <ScrollIcon className="h-5 w-5 text-yellow-300" />
             <span className={iconLabelClass}>Histórico</span>
             {historyCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -164,42 +163,25 @@ export function DashboardHeader({
             theme={theme}
           />
 
-          <button
-            type="button"
-            aria-label="Abrir assinatura"
-            onClick={onOpenSubscription}
-            className={iconButtonClass}
-          >
-            <span className="text-base md:text-lg leading-none">💳</span>
+          <button type="button" aria-label="Abrir assinatura" onClick={onOpenSubscription} className={iconButtonClass}>
+            <CreditCardIcon className="h-5 w-5 text-cyan-300" />
             <span className={iconLabelClass}>Plano</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className={iconButtonClass}
-          >
-            <span className="text-base md:text-lg leading-none">⚙️</span>
+          <button type="button" onClick={onOpenSettings} className={iconButtonClass}>
+            <SettingsIcon className="h-5 w-5 text-yellow-300" />
             <span className={iconLabelClass}>Config.</span>
           </button>
 
           {guestMode && (
-            <button
-              type="button"
-              onClick={onLoginWithGoogle}
-              className={iconButtonClass}
-            >
-              <span className="text-base md:text-lg leading-none">☁️</span>
+            <button type="button" onClick={onLoginWithGoogle} className={iconButtonClass}>
+              <CloudIcon className="h-5 w-5 text-emerald-300" />
               <span className={iconLabelClass}>Salvar</span>
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={onLogout}
-            className={iconButtonClass}
-          >
-            <span className="text-base md:text-lg leading-none">⏻</span>
+          <button type="button" onClick={onLogout} className={iconButtonClass}>
+            <PowerIcon className="h-5 w-5 text-yellow-300" />
             <span className={iconLabelClass}>Sair</span>
           </button>
         </div>

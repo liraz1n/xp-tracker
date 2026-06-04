@@ -103,6 +103,16 @@ function getTotalXPFromHistory(history: HistoryEntry[] | null | undefined) {
   return (history ?? []).reduce((sum, entry) => sum + entry.xpGained, 0);
 }
 
+function getNextLevels(currentLevelValue: number, currentXPValue: number) {
+  const nextCurrentLevel =
+    currentXPValue <= 0 ? currentLevelValue + 1 : currentLevelValue;
+
+  return {
+    currentLevel: nextCurrentLevel,
+    targetLevel: nextCurrentLevel + 1,
+  };
+}
+
 function isMissingProgressColumn(error: {
   code?: string;
   message?: string;
@@ -761,6 +771,13 @@ export function useXpTracker() {
     setHistory((prev) => [entry, ...prev]);
     setUserTotalXP((prev) => prev + xpGained);
     setLastSavedXP(currentXP);
+
+    if (currentXP <= 0) {
+      const nextLevels = getNextLevels(currentLevel, currentXP);
+
+      setCurrentLevel(nextLevels.currentLevel);
+      setTargetLevel(nextLevels.targetLevel);
+    }
   }
 
   function applyFarmProgress({
@@ -797,6 +814,13 @@ export function useXpTracker() {
     setUserTotalXP((prev) => prev + appliedXP);
     setHistory((prev) => [entry, ...prev]);
     setLastSavedXP(newCurrentXP);
+
+    if (newCurrentXP <= 0) {
+      const nextLevels = getNextLevels(currentLevel, newCurrentXP);
+
+      setCurrentLevel(nextLevels.currentLevel);
+      setTargetLevel(nextLevels.targetLevel);
+    }
   }
 
   function undoLastProgress() {
@@ -859,6 +883,13 @@ export function useXpTracker() {
     setCurrentXP(newCurrentXP);
     setUserTotalXP((prev) => prev + appliedXP);
     setLastSavedXP(newCurrentXP);
+
+    if (newCurrentXP <= 0) {
+      const nextLevels = getNextLevels(currentLevel, newCurrentXP);
+
+      setCurrentLevel(nextLevels.currentLevel);
+      setTargetLevel(nextLevels.targetLevel);
+    }
   }
 
   function registerDeath(mode: DeathPenaltyMode) {
@@ -933,7 +964,10 @@ export function useXpTracker() {
   }) {
     const sanitizedCurrentXP = Math.max(0, nextCurrentXP);
     const sanitizedCurrentLevel = sanitizeLevel(nextCurrentLevel);
-    const sanitizedTargetLevel = sanitizeLevel(nextTargetLevel);
+    const nextLevels = getNextLevels(sanitizedCurrentLevel, sanitizedCurrentXP);
+    const sanitizedTargetLevel = sanitizeLevel(
+      sanitizedCurrentXP <= 0 ? nextLevels.targetLevel : nextTargetLevel
+    );
     const sanitizedUserTotalXP = Math.max(0, nextUserTotalXP);
     const xpGained = currentXP - sanitizedCurrentXP;
     const nextUserTotalXPValue =
@@ -957,7 +991,7 @@ export function useXpTracker() {
     setTotalXP(nextTotalXP);
     setCurrentXP(sanitizedCurrentXP);
     setDailyGoal(nextDailyGoal);
-    setCurrentLevel(sanitizedCurrentLevel);
+    setCurrentLevel(nextLevels.currentLevel);
     setTargetLevel(sanitizedTargetLevel);
     setUserTotalXP(nextUserTotalXPValue);
     setLastSavedXP(sanitizedCurrentXP);
@@ -972,7 +1006,7 @@ export function useXpTracker() {
         reachedMilestones,
         lastSavedXP: sanitizedCurrentXP,
         darkMode,
-        currentLevel: sanitizedCurrentLevel,
+        currentLevel: nextLevels.currentLevel,
         targetLevel: sanitizedTargetLevel,
         userTotalXP: nextUserTotalXPValue,
       },
@@ -1066,6 +1100,51 @@ export function useXpTracker() {
     setSaveStatus("saved");
   }
 
+  async function deleteAccount() {
+    if (guestMode) {
+      clearGuestProgressDraft();
+      await logout();
+      return true;
+    }
+
+    if (!user) return false;
+
+    setSaveStatus("saving");
+
+    const progressDelete = await supabase
+      .from("xp_progress")
+      .delete()
+      .eq("user_id", user.id);
+
+    if (progressDelete.error) {
+      console.error("Erro ao deletar dados da conta:", progressDelete.error);
+      setSaveStatus("error");
+      return false;
+    }
+
+    await supabase
+      .from("suggestions")
+      .delete()
+      .eq("user_id", user.id);
+
+    clearGuestProgressDraft();
+    setTotalXP(DEFAULT_TOTAL_XP);
+    setCurrentXP(DEFAULT_CURRENT_XP);
+    setDailyGoal(DEFAULT_DAILY_GOAL);
+    setHistory([]);
+    setLastSavedXP(DEFAULT_CURRENT_XP);
+    setReachedMilestones([]);
+    setActiveMilestone(null);
+    setBarPulsing(false);
+    setCurrentLevel(DEFAULT_CURRENT_LEVEL);
+    setTargetLevel(DEFAULT_TARGET_LEVEL);
+    setUserTotalXP(DEFAULT_USER_TOTAL_XP);
+    setSaveStatus("idle");
+
+    await supabase.auth.signOut();
+    return true;
+  }
+
   const averageDailyXP = useMemo(() => {
     if (history.length < 2) return null;
 
@@ -1142,5 +1221,6 @@ export function useXpTracker() {
     updateHistoryEntry,
     duplicateHistoryEntry,
     resetProgress,
+    deleteAccount,
   };
 }
