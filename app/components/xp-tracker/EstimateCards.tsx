@@ -25,13 +25,13 @@ export function EstimateCards({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div className={`${theme.card} border rounded-3xl p-6`}>
         <p className={`${theme.muted} mb-1 flex items-center gap-2 text-sm`}>
-          <CalendarIcon className="h-4 w-4 text-yellow-300" />
+          <CalendarIcon className="h-4 w-4 text-sky-300" />
           Estimativa - Meta diária
         </p>
 
         {daysGoal ? (
           <>
-            <h2 className="text-3xl font-bold text-yellow-300 mb-1">
+            <h2 className="text-3xl font-bold text-sky-300 mb-1">
               {daysGoal} dias
             </h2>
             <p className={`${theme.muted} text-sm`}>

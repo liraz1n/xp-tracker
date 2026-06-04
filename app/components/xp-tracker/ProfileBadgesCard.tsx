@@ -12,7 +12,7 @@ export function getProfileBadges(billing: BillingState) {
       ? {
           label: "Superadmin",
           description: "Acesso administrativo exclusivo.",
-          className: "border-yellow-400/40 bg-yellow-500/15 text-yellow-200",
+          className: "border-sky-400/40 bg-sky-500/15 text-sky-200",
         }
       : null,
     couponCode === "FOUNDERS"
@@ -41,7 +41,7 @@ export function ProfileBadgesCard({ billing }: ProfileBadgesCardProps) {
 
   return (
     <section className="mb-4 md:mb-5 flex flex-wrap items-center gap-2">
-      <span className="text-xs font-black uppercase text-yellow-400">
+      <span className="text-xs font-black uppercase text-sky-400">
         Selos:
       </span>
 

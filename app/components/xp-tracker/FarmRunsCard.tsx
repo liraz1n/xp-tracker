@@ -963,10 +963,10 @@ export function FarmRunsCard({
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="hidden self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
+          <div className="hidden self-start rounded-3xl border border-sky-500/15 bg-black/20 p-4 md:p-5">
             <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
               <label className="block">
-                <span className="block text-yellow-400 text-xs font-black mb-1.5">
+                <span className="block text-sky-400 text-xs font-black mb-1.5">
                   Tipo
                 </span>
                 <select
@@ -974,7 +974,7 @@ export function FarmRunsCard({
                   onChange={(event) =>
                     setCategoryFilter(event.target.value as FarmCategoryFilter)
                   }
-                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
                 >
                   {FARM_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
@@ -985,9 +985,9 @@ export function FarmRunsCard({
               </label>
 
               <label className="block">
-                <span className="mb-1.5 flex items-center justify-between gap-2 text-yellow-400 text-xs font-black">
+                <span className="mb-1.5 flex items-center justify-between gap-2 text-sky-400 text-xs font-black">
                   <span>Atividade</span>
-                  <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] text-yellow-300">
+                  <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-300">
                     {visibleActivities.length} opções
                   </span>
                 </span>
@@ -995,7 +995,7 @@ export function FarmRunsCard({
                   value={selectedActivityId}
                   onChange={(event) => setSelectedActivityId(event.target.value)}
                   disabled={visibleActivities.length === 0}
-                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
                 >
                   {visibleActivities.map((activity) => (
                     <option key={activity.id} value={activity.id}>
@@ -1011,7 +1011,7 @@ export function FarmRunsCard({
               </label>
 
               <label className="block">
-                <span className="block text-yellow-400 text-xs font-black mb-1.5">
+                <span className="block text-sky-400 text-xs font-black mb-1.5">
                   Runs
                 </span>
                 <input
@@ -1025,17 +1025,17 @@ export function FarmRunsCard({
                         : sanitizeRuns(Number(event.target.value))
                     )
                   }
-                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-sky-400`}
                 />
               </label>
             </div>
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-3">
+              <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
                 <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                   XP por run
                 </p>
-                <p className="text-2xl font-black text-yellow-300">
+                <p className="text-2xl font-black text-sky-300">
                   {formatXP(selectedActivity?.xp ?? 0)}
                 </p>
                 <p className={`${theme.muted} text-[11px] font-bold`}>
@@ -1215,17 +1215,17 @@ export function FarmRunsCard({
           </div>
 
           <div className={`grid grid-cols-1 gap-4 ${SHOW_FARM_PLAN_SUGGESTION ? "xl:grid-cols-2" : ""}`}>
-            <div className="rounded-3xl border border-yellow-500/15 bg-black/20 p-4">
+            <div className="rounded-3xl border border-sky-500/15 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-yellow-300 font-black">
+                  <p className="text-sky-300 font-black">
                     Plano inteligente para upar
                   </p>
                   <p className={`${theme.muted} text-xs`}>
                     Faltam {formatXP(currentXP)} XP. Veja quantas runs fecham o nível.
                   </p>
                 </div>
-                <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-black text-sky-300">
                   {smartRunOptions.length} opções
                 </span>
               </div>
@@ -1239,7 +1239,7 @@ export function FarmRunsCard({
                   {smartRunOptions.map(({ activity, runs, totalXP, overflowXP }) => (
                     <div
                       key={activity.id}
-                      className="rounded-2xl border border-yellow-500/10 bg-yellow-500/[0.03] p-3"
+                      className="rounded-2xl border border-sky-500/10 bg-sky-500/[0.03] p-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -1254,12 +1254,12 @@ export function FarmRunsCard({
                           </p>
                         </div>
 
-                        <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                        <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-black text-sky-300">
                           {runs}x
                         </span>
                       </div>
 
-                      <div className="mt-3 rounded-xl border border-yellow-500/10 bg-black/20 px-3 py-2">
+                      <div className="mt-3 rounded-xl border border-sky-500/10 bg-black/20 px-3 py-2">
                         <p className={`${theme.text} text-sm font-bold leading-tight`}>
                           Faça {runs} {runs === 1 ? "run" : "runs"} e você upa.
                         </p>
@@ -1347,7 +1347,7 @@ export function FarmRunsCard({
                       <p className={`${theme.muted} text-[11px] font-black uppercase`}>
                         Sobra
                       </p>
-                      <p className="text-lg font-black text-yellow-300">
+                      <p className="text-lg font-black text-sky-300">
                         {formatXP(farmPlan.overflowXP)}
                       </p>
                     </div>

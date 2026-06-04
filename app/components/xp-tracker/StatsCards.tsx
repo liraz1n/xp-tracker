@@ -27,7 +27,7 @@ export function StatsCards({
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-5">
       <div className={`${theme.card} border rounded-2xl p-4 md:p-5 min-w-0`}>
         <p className={`${theme.muted} text-xs md:text-sm mb-1.5`}>Nível</p>
-        <h2 className={`${statValueClass} flex items-baseline gap-2 text-yellow-300`}>
+        <h2 className={`${statValueClass} flex items-baseline gap-2 text-sky-300`}>
           <span>{currentLevel}</span>
           <span className={`${theme.muted} text-base md:text-lg font-bold`}>-&gt;</span>
           <span>{targetLevel}</span>
@@ -43,7 +43,7 @@ export function StatsCards({
 
       <div className={`${theme.card} border rounded-2xl p-4 md:p-5 min-w-0`}>
         <p className={`${theme.muted} text-xs md:text-sm mb-1.5`}>XP para Upar</p>
-        <h2 className={`${statValueClass} text-yellow-300`}>
+        <h2 className={`${statValueClass} text-sky-300`}>
           {totalXP.toLocaleString("pt-BR")}
         </h2>
       </div>

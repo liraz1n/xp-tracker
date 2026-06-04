@@ -105,7 +105,7 @@ export function NotificationDropdown({
   theme,
 }: NotificationDropdownProps) {
   const toneClass = {
-    yellow: "border-yellow-500/20 bg-yellow-500/5 text-yellow-300",
+    yellow: "border-sky-500/20 bg-sky-500/5 text-sky-300",
     emerald: "border-emerald-500/20 bg-emerald-500/5 text-emerald-300",
     cyan: "border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
     red: "border-red-500/20 bg-red-500/5 text-red-300",
@@ -122,7 +122,7 @@ export function NotificationDropdown({
         <span className="text-base md:text-lg leading-none">!</span>
         <span className={labelClassName}>Avisos</span>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-sky-500 text-black text-xs font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
             {unreadCount}
           </span>
         )}
@@ -136,13 +136,13 @@ export function NotificationDropdown({
           className="fixed inset-0 z-40 cursor-default bg-transparent"
           onClick={onClose}
         />
-        <div className={`${theme.card} fixed left-4 right-4 top-24 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border p-3 shadow-[0_0_40px_rgba(234,179,8,0.18)] md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-none md:overflow-visible`}>
+        <div className={`${theme.card} fixed left-4 right-4 top-24 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border p-3 shadow-[0_0_40px_rgba(56,189,248,0.18)] md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-none md:overflow-visible`}>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-sm font-black text-yellow-300">
+            <p className="text-sm font-black text-sky-300">
               Notificações
             </p>
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">
+              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[11px] font-black text-sky-300">
                 {notifications.length}
               </span>
               <button
@@ -157,7 +157,7 @@ export function NotificationDropdown({
           </div>
 
           {notifications.length === 0 ? (
-            <p className={`${theme.muted} rounded-xl border border-yellow-500/10 bg-black/20 p-3 text-xs`}>
+            <p className={`${theme.muted} rounded-xl border border-sky-500/10 bg-black/20 p-3 text-xs`}>
               Nenhum aviso no momento.
             </p>
           ) : (

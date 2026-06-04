@@ -39,7 +39,7 @@ export function EditHistoryEntryModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-950 border border-yellow-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_60px_rgba(234,179,8,0.18)]">
+      <div className="bg-zinc-950 border border-sky-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_60px_rgba(56,189,248,0.18)]">
         <h2 className="text-2xl font-black text-white mb-2">
           Editar registro
         </h2>
@@ -50,7 +50,7 @@ export function EditHistoryEntryModal({
 
         <div className="space-y-4">
           <label className="block">
-            <span className="block text-yellow-400 text-sm mb-2">
+            <span className="block text-sky-400 text-sm mb-2">
               XP ganho
             </span>
             <input
@@ -64,12 +64,12 @@ export function EditHistoryEntryModal({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className="w-full bg-black border border-yellow-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-yellow-400"
+              className="w-full bg-black border border-sky-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-sky-400"
             />
           </label>
 
           <label className="block">
-            <span className="block text-yellow-400 text-sm mb-2">
+            <span className="block text-sky-400 text-sm mb-2">
               XP restante após o registro
             </span>
             <input
@@ -83,12 +83,12 @@ export function EditHistoryEntryModal({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className="w-full bg-black border border-yellow-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-yellow-400"
+              className="w-full bg-black border border-sky-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-sky-400"
             />
           </label>
 
           <label className="block">
-            <span className="block text-yellow-400 text-sm mb-2">
+            <span className="block text-sky-400 text-sm mb-2">
               Meta total usada neste ponto
             </span>
             <input
@@ -102,7 +102,7 @@ export function EditHistoryEntryModal({
                     : sanitizeNumber(Number(event.target.value))
                 )
               }
-              className="w-full bg-black border border-yellow-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-yellow-400"
+              className="w-full bg-black border border-sky-500/20 text-white rounded-2xl px-4 py-3 outline-none focus:border-sky-400"
             />
           </label>
         </div>
@@ -126,7 +126,7 @@ export function EditHistoryEntryModal({
                 totalXP: entryTotalXP,
               })
             }
-            className="flex-1 bg-gradient-to-r from-yellow-400 to-amber-600 hover:scale-105 transition-all px-6 py-3 rounded-2xl font-bold text-black"
+            className="flex-1 bg-gradient-to-r from-sky-400 to-blue-600 hover:scale-105 transition-all px-6 py-3 rounded-2xl font-bold text-black"
           >
             Salvar
           </button>

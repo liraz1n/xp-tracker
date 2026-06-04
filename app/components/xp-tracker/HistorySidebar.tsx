@@ -179,11 +179,11 @@ function ChartTooltip({
       <div
         className={`rounded-2xl border p-3 shadow-xl ${
           darkMode
-            ? "bg-zinc-950 border-yellow-500/20 text-white"
-            : "bg-white border-yellow-300 text-zinc-900"
+            ? "bg-zinc-950 border-sky-500/20 text-white"
+            : "bg-white border-sky-300 text-zinc-900"
         }`}
       >
-        <p className="text-xs font-bold text-yellow-400 mb-2">{point.label}</p>
+        <p className="text-xs font-bold text-sky-400 mb-2">{point.label}</p>
         <div className="space-y-1 text-xs">
           <p>
             <span className="text-zinc-500">Saldo: </span>
@@ -205,7 +205,7 @@ function ChartTooltip({
           </p>
           <p>
             <span className="text-zinc-500">Registros: </span>
-            <span className="font-bold text-yellow-300">{point.runs}</span>
+            <span className="font-bold text-sky-300">{point.runs}</span>
           </p>
         </div>
       </div>
@@ -216,11 +216,11 @@ function ChartTooltip({
     <div
       className={`rounded-2xl border p-3 shadow-xl ${
         darkMode
-          ? "bg-zinc-950 border-yellow-500/20 text-white"
-          : "bg-white border-yellow-300 text-zinc-900"
+          ? "bg-zinc-950 border-sky-500/20 text-white"
+          : "bg-white border-sky-300 text-zinc-900"
       }`}
     >
-      <p className="text-xs font-bold text-yellow-400 mb-2">{point.label}</p>
+      <p className="text-xs font-bold text-sky-400 mb-2">{point.label}</p>
       <div className="space-y-1 text-xs">
         <p>
           <span className="text-zinc-500">XP ganho: </span>
@@ -236,7 +236,7 @@ function ChartTooltip({
         </p>
         <p>
           <span className="text-zinc-500">Progresso: </span>
-          <span className="font-bold text-yellow-300">
+          <span className="font-bold text-sky-300">
             {point.progress.toFixed(2)}%
           </span>
         </p>
@@ -468,7 +468,7 @@ export function HistorySidebar({
                               {formatEntryDate(entry.date)}
                             </p>
                             {entry.source && (
-                              <p className="text-yellow-300 text-xs font-bold mt-1">
+                              <p className="text-sky-300 text-xs font-bold mt-1">
                                 {entry.source}
                               </p>
                             )}
@@ -479,7 +479,7 @@ export function HistorySidebar({
                               type="button"
                               aria-label="Editar registro"
                               onClick={() => onEditHistoryEntry(index)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-sky-500/20 bg-sky-500/10 text-sky-300 transition-all hover:bg-sky-500 hover:text-black"
                             >
                               <PencilIcon className="h-3.5 w-3.5" />
                             </button>
@@ -511,11 +511,11 @@ export function HistorySidebar({
                               {entry.xpRemaining.toLocaleString("pt-BR")} XP
                             </p>
                           </div>
-                          <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
+                          <div className="rounded-xl border border-sky-500/15 bg-sky-500/5 px-3 py-2">
                             <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
                               Progresso
                             </p>
-                            <p className="text-sm font-black text-yellow-300">
+                            <p className="text-sm font-black text-sky-300">
                               {entryProgress.toFixed(2)}%
                             </p>
                           </div>
@@ -538,7 +538,7 @@ export function HistorySidebar({
             ) : (
               <div>
                 <div className="mb-3">
-                  <p className="text-sm font-black text-yellow-300">
+                  <p className="text-sm font-black text-sky-300">
                     Análise de XP
                   </p>
                   <p className={`${theme.muted} mt-1 text-xs`}>
@@ -626,7 +626,7 @@ export function HistorySidebar({
 
                   <p className={`${theme.muted} mt-3 text-xs`}>
                     Melhor registro:{" "}
-                    <span className="font-black text-yellow-300">
+                    <span className="font-black text-sky-300">
                       {selectedDayBestEntry
                         ? `${formatSignedXP(selectedDayBestEntry.xpGained)} XP`
                         : "sem dados"}
@@ -649,11 +649,11 @@ export function HistorySidebar({
                           {formatSignedXP(totalFilteredXp)}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
+                      <div className="rounded-xl border border-sky-500/15 bg-sky-500/5 px-3 py-2">
                         <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
                           Último progresso
                         </p>
-                        <p className="text-sm font-black text-yellow-300">
+                        <p className="text-sm font-black text-sky-300">
                           {latestPoint?.progress.toFixed(2)}%
                         </p>
                       </div>
@@ -678,7 +678,7 @@ export function HistorySidebar({
                           <ReferenceLine y={0} stroke="#71717a" strokeDasharray="3 3" />
                           <Tooltip
                             content={<ChartTooltip darkMode={darkMode} />}
-                            cursor={{ fill: "rgba(234,179,8,0.08)" }}
+                            cursor={{ fill: "rgba(56,189,248,0.08)" }}
                           />
                           <Bar
                             dataKey="netXP"

@@ -111,10 +111,10 @@ export function GoalsRankingCard({
     <section className={`${theme.card} border rounded-3xl p-4 md:p-5 mb-4 md:mb-5`}>
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-yellow-400 text-xs md:text-sm font-black mb-1">
+          <p className="text-sky-400 text-xs md:text-sm font-black mb-1">
             Metas e ranking
           </p>
-          <h2 className="text-xl md:text-2xl font-black text-yellow-300">
+          <h2 className="text-xl md:text-2xl font-black text-sky-300">
             Painel pessoal
           </h2>
           <p className={`${theme.muted} mt-1.5 text-xs md:text-sm`}>
@@ -134,7 +134,7 @@ export function GoalsRankingCard({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {goalCards.map((goal) => (
-          <div key={goal.label} className="rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
+          <div key={goal.label} className="rounded-2xl border border-sky-500/15 bg-black/20 p-4">
             <p className={`${theme.muted} text-xs font-black uppercase`}>
               {goal.label}
             </p>
@@ -143,7 +143,7 @@ export function GoalsRankingCard({
             </p>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-900">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-emerald-500 transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-sky-300 to-emerald-500 transition-all"
                 style={{ width: `${goal.progress}%` }}
               />
             </div>
@@ -164,11 +164,11 @@ export function GoalsRankingCard({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-4">
+        <div className="rounded-2xl border border-sky-500/15 bg-sky-500/5 p-4">
           <p className={`${theme.muted} text-xs font-black uppercase`}>
             Melhor dia
           </p>
-          <p className="mt-1 text-xl font-black text-yellow-300">
+          <p className="mt-1 text-xl font-black text-sky-300">
             {formatXP(bestDay?.[1] ?? 0)} XP
           </p>
         </div>

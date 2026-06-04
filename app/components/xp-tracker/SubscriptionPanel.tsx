@@ -39,13 +39,13 @@ export function SubscriptionPanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className={`${theme.card} max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
+      <div className={`${theme.card} max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(56,189,248,0.18)]`}>
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-wide text-yellow-400">
+            <p className="text-sm font-black uppercase tracking-wide text-sky-400">
               Assinatura
             </p>
-            <h2 className="mt-1 text-3xl font-black text-yellow-300">
+            <h2 className="mt-1 text-3xl font-black text-sky-300">
               Painel do plano
             </h2>
             <p className={`${theme.muted} mt-2 max-w-2xl`}>
@@ -56,7 +56,7 @@ export function SubscriptionPanel({
           <button
             type="button"
             onClick={onClose}
-            className={`${theme.muted} rounded-2xl border border-yellow-500/20 px-4 py-2 font-bold transition-all hover:text-yellow-300`}
+            className={`${theme.muted} rounded-2xl border border-sky-500/20 px-4 py-2 font-bold transition-all hover:text-sky-300`}
           >
             Fechar
           </button>
@@ -80,11 +80,11 @@ export function SubscriptionPanel({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
             <p className={`${theme.muted} text-xs font-black uppercase`}>
               Valor mensal
             </p>
-            <p className="mt-1 font-black text-yellow-300">
+            <p className="mt-1 font-black text-sky-300">
               {billing.priceLabel}
             </p>
           </div>
@@ -108,7 +108,7 @@ export function SubscriptionPanel({
           </div>
         </div>
 
-        <div className="mb-4 rounded-2xl border border-yellow-500/15 bg-black/20 p-4">
+        <div className="mb-4 rounded-2xl border border-sky-500/15 bg-black/20 p-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div>
               <p className={`${theme.muted} text-xs font-black uppercase`}>
@@ -154,9 +154,9 @@ export function SubscriptionPanel({
           {ACTIVE_COUPON_PREVIEWS.map((coupon) => (
             <div
               key={coupon.code}
-              className="rounded-2xl border border-yellow-500/20 bg-black/25 p-4"
+              className="rounded-2xl border border-sky-500/20 bg-black/25 p-4"
             >
-              <p className="text-xs font-black uppercase tracking-wide text-yellow-400">
+              <p className="text-xs font-black uppercase tracking-wide text-sky-400">
                 {coupon.code}
               </p>
               <h3 className="mt-1 font-black text-white">{coupon.title}</h3>

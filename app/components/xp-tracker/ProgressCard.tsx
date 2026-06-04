@@ -7,7 +7,7 @@ const ACHIEVEMENTS = [
     milestone: 25,
     tier: "I",
     message: "Primeiro quarto concluido!",
-    accent: "from-amber-300 to-yellow-600",
+    accent: "from-cyan-300 to-sky-600",
     variants: [
       { title: "Primeiro Impulso", description: "Você saiu da largada e já construiu ritmo." },
       { title: "Chama Inicial", description: "A primeira marca acendeu o caminho da meta." },
@@ -155,28 +155,28 @@ export function ProgressCard({
   );
 
   return (
-    <div className={`${theme.card} border rounded-3xl p-4 md:p-5 shadow-[0_0_34px_rgba(234,179,8,0.1)] mb-4 md:mb-5`}>
+    <div className={`${theme.card} border rounded-3xl p-4 md:p-5 shadow-[0_0_34px_rgba(56,189,248,0.1)] mb-4 md:mb-5`}>
       <div className="flex flex-col gap-2 md:gap-3 md:flex-row md:justify-between md:items-start mb-4">
         <div>
           <span className={`${theme.muted} text-xs md:text-sm`}>Progresso da Meta</span>
-          <h2 className="text-lg md:text-xl font-black text-yellow-300 mt-0.5">
+          <h2 className="text-lg md:text-xl font-black text-sky-300 mt-0.5">
             Jornada de Conquistas
           </h2>
         </div>
 
         <div className="flex flex-col items-start md:items-end gap-2 md:gap-3">
           {activeAchievement && (
-            <div className="relative overflow-hidden border border-yellow-400/40 bg-yellow-500/10 rounded-2xl px-4 py-3 shadow-[0_0_35px_rgba(234,179,8,0.22)] animate-pulse">
+            <div className="relative overflow-hidden border border-sky-400/40 bg-sky-500/10 rounded-2xl px-4 py-3 shadow-[0_0_35px_rgba(56,189,248,0.22)] animate-pulse">
               <div className="absolute inset-y-0 -left-12 w-12 rotate-12 bg-white/20 blur-md" />
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${activeAchievement.accent} text-black flex items-center justify-center font-black shadow-[0_0_22px_rgba(234,179,8,0.35)]`}>
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${activeAchievement.accent} text-black flex items-center justify-center font-black shadow-[0_0_22px_rgba(56,189,248,0.35)]`}>
                   {activeAchievement.tier}
                 </div>
                 <div>
-                  <p className="text-yellow-200 text-xs font-bold uppercase tracking-wide">
+                  <p className="text-sky-200 text-xs font-bold uppercase tracking-wide">
                     Nova conquista desbloqueada
                   </p>
-                  <p className="text-yellow-50 font-black">
+                  <p className="text-sky-50 font-black">
                     {activeAchievement.message}
                   </p>
                 </div>
@@ -184,15 +184,15 @@ export function ProgressCard({
             </div>
           )}
 
-          <span className="font-black text-yellow-300 text-lg md:text-xl">
+          <span className="font-black text-sky-300 text-lg md:text-xl">
             {percentageDisplay}%
           </span>
         </div>
       </div>
 
-      <div className="relative w-full bg-black rounded-full h-5 md:h-7 overflow-hidden border border-yellow-500/20">
+      <div className="relative w-full bg-black rounded-full h-5 md:h-7 overflow-hidden border border-sky-500/20">
         <div
-          className={`bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 h-full rounded-full transition-all duration-700 shadow-[0_0_20px_rgba(234,179,8,0.5)] ${barPulsing ? "animate-pulse" : ""}`}
+          className={`bg-gradient-to-r from-sky-300 via-sky-500 to-blue-700 h-full rounded-full transition-all duration-700 shadow-[0_0_20px_rgba(56,189,248,0.5)] ${barPulsing ? "animate-pulse" : ""}`}
           style={{ width: `${percentageValue}%` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
@@ -207,7 +207,7 @@ export function ProgressCard({
               key={achievement.milestone}
               className={`relative overflow-hidden border rounded-2xl p-3 transition-all duration-300 ${
                 unlocked
-                  ? "border-yellow-400/40 bg-yellow-500/10 shadow-[0_0_30px_rgba(234,179,8,0.16)]"
+                  ? "border-sky-400/40 bg-sky-500/10 shadow-[0_0_30px_rgba(56,189,248,0.16)]"
                   : "border-zinc-700/40 bg-black/25 opacity-70"
               }`}
             >
@@ -217,7 +217,7 @@ export function ProgressCard({
 
               <div className="relative flex items-start justify-between gap-3">
                 <div>
-                  <p className={`text-[11px] md:text-xs font-black uppercase tracking-wide ${unlocked ? "text-yellow-300" : theme.muted}`}>
+                  <p className={`text-[11px] md:text-xs font-black uppercase tracking-wide ${unlocked ? "text-sky-300" : theme.muted}`}>
                     {achievement.milestone}% concluído
                   </p>
                   <h3 className={`text-sm md:text-base font-black mt-1 ${unlocked ? theme.text : theme.muted}`}>
@@ -227,7 +227,7 @@ export function ProgressCard({
 
                 <div className={`shrink-0 w-9 h-9 rounded-full border flex items-center justify-center font-black text-sm ${
                   unlocked
-                    ? `bg-gradient-to-br ${achievement.accent} border-white/20 text-black shadow-[0_0_22px_rgba(234,179,8,0.25)]`
+                    ? `bg-gradient-to-br ${achievement.accent} border-white/20 text-black shadow-[0_0_22px_rgba(56,189,248,0.25)]`
                     : "bg-zinc-900 border-zinc-700 text-zinc-600"
                 }`}>
                   {achievement.tier}

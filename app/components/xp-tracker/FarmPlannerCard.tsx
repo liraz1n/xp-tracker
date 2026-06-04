@@ -131,7 +131,7 @@ export function FarmPlannerCard({
             className={`rounded-2xl border p-3 ${
               plan.fitsDeadline
                 ? "border-emerald-500/20 bg-emerald-500/5"
-                : "border-yellow-500/15 bg-black/20"
+                : "border-sky-500/15 bg-black/20"
             }`}
           >
             <div className="flex items-start justify-between gap-3">

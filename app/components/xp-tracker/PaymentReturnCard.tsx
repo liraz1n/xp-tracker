@@ -18,7 +18,7 @@ const PAYMENT_COPY = {
   pending: {
     title: "Pagamento pendente",
     message: "O Mercado Pago ainda está processando o pagamento. Se for Pix, a confirmação pode levar alguns instantes.",
-    tone: "border-yellow-500/25 bg-yellow-500/10 text-yellow-300",
+    tone: "border-sky-500/25 bg-sky-500/10 text-sky-300",
   },
   failure: {
     title: "Pagamento não concluído",
