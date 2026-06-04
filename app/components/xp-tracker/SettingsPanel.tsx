@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { XpInputs } from "~/components/xp-tracker/XpInputs";
+import { XIcon } from "~/components/xp-tracker/UiIcons";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -53,6 +54,13 @@ export function SettingsPanel({
   const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const autoSaveReady = useRef(false);
+  const autoSaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSaveRef = useRef(onSave);
+
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +72,47 @@ export function SettingsPanel({
     setDraftCurrentLevel(currentLevel);
     setDraftTargetLevel(targetLevel);
     setSettingsError(null);
+    autoSaveReady.current = false;
   }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel, targetLevel]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (!autoSaveReady.current) {
+      autoSaveReady.current = true;
+      return;
+    }
+
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+    }
+
+    autoSaveTimeout.current = setTimeout(async () => {
+      setSettingsError(null);
+      await onSaveRef.current({
+        totalXP: draftTotalXP,
+        currentXP: Math.max(0, draftCurrentXP),
+        userTotalXP: draftUserTotalXP,
+        dailyGoal: draftDailyGoal,
+        currentLevel: draftCurrentLevel,
+        targetLevel: draftTargetLevel,
+      });
+    }, 900);
+
+    return () => {
+      if (autoSaveTimeout.current) {
+        clearTimeout(autoSaveTimeout.current);
+      }
+    };
+  }, [
+    open,
+    draftTotalXP,
+    draftCurrentXP,
+    draftUserTotalXP,
+    draftDailyGoal,
+    draftCurrentLevel,
+    draftTargetLevel,
+  ]);
 
   if (!open) return null;
 
@@ -102,8 +150,8 @@ export function SettingsPanel({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`${theme.card} border rounded-3xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-4">
+      <div className={`${theme.card} relative border rounded-3xl p-4 md:p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-8">
           <div>
             <h2 className="text-3xl font-black text-yellow-300">
@@ -117,9 +165,10 @@ export function SettingsPanel({
           <button
             type="button"
             onClick={onClose}
-            className={`${theme.muted} border border-yellow-500/20 rounded-2xl px-4 py-2 font-bold hover:text-yellow-300 transition-all`}
+            className={`${theme.muted} absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-yellow-500/20 hover:text-yellow-300 transition-all md:static`}
+            aria-label="Fechar configurações"
           >
-            Fechar
+            <XIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -167,13 +216,13 @@ export function SettingsPanel({
           onDailyGoalChange={setDraftDailyGoal}
         />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border border-emerald-500/20 bg-emerald-500/5 rounded-3xl p-6 mb-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border border-emerald-500/20 bg-emerald-500/5 rounded-3xl p-4 md:p-6 mb-8">
           <div>
             <h3 className="text-xl font-black text-emerald-300">
               Salvar ajustes
             </h3>
             <p className={`${theme.muted} mt-2`}>
-              Salva os valores informados sem recalcular automaticamente o XP total do usuário.
+              Os ajustes s�o salvos automaticamente e tamb�m podem ser confirmados aqui.
             </p>
             {settingsError && (
               <p className="mt-2 text-sm font-bold text-red-300">
@@ -186,13 +235,13 @@ export function SettingsPanel({
             type="button"
             onClick={saveSettings}
             disabled={isSavingSettings}
-            className="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
             {isSavingSettings ? "Salvando..." : "Salvar alterações"}
           </button>
         </div>
 
-        <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-6">
+        <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-4 md:p-6">
           <h3 className="text-xl font-black text-red-300">
             Zona de reset
           </h3>
@@ -203,7 +252,7 @@ export function SettingsPanel({
           <button
             type="button"
             onClick={onReset}
-            className="bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-6 py-4 rounded-2xl font-bold shadow-lg text-white"
+            className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white"
           >
             Resetar progresso
           </button>

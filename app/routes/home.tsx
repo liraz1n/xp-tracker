@@ -5,6 +5,7 @@ import { supabase } from "~/supabase";
 import { LoginScreen } from "~/components/xp-tracker/LoginScreen";
 import { DashboardHeader } from "~/components/xp-tracker/DashboardHeader";
 import { DeathAction } from "~/components/xp-tracker/DeathAction";
+import { DoubleXpAction } from "~/components/xp-tracker/DoubleXpAction";
 import { StatsCards } from "~/components/xp-tracker/StatsCards";
 import { ProgressCard } from "~/components/xp-tracker/ProgressCard";
 import { EstimateCards } from "~/components/xp-tracker/EstimateCards";
@@ -590,6 +591,10 @@ export default function Home() {
 
       {!shouldShowOnboarding && !premiumLocked && (
         <>
+          <DoubleXpAction
+            mode={tracker.doubleXpMode}
+            onChange={tracker.setDoubleXpMode}
+          />
           <TeletofusLink />
           <DeathAction
             userTotalXP={tracker.userTotalXP}

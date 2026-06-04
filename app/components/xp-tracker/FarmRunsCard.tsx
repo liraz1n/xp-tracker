@@ -13,6 +13,7 @@ interface FarmRunsCardProps {
   onApplyFarmProgress: (values: {
     xpGained: number;
     source: string;
+    sourceCategory?: "Cripta" | "Masmorra" | "Cacada";
   }) => void;
 }
 
@@ -903,6 +904,7 @@ export function FarmRunsCard({
     onApplyFarmProgress({
       xpGained: xpTotal,
       source: `${runs}x ${getActivityLabel(selectedActivity)} - ${selectedActivity.levelRangeLabel}`,
+      sourceCategory: selectedActivity.category,
     });
   }
 
@@ -912,6 +914,7 @@ export function FarmRunsCard({
     onApplyFarmProgress({
       xpGained: activity.xp,
       source: `1x ${getActivityLabel(activity)} - ${activity.levelRangeLabel}`,
+      sourceCategory: activity.category,
     });
 
     setQuickFeedback({
@@ -939,6 +942,11 @@ export function FarmRunsCard({
     onApplyFarmProgress({
       xpGained: farmPlan.totalXP,
       source: `Plano de farm: ${source}`,
+      sourceCategory:
+        farmPlan.items.length > 0 &&
+        farmPlan.items.every((item) => item.activity.category === "Masmorra")
+          ? "Masmorra"
+          : undefined,
     });
   }
 

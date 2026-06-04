@@ -182,3 +182,11 @@ export function GamepadIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function LightningIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} {...baseProps}>
+      <path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z" />
+    </svg>
+  );
+}

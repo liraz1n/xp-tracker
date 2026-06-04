@@ -138,6 +138,37 @@ function formatDateLabel(dateKey: string) {
   });
 }
 
+function formatDateInputBR(dateKey: string) {
+  const [year, month, day] = dateKey.split("-");
+
+  if (!year || !month || !day) return "";
+
+  return `${day}/${month}/${year}`;
+}
+
+function parseDateInputBR(value: string) {
+  const normalized = value.trim();
+  const match = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if (!match) return null;
+
+  const [, dayValue, monthValue, yearValue] = match;
+  const day = Number(dayValue);
+  const month = Number(monthValue);
+  const year = Number(yearValue);
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return getDateKey(date);
+}
+
 function filterHistoryByPeriod(history: HistoryEntry[], filter: ChartFilter) {
   if (filter === "all") return history;
 
@@ -262,6 +293,9 @@ export function HistorySidebar({
   const [chartFilter, setChartFilter] = useState<ChartFilter>("all");
   const [chartView, setChartView] = useState<ChartView>("daily");
   const [selectedDate, setSelectedDate] = useState(() => getDateKey(new Date()));
+  const [selectedDateInput, setSelectedDateInput] = useState(() =>
+    formatDateInputBR(getDateKey(new Date()))
+  );
   const [historyTypeFilter, setHistoryTypeFilter] = useState<HistoryTypeFilter>("all");
   const [historySort, setHistorySort] = useState<HistorySort>("recent");
 
@@ -583,11 +617,25 @@ export function HistorySidebar({
                     Consultar data
                   </label>
                   <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(event) => setSelectedDate(event.target.value)}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value={selectedDateInput}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      const parsedDate = parseDateInputBR(nextValue);
+
+                      setSelectedDateInput(nextValue);
+
+                      if (parsedDate) {
+                        setSelectedDate(parsedDate);
+                      }
+                    }}
                     className="w-full rounded-xl border border-cyan-500/20 bg-black/30 px-3 py-2 text-sm font-bold text-cyan-100 outline-none focus:border-cyan-300"
                   />
+                  <p className={`${theme.muted} mt-1 text-[11px]`}>
+                    Formato brasileiro: dia/mês/ano.
+                  </p>
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div>

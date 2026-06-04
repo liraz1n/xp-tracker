@@ -68,6 +68,7 @@ interface ProgressSnapshot {
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 export type DeathPenaltyMode = "peace-necklace" | "no-necklace";
+export type DoubleXpMode = "off" | "hunt" | "dungeon";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -167,6 +168,7 @@ export function useXpTracker() {
   const [currentLevel, setCurrentLevel] = useState(DEFAULT_CURRENT_LEVEL);
   const [targetLevel, setTargetLevel] = useState(DEFAULT_TARGET_LEVEL);
   const [userTotalXP, setUserTotalXP] = useState(DEFAULT_USER_TOTAL_XP);
+  const [doubleXpMode, setDoubleXpMode] = useState<DoubleXpMode>("off");
   const billing = useBilling({ user, guestMode, progressLoaded });
 
   const milestoneTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -764,13 +766,21 @@ export function useXpTracker() {
   function applyFarmProgress({
     xpGained,
     source,
+    sourceCategory,
   }: {
     xpGained: number;
     source: string;
+    sourceCategory?: "Cripta" | "Masmorra" | "Cacada";
   }) {
     if (currentXP <= 0 || xpGained <= 0) return;
 
-    const newCurrentXP = Math.max(0, currentXP - xpGained);
+    const multiplier =
+      (doubleXpMode === "dungeon" && sourceCategory === "Masmorra") ||
+      (doubleXpMode === "hunt" && sourceCategory === "Cacada")
+        ? 2
+        : 1;
+    const effectiveXP = xpGained * multiplier;
+    const newCurrentXP = Math.max(0, currentXP - effectiveXP);
     const appliedXP = currentXP - newCurrentXP;
 
     if (appliedXP <= 0) return;
@@ -780,7 +790,7 @@ export function useXpTracker() {
       xpGained: appliedXP,
       xpRemaining: newCurrentXP,
       totalXP,
-      source,
+      source: multiplier > 1 ? `${source} (2XP ativo)` : source,
     };
 
     setCurrentXP(newCurrentXP);
@@ -926,8 +936,12 @@ export function useXpTracker() {
     const sanitizedTargetLevel = sanitizeLevel(nextTargetLevel);
     const sanitizedUserTotalXP = Math.max(0, nextUserTotalXP);
     const xpGained = currentXP - sanitizedCurrentXP;
+    const nextUserTotalXPValue =
+      sanitizedUserTotalXP === userTotalXP
+        ? Math.max(0, userTotalXP + xpGained)
+        : sanitizedUserTotalXP;
     const nextHistory =
-      xpGained > 0
+      xpGained !== 0
         ? [
             {
               date: new Date().toISOString(),
@@ -945,12 +959,9 @@ export function useXpTracker() {
     setDailyGoal(nextDailyGoal);
     setCurrentLevel(sanitizedCurrentLevel);
     setTargetLevel(sanitizedTargetLevel);
-    setUserTotalXP(sanitizedUserTotalXP);
+    setUserTotalXP(nextUserTotalXPValue);
     setLastSavedXP(sanitizedCurrentXP);
-
-    if (xpGained > 0) {
-      setHistory(nextHistory);
-    }
+    setHistory(nextHistory);
 
     return persistProgressSnapshot(
       {
@@ -963,7 +974,7 @@ export function useXpTracker() {
         darkMode,
         currentLevel: sanitizedCurrentLevel,
         targetLevel: sanitizedTargetLevel,
-        userTotalXP: sanitizedUserTotalXP,
+        userTotalXP: nextUserTotalXPValue,
       },
       { requireUserTotalXP: true }
     );
@@ -1104,6 +1115,8 @@ export function useXpTracker() {
     currentLevel,
     targetLevel,
     userTotalXP,
+    doubleXpMode,
+    setDoubleXpMode,
     setCurrentLevel,
     setTargetLevel,
     saveStatus,
