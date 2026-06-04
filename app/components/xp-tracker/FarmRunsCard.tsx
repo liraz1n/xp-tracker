@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { DoubleXpMode } from "~/hooks/useXpTracker";
 
 interface FarmRunsCardProps {
   currentXP: number;
   currentLevel: number;
   totalXP: number;
+  doubleXpMode: DoubleXpMode;
   theme: {
     card: string;
     input: string;
@@ -655,6 +657,20 @@ function addPlanItem(plan: FarmPlanItem[], activity: ResolvedFarmActivity, runs:
   plan.push({ activity, runs });
 }
 
+function getDoubleXpMultiplier(
+  activity: Pick<ResolvedFarmActivity, "category">,
+  doubleXpMode: DoubleXpMode
+) {
+  return doubleXpMode === "dungeon" && activity.category === "Masmorra" ? 2 : 1;
+}
+
+function getEffectiveActivityXP(
+  activity: Pick<ResolvedFarmActivity, "category" | "xp">,
+  doubleXpMode: DoubleXpMode
+) {
+  return activity.xp * getDoubleXpMultiplier(activity, doubleXpMode);
+}
+
 function buildFarmPlan(currentXP: number, activities: ResolvedFarmActivity[]) {
   if (currentXP <= 0 || activities.length === 0) {
     return {
@@ -733,6 +749,7 @@ export function FarmRunsCard({
   currentXP,
   currentLevel,
   totalXP,
+  doubleXpMode,
   theme,
   onApplyFarmProgress,
 }: FarmRunsCardProps) {
@@ -796,7 +813,14 @@ export function FarmRunsCard({
     visibleActivities.find((activity) => activity.id === selectedActivityId) ??
     visibleActivities[0];
 
-  const xpTotal = (selectedActivity?.xp ?? 0) * runs;
+  const selectedActivityXP = selectedActivity
+    ? getEffectiveActivityXP(selectedActivity, doubleXpMode)
+    : 0;
+  const selectedActivityHasDoubleXp =
+    Boolean(selectedActivity) &&
+    getDoubleXpMultiplier(selectedActivity, doubleXpMode) > 1;
+  const baseXpTotal = (selectedActivity?.xp ?? 0) * runs;
+  const xpTotal = selectedActivityXP * runs;
   const xpApplied = Math.min(currentXP, xpTotal);
   const remainingAfterRun = Math.max(0, currentXP - xpTotal);
   const canApply = Boolean(selectedActivity) && totalXP > 0 && currentXP > 0 && xpApplied > 0;
@@ -823,15 +847,18 @@ export function FarmRunsCard({
 
     return [...planActivities]
       .sort((a, b) => {
-        if (planMode === "highest-xp") return b.xp - a.xp;
+        const xpA = getEffectiveActivityXP(a, doubleXpMode);
+        const xpB = getEffectiveActivityXP(b, doubleXpMode);
 
-        const runsA = Math.ceil(currentXP / a.xp);
-        const runsB = Math.ceil(currentXP / b.xp);
+        if (planMode === "highest-xp") return xpB - xpA;
 
-        return runsA - runsB || b.xp - a.xp;
+        const runsA = Math.ceil(currentXP / xpA);
+        const runsB = Math.ceil(currentXP / xpB);
+
+        return runsA - runsB || xpB - xpA;
       })
       .slice(0, 5);
-  }, [currentXP, planActivities, planMode]);
+  }, [currentXP, doubleXpMode, planActivities, planMode]);
 
   const smartRunOptions = useMemo(() => {
     if (currentXP <= 0) return [];
@@ -843,8 +870,9 @@ export function FarmRunsCard({
     return resolveQuickActivities(baseActivities)
       .filter((activity) => activity.xp > 0)
       .map((activity) => {
-        const runs = Math.ceil(currentXP / activity.xp);
-        const totalXP = runs * activity.xp;
+        const activityXP = getEffectiveActivityXP(activity, doubleXpMode);
+        const runs = Math.ceil(currentXP / activityXP);
+        const totalXP = runs * activityXP;
 
         return {
           activity,
@@ -857,18 +885,24 @@ export function FarmRunsCard({
         (left, right) =>
           left.runs - right.runs ||
           left.overflowXP - right.overflowXP ||
-          right.activity.xp - left.activity.xp
+          getEffectiveActivityXP(right.activity, doubleXpMode) -
+            getEffectiveActivityXP(left.activity, doubleXpMode)
       )
       .slice(0, 6);
-  }, [canShowCriptas, currentXP]);
+  }, [canShowCriptas, currentXP, doubleXpMode]);
 
   const farmPlan = useMemo(() => {
+    const effectivePlanActivities = planActivities.map((activity) => ({
+      ...activity,
+      xp: getEffectiveActivityXP(activity, doubleXpMode),
+    }));
+
     if (planMode === "fewest-runs") {
-      return buildSingleActivityPlan(currentXP, planActivities);
+      return buildSingleActivityPlan(currentXP, effectivePlanActivities);
     }
 
-    return buildFarmPlan(currentXP, planActivities);
-  }, [currentXP, planActivities, planMode]);
+    return buildFarmPlan(currentXP, effectivePlanActivities);
+  }, [currentXP, doubleXpMode, planActivities, planMode]);
 
   const availableQuickPlayerCounts = useMemo(() => {
     return getAvailableQuickPlayerCounts(quickRunTab);
@@ -902,7 +936,7 @@ export function FarmRunsCard({
     if (!canApply || !selectedActivity) return;
 
     onApplyFarmProgress({
-      xpGained: xpTotal,
+      xpGained: baseXpTotal,
       source: `${runs}x ${getActivityLabel(selectedActivity)} - ${selectedActivity.levelRangeLabel}`,
       sourceCategory: selectedActivity.category,
     });
@@ -920,7 +954,7 @@ export function FarmRunsCard({
     setQuickFeedback({
       activityId: activity.id,
       label: getActivityLabel(activity),
-      xp: activity.xp,
+      xp: getEffectiveActivityXP(activity, doubleXpMode),
     });
 
     if (quickFeedbackTimeout.current) {
@@ -942,11 +976,7 @@ export function FarmRunsCard({
     onApplyFarmProgress({
       xpGained: farmPlan.totalXP,
       source: `Plano de farm: ${source}`,
-      sourceCategory:
-        farmPlan.items.length > 0 &&
-        farmPlan.items.every((item) => item.activity.category === "Masmorra")
-          ? "Masmorra"
-          : undefined,
+      sourceCategory: undefined,
     });
   }
 
@@ -1044,7 +1074,7 @@ export function FarmRunsCard({
                   XP por run
                 </p>
                 <p className="text-2xl font-black text-yellow-300">
-                  {formatXP(selectedActivity?.xp ?? 0)}
+                  {formatXP(selectedActivityXP)}
                 </p>
                 <p className={`${theme.muted} text-[11px] font-bold`}>
                   {selectedActivity?.levelRangeLabel ?? `Nível ${currentLevel}`}
@@ -1182,6 +1212,12 @@ export function FarmRunsCard({
                   {quickActivities.map((activity) => {
                     const isRecentQuickRun =
                       quickFeedback?.activityId === activity.id;
+                    const activityXP = getEffectiveActivityXP(
+                      activity,
+                      doubleXpMode
+                    );
+                    const hasDoubleXp =
+                      getDoubleXpMultiplier(activity, doubleXpMode) > 1;
 
                     return (
                       <button
@@ -1197,7 +1233,7 @@ export function FarmRunsCard({
                       >
                         <span className="flex items-center justify-between gap-2">
                           <span className="block text-sm font-black text-white">
-                            +{formatXP(activity.xp)} XP
+                            +{formatXP(activityXP)} XP
                           </span>
                           {isRecentQuickRun && (
                             <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black text-emerald-200">
@@ -1213,6 +1249,7 @@ export function FarmRunsCard({
                         </span>
                         <span className="mt-1 inline-flex rounded-full border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
                           {activity.levelRangeLabel}
+                          {hasDoubleXp ? " - 2XP ativo" : ""}
                         </span>
                       </button>
                     );

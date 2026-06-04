@@ -413,6 +413,7 @@ export default function Home() {
               currentXP={tracker.currentXP}
               currentLevel={tracker.currentLevel}
               totalXP={tracker.totalXP}
+              doubleXpMode={tracker.doubleXpMode}
               theme={theme}
               onApplyFarmProgress={tracker.applyFarmProgress}
             />
