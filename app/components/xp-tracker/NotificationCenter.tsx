@@ -1,5 +1,5 @@
-import type { BillingState } from "~/hooks/useBilling";
 import { XIcon } from "~/components/xp-tracker/UiIcons";
+import type { BillingState } from "~/hooks/useBilling";
 
 export interface AppNotification {
   title: string;
@@ -49,14 +49,17 @@ export function buildNotifications({
     billing.accessStatus === "trialing" && billing.trialDaysRemaining !== null
       ? {
           title: "Teste grátis ativo",
-          message: `Restam ${billing.trialDaysRemaining} dia${billing.trialDaysRemaining === 1 ? "" : "s"} para manter o salvamento na nuvem sem assinatura.`,
+          message: `Restam ${billing.trialDaysRemaining} dia${
+            billing.trialDaysRemaining === 1 ? "" : "s"
+          } para manter o salvamento na nuvem sem assinatura.`,
           tone: "yellow" as const,
         }
       : null,
     billing.accessStatus === "locked"
       ? {
           title: "Acesso premium pendente",
-          message: "Assine para liberar salvamento contínuo, runs e histórico inteligente.",
+          message:
+            "Assine para liberar salvamento contínuo, runs e histórico inteligente.",
           tone: "red" as const,
         }
       : null,
@@ -76,11 +79,16 @@ export function buildNotifications({
       : null,
     dailyGoal > 0
       ? {
-          title: xpToday >= dailyGoal ? "Meta diária concluída" : "Meta diária em andamento",
+          title:
+            xpToday >= dailyGoal
+              ? "Meta diária concluída"
+              : "Meta diária em andamento",
           message:
             xpToday >= dailyGoal
               ? `Hoje você já registrou ${formatXP(xpToday)} XP.`
-              : `Faltam ${formatXP(Math.max(0, dailyGoal - xpToday))} XP para bater a meta de hoje.`,
+              : `Faltam ${formatXP(
+                  Math.max(0, dailyGoal - xpToday)
+                )} XP para bater a meta de hoje.`,
           tone: xpToday >= dailyGoal ? ("emerald" as const) : ("cyan" as const),
         }
       : null,
@@ -91,7 +99,9 @@ export function buildNotifications({
           tone: "red" as const,
         }
       : null,
-  ].filter((notification): notification is AppNotification => Boolean(notification));
+  ].filter((notification): notification is AppNotification =>
+    Boolean(notification)
+  );
 }
 
 export function NotificationDropdown({
@@ -119,10 +129,10 @@ export function NotificationDropdown({
         onClick={onToggle}
         className={`${buttonClassName} relative`}
       >
-        <span className="text-base md:text-lg leading-none">!</span>
+        <span className="text-base md:text-lg leading-none">🔔</span>
         <span className={labelClassName}>Avisos</span>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs font-black min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-500 px-1 text-xs font-black text-black">
             {unreadCount}
           </span>
         )}
@@ -130,54 +140,60 @@ export function NotificationDropdown({
 
       {open && (
         <>
-        <button
-          type="button"
-          aria-label="Fechar avisos"
-          className="fixed inset-0 z-40 cursor-default bg-transparent"
-          onClick={onClose}
-        />
-        <div className={`${theme.card} fixed left-4 right-4 top-24 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border p-3 shadow-[0_0_40px_rgba(234,179,8,0.18)] md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-none md:overflow-visible`}>
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-sm font-black text-yellow-300">
-              Notificações
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">
-                {notifications.length}
-              </span>
-              <button
-                type="button"
-                aria-label="Fechar avisos"
-                onClick={onClose}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-red-300 transition-all hover:bg-red-500 hover:text-white"
-              >
-                <XIcon className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {notifications.length === 0 ? (
-            <p className={`${theme.muted} rounded-xl border border-yellow-500/10 bg-black/20 p-3 text-xs`}>
-              Nenhum aviso no momento.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {notifications.map((notification) => (
-                <div
-                  key={`${notification.title}-${notification.message}`}
-                  className={`rounded-xl border p-3 ${toneClass[notification.tone]}`}
+          <button
+            type="button"
+            aria-label="Fechar avisos"
+            className="fixed inset-0 z-40 cursor-default bg-transparent"
+            onClick={onClose}
+          />
+          <div
+            className={`${theme.card} fixed left-4 right-4 top-24 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border p-3 shadow-[0_0_40px_rgba(234,179,8,0.18)] md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-none md:overflow-visible`}
+          >
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-black text-yellow-300">
+                Notificações
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">
+                  {notifications.length}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Fechar avisos"
+                  onClick={onClose}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-red-300 transition-all hover:bg-red-500 hover:text-white"
                 >
-                  <p className="text-sm font-black">
-                    {notification.title}
-                  </p>
-                  <p className={`${theme.muted} mt-1 text-xs leading-relaxed`}>
-                    {notification.message}
-                  </p>
-                </div>
-              ))}
+                  <XIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+
+            {notifications.length === 0 ? (
+              <p
+                className={`${theme.muted} rounded-xl border border-yellow-500/10 bg-black/20 p-3 text-xs`}
+              >
+                Nenhum aviso no momento.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {notifications.map((notification) => (
+                  <div
+                    key={`${notification.title}-${notification.message}`}
+                    className={`rounded-xl border p-3 ${
+                      toneClass[notification.tone]
+                    }`}
+                  >
+                    <p className="text-sm font-black">{notification.title}</p>
+                    <p
+                      className={`${theme.muted} mt-1 text-xs leading-relaxed`}
+                    >
+                      {notification.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
