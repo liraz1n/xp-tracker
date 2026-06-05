@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { LightningIcon } from "~/components/xp-tracker/UiIcons";
 import type { DoubleXpMode } from "~/hooks/useXpTracker";
 
 interface DoubleXpActionProps {
@@ -27,6 +26,8 @@ const options: Array<{
 export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
   const [open, setOpen] = useState(false);
   const active = mode !== "off";
+  // Visual aprovado: manter glifo nos botões flutuantes, no mesmo padrão do topo.
+  const floatingIconClass = "text-2xl leading-none";
 
   function selectMode(nextMode: DoubleXpMode) {
     onChange(mode === nextMode ? "off" : nextMode);
@@ -98,7 +99,7 @@ export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
         aria-expanded={open}
         aria-label="Abrir menu Double XP"
       >
-        <LightningIcon className="h-6 w-6" />
+        <span className={floatingIconClass}>⚡</span>
       </button>
     </div>
   );
