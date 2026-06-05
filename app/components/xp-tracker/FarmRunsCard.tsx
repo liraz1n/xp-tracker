@@ -276,6 +276,86 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xpByLevel: xpForExactLevel(29, 49859),
   },
   {
+    id: "cripta-n2-10-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 10",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(10, 19164),
+  },
+  {
+    id: "cripta-n2-11-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 11",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(11, 22106),
+  },
+  {
+    id: "cripta-n2-12-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 12",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(12, 25253),
+  },
+  {
+    id: "cripta-n2-13-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 13",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(13, 28621),
+  },
+  {
+    id: "cripta-n2-14-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 14",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(14, 32225),
+  },
+  {
+    id: "cripta-n2-15-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 15",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(15, 36081),
+  },
+  {
+    id: "cripta-n2-16-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 16",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(16, 40207),
+  },
+  {
+    id: "cripta-n2-17-4",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 17",
+    detail: "4 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(17, 44621),
+  },
+  {
+    id: "cripta-n2-15-5",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 15",
+    detail: "5 jogadores",
+    players: 5,
+    xpByLevel: xpForExactLevel(15, 28138),
+  },
+  {
+    id: "cripta-n2-16-5",
+    category: "Cripta",
+    name: "Cripta Nível 2 até 16",
+    detail: "5 jogadores",
+    players: 5,
+    xpByLevel: xpForExactLevel(16, 31227),
+  },
+  {
     id: "cripta-n3-7",
     category: "Cripta",
     name: "Cripta Nível 3 até 7",
@@ -465,6 +545,22 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n1-31-5",
     ],
   },
+  "cripta-2": {
+    4: [
+      "cripta-n2-10-4",
+      "cripta-n2-11-4",
+      "cripta-n2-12-4",
+      "cripta-n2-13-4",
+      "cripta-n2-14-4",
+      "cripta-n2-15-4",
+      "cripta-n2-16-4",
+      "cripta-n2-17-4",
+    ],
+    5: [
+      "cripta-n2-15-5",
+      "cripta-n2-16-5",
+    ],
+  },
   "cripta-3": {
     4: [
       "cripta-n3-10",
@@ -639,7 +735,13 @@ function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
     "cripta-3": "Cripta Nível 3",
   };
 
-  return activity.name.includes(levelByTab[tab]);
+  const legacyLabel = levelByTab[tab];
+  const normalizedLabel = legacyLabel.replace("NÃ­vel", "Nível");
+
+  return (
+    activity.name.includes(legacyLabel) ||
+    activity.name.includes(normalizedLabel)
+  );
 }
 
 function isCriptaTab(tab: QuickRunTab) {
