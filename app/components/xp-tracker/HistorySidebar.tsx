@@ -245,13 +245,13 @@ function ChartTooltip({
             </span>
           </p>
           <p>
-            <span className="text-zinc-500">Farmado: </span>
+            <span className="text-zinc-500">Farm registrado: </span>
             <span className="font-bold text-emerald-400">
               +{point.farmedXP.toLocaleString("pt-BR")} XP
             </span>
           </p>
           <p>
-            <span className="text-zinc-500">Ajustes +: </span>
+            <span className="text-zinc-500">Farm avulso: </span>
             <span className="font-bold text-cyan-300">
               +{point.adjustmentGainXP.toLocaleString("pt-BR")} XP
             </span>
@@ -416,10 +416,10 @@ export function HistorySidebar({
     0
   );
   const totalDailyGainedXP = dailyChartData.reduce(
-    (sum, point) => sum + point.farmedXP,
+    (sum, point) => sum + point.gainedXP,
     0
   );
-  const selectedDayFarmedXP = selectedDayEntries.reduce(
+  const selectedDayRegisteredFarmXP = selectedDayEntries.reduce(
     (sum, entry) => sum + (isFarmEntry(entry) ? entry.xpGained : 0),
     0
   );
@@ -448,6 +448,8 @@ export function HistorySidebar({
     (sum, entry) => sum + entry.xpGained,
     0
   );
+  const selectedDayGainedXP =
+    selectedDayRegisteredFarmXP + selectedDayAdjustmentGainXP;
   const selectedDayBestEntry = selectedDayEntries.reduce<HistoryEntry | null>(
     (best, entry) => (!best || entry.xpGained > best.xpGained ? entry : best),
     null
@@ -715,10 +717,10 @@ export function HistorySidebar({
                     </div>
                     <div>
                       <p className={`${theme.muted} text-[10px] font-black uppercase`}>
-                        Farmado
+                        Ganho
                       </p>
                       <p className="text-sm font-black text-emerald-300">
-                        +{selectedDayFarmedXP.toLocaleString("pt-BR")}
+                        +{selectedDayGainedXP.toLocaleString("pt-BR")}
                       </p>
                     </div>
                     <div>
@@ -794,7 +796,7 @@ export function HistorySidebar({
                             cursor={{ fill: "rgba(234,179,8,0.08)" }}
                           />
                           <Bar
-                            dataKey="farmedXP"
+                            dataKey="gainedXP"
                             fill="#34d399"
                             radius={[8, 8, 4, 4]}
                             maxBarSize={34}
@@ -802,7 +804,7 @@ export function HistorySidebar({
                             {dailyChartData.map((point) => (
                               <Cell
                                 key={point.dateKey}
-                                fill={point.farmedXP > 0 ? "#34d399" : "#3f3f46"}
+                                fill={point.gainedXP > 0 ? "#34d399" : "#3f3f46"}
                               />
                             ))}
                           </Bar>
