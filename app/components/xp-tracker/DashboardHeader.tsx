@@ -3,6 +3,7 @@ import {
   NotificationDropdown,
   type AppNotification,
 } from "~/components/xp-tracker/NotificationCenter";
+import { HEADER_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -78,8 +79,6 @@ export function DashboardHeader({
 
   const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-yellow-400 transition-all`;
   const iconLabelClass = "text-[9px] md:text-[10px] font-bold leading-none text-zinc-400";
-  // Visual aprovado: manter esses glifos nos botões do topo.
-  // Eles não devem ser trocados por SVG em ajustes futuros de layout.
   const headerIconClass = "text-base md:text-lg leading-none";
 
   useEffect(() => {
@@ -132,12 +131,14 @@ export function DashboardHeader({
 
         <div className="flex gap-2.5 md:gap-3 flex-wrap justify-start md:justify-end">
           <button type="button" aria-label="Alternar tema" onClick={onToggleDarkMode} className={iconButtonClass}>
-            <span className={headerIconClass}>{darkMode ? "🌙" : "☀️"}</span>
+            <span className={headerIconClass}>
+              {darkMode ? HEADER_GLYPHS.moon : HEADER_GLYPHS.sun}
+            </span>
             <span className={iconLabelClass}>Tema</span>
           </button>
 
           <button type="button" aria-label="Abrir histórico" onClick={onToggleSidebar} className={`${iconButtonClass} relative`}>
-            <span className={headerIconClass}>📜</span>
+            <span className={headerIconClass}>{HEADER_GLYPHS.history}</span>
             <span className={iconLabelClass}>Histórico</span>
             {historyCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -158,24 +159,24 @@ export function DashboardHeader({
           />
 
           <button type="button" aria-label="Abrir assinatura" onClick={onOpenSubscription} className={iconButtonClass}>
-            <span className={headerIconClass}>💳</span>
+            <span className={headerIconClass}>{HEADER_GLYPHS.plan}</span>
             <span className={iconLabelClass}>Plano</span>
           </button>
 
           <button type="button" onClick={onOpenSettings} className={iconButtonClass}>
-            <span className={headerIconClass}>⚙️</span>
+            <span className={headerIconClass}>{HEADER_GLYPHS.settings}</span>
             <span className={iconLabelClass}>Config.</span>
           </button>
 
           {guestMode && (
             <button type="button" onClick={onLoginWithGoogle} className={iconButtonClass}>
-              <span className={headerIconClass}>☁️</span>
+              <span className={headerIconClass}>{HEADER_GLYPHS.save}</span>
               <span className={iconLabelClass}>Salvar</span>
             </button>
           )}
 
           <button type="button" onClick={onLogout} className={iconButtonClass}>
-            <span className={headerIconClass}>⏻</span>
+            <span className={headerIconClass}>{HEADER_GLYPHS.logout}</span>
             <span className={iconLabelClass}>Sair</span>
           </button>
         </div>

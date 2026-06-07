@@ -1,11 +1,5 @@
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
-import {
-  ChartIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  FlagIcon,
-  ScrollIcon,
-} from "~/components/xp-tracker/UiIcons";
+import { LOGIN_FEATURE_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -14,10 +8,10 @@ interface LoginScreenProps {
 
 export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
   const trackedFeatures = [
-    { label: "Marcos de progresso", icon: FlagIcon },
-    { label: "Gráfico de evolução", icon: ChartIcon },
-    { label: "Histórico de XP", icon: ScrollIcon },
-    { label: "Estimativa de conclusão", icon: ClockIcon },
+    { label: "Marcos de progresso", glyph: LOGIN_FEATURE_GLYPHS.milestones },
+    { label: "Gráfico de evolução", glyph: LOGIN_FEATURE_GLYPHS.chart },
+    { label: "Histórico de XP", glyph: LOGIN_FEATURE_GLYPHS.history },
+    { label: "Estimativa de conclusão", glyph: LOGIN_FEATURE_GLYPHS.estimate },
   ];
 
   return (
@@ -75,17 +69,17 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
             </h2>
 
             <div className="space-y-4 text-zinc-300">
-              {trackedFeatures.map(({ label, icon: Icon }) => (
+              {trackedFeatures.map(({ label, glyph }) => (
                 <p key={label} className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-400/10 text-yellow-300">
-                    <Icon className="h-4 w-4" />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-400/10 text-base leading-none text-yellow-300">
+                    {glyph}
                   </span>
                   <span>{label}</span>
                 </p>
               ))}
               <p className="flex items-center gap-3 text-emerald-300">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-400/10">
-                  <CheckCircleIcon className="h-4 w-4" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-400/10 text-base leading-none">
+                  {LOGIN_FEATURE_GLYPHS.cloudSave}
                 </span>
                 <span>Salvamento em nuvem no teste grátis</span>
               </p>

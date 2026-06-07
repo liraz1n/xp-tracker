@@ -376,7 +376,10 @@ export function HistorySidebar({
     (sum, point) => sum + point.xpGained,
     0
   );
-  const totalDailyNetXP = dailyChartData.reduce((sum, point) => sum + point.netXP, 0);
+  const totalDailyGainedXP = dailyChartData.reduce(
+    (sum, point) => sum + point.gainedXP,
+    0
+  );
   const selectedDayGainedXP = selectedDayEntries.reduce(
     (sum, entry) => sum + Math.max(0, entry.xpGained),
     0
@@ -693,8 +696,10 @@ export function HistorySidebar({
                         <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
                           XP no período
                         </p>
-                        <p className={`text-sm font-black ${totalFilteredXp < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                          {formatSignedXP(totalFilteredXp)}
+                        <p className="text-sm font-black text-emerald-400">
+                          {formatSignedXP(
+                            chartView === "daily" ? totalDailyGainedXP : totalFilteredXp
+                          )}
                         </p>
                       </div>
                       <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
@@ -729,7 +734,7 @@ export function HistorySidebar({
                             cursor={{ fill: "rgba(234,179,8,0.08)" }}
                           />
                           <Bar
-                            dataKey="netXP"
+                            dataKey="gainedXP"
                             fill="#34d399"
                             radius={[8, 8, 4, 4]}
                             maxBarSize={34}
@@ -737,7 +742,7 @@ export function HistorySidebar({
                             {dailyChartData.map((point) => (
                               <Cell
                                 key={point.dateKey}
-                                fill={point.netXP < 0 ? "#f87171" : "#34d399"}
+                                fill={point.gainedXP > 0 ? "#34d399" : "#3f3f46"}
                               />
                             ))}
                           </Bar>

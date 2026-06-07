@@ -1,4 +1,5 @@
 import { XIcon } from "~/components/xp-tracker/UiIcons";
+import { HEADER_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
 import type { BillingState } from "~/hooks/useBilling";
 
 export interface AppNotification {
@@ -129,7 +130,9 @@ export function NotificationDropdown({
         onClick={onToggle}
         className={`${buttonClassName} relative`}
       >
-        <span className="text-base md:text-lg leading-none">🔔</span>
+        <span className="text-base md:text-lg leading-none">
+          {HEADER_GLYPHS.notifications}
+        </span>
         <span className={labelClassName}>Avisos</span>
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-500 px-1 text-xs font-black text-black">

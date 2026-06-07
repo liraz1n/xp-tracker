@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { FLOATING_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
 
 const TELETOFUS_URL = "https://t.me/Teletofusbot?start=ref_756985380";
 const TELETOFUS_SITE_URL = "https://teletofus.com";
 
 export function TeletofusLink() {
   const [open, setOpen] = useState(false);
-  // Visual aprovado: manter glifo nos botões flutuantes, no mesmo padrão do topo.
   const floatingIconClass = "text-2xl leading-none";
 
   return (
@@ -33,7 +33,9 @@ export function TeletofusLink() {
                 className="flex items-center justify-between gap-3 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-100 transition-all hover:border-cyan-300 hover:bg-cyan-400 hover:text-black"
               >
                 <span>Jogue Teletofus</span>
-                <span className="text-lg leading-none">🎮</span>
+                <span className="text-lg leading-none">
+                  {FLOATING_GLYPHS.teletofus}
+                </span>
               </a>
 
               <a
@@ -58,7 +60,7 @@ export function TeletofusLink() {
         aria-expanded={open}
         aria-label="Abrir menu Teletofus"
       >
-        <span className={floatingIconClass}>🎮</span>
+        <span className={floatingIconClass}>{FLOATING_GLYPHS.teletofus}</span>
       </button>
     </div>
   );
