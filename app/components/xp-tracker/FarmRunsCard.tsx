@@ -1320,6 +1320,9 @@ export function FarmRunsCard({
                     );
                     const hasDoubleXp =
                       getDoubleXpMultiplier(activity, doubleXpMode) > 1;
+                    const xpToneClass = hasDoubleXp
+                      ? "text-yellow-200 drop-shadow-[0_0_10px_rgba(250,204,21,0.45)]"
+                      : "text-emerald-200 drop-shadow-[0_0_10px_rgba(52,211,153,0.28)]";
 
                     return (
                       <button
@@ -1327,26 +1330,38 @@ export function FarmRunsCard({
                         key={activity.id}
                         onClick={() => applyQuickActivity(activity)}
                         disabled={!canApplyQuickRun}
-                        className={`rounded-2xl border p-3 text-left transition-all hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 ${
+                        className={`group relative overflow-hidden rounded-2xl border p-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-500/10 hover:shadow-[0_0_28px_rgba(16,185,129,0.12)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 ${
                           isRecentQuickRun
                             ? "scale-[1.01] border-emerald-300 bg-emerald-500/15 shadow-[0_0_24px_rgba(16,185,129,0.18)]"
                             : "border-emerald-500/15 bg-black/25"
                         }`}
                       >
-                        <span className="flex items-center justify-between gap-2">
-                          <span className="block text-sm font-black text-white">
-                            +{formatXP(activityXP)} XP
+                        <span className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-400/0 via-emerald-300/70 to-emerald-400/0 opacity-0 transition-opacity group-hover:opacity-100" />
+
+                        <span className="flex items-start justify-between gap-2">
+                          <span>
+                            <span className={`block text-xl font-black leading-none tracking-normal md:text-2xl ${xpToneClass}`}>
+                              +{formatXP(activityXP)}
+                            </span>
+                            <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.12em] text-emerald-500/80">
+                              XP da run
+                            </span>
                           </span>
                           {isRecentQuickRun && (
                             <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black text-emerald-200">
                               Registrada agora
                             </span>
                           )}
+                          {hasDoubleXp && !isRecentQuickRun && (
+                            <span className="rounded-full border border-yellow-300/30 bg-yellow-400/10 px-2 py-0.5 text-[10px] font-black text-yellow-200">
+                              2XP
+                            </span>
+                          )}
                         </span>
-                        <span className="mt-1 block text-xs text-zinc-400">
+                        <span className="mt-3 block text-sm font-bold leading-tight text-zinc-200">
                           {activity.name}
                         </span>
-                        <span className="mt-0.5 block text-[11px] text-zinc-500">
+                        <span className="mt-1 block text-[11px] text-zinc-500">
                           {activity.category} - {activity.detail}
                         </span>
                         <span className="mt-1 inline-flex rounded-full border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
