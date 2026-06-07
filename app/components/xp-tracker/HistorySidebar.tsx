@@ -72,6 +72,9 @@ interface DailyChartPoint {
   label: string;
   netXP: number;
   gainedXP: number;
+  farmedXP: number;
+  adjustmentGainXP: number;
+  adjustmentLossXP: number;
   lostXP: number;
   runs: number;
   bestXP: number;
@@ -192,6 +195,25 @@ function filterHistoryByPeriod(history: HistoryEntry[], filter: ChartFilter) {
   });
 }
 
+function isManualAdjustment(entry: HistoryEntry) {
+  return /Ajuste manual|Configura/i.test(entry.source ?? "");
+}
+
+function isDeathEntry(entry: HistoryEntry) {
+  return /Morte/i.test(entry.source ?? "");
+}
+
+function isFarmEntry(entry: HistoryEntry) {
+  const source = entry.source ?? "";
+
+  return (
+    entry.xpGained > 0 &&
+    !isManualAdjustment(entry) &&
+    !isDeathEntry(entry) &&
+    (/Cripta|Masmorra|Plano de farm|Caçada|Cacada/i.test(source) || source === "")
+  );
+}
+
 function ChartTooltip({
   active,
   payload,
@@ -223,15 +245,21 @@ function ChartTooltip({
             </span>
           </p>
           <p>
-            <span className="text-zinc-500">Ganho: </span>
+            <span className="text-zinc-500">Farmado: </span>
             <span className="font-bold text-emerald-400">
-              +{point.gainedXP.toLocaleString("pt-BR")} XP
+              +{point.farmedXP.toLocaleString("pt-BR")} XP
             </span>
           </p>
           <p>
-            <span className="text-zinc-500">Perda: </span>
+            <span className="text-zinc-500">Ajustes +: </span>
+            <span className="font-bold text-cyan-300">
+              +{point.adjustmentGainXP.toLocaleString("pt-BR")} XP
+            </span>
+          </p>
+          <p>
+            <span className="text-zinc-500">Ajustes/perdas: </span>
             <span className="font-bold text-red-400">
-              -{point.lostXP.toLocaleString("pt-BR")} XP
+              -{(point.lostXP + point.adjustmentLossXP).toLocaleString("pt-BR")} XP
             </span>
           </p>
           <p>
@@ -344,6 +372,9 @@ export function HistorySidebar({
           label: formatDateLabel(dateKey),
           netXP: 0,
           gainedXP: 0,
+          farmedXP: 0,
+          adjustmentGainXP: 0,
+          adjustmentLossXP: 0,
           lostXP: 0,
           runs: 0,
           bestXP: 0,
@@ -351,7 +382,15 @@ export function HistorySidebar({
 
         current.netXP += entry.xpGained;
         current.gainedXP += Math.max(0, entry.xpGained);
-        current.lostXP += Math.abs(Math.min(0, entry.xpGained));
+        if (isFarmEntry(entry)) {
+          current.farmedXP += entry.xpGained;
+        } else if (isManualAdjustment(entry) && entry.xpGained > 0) {
+          current.adjustmentGainXP += entry.xpGained;
+        } else if (isManualAdjustment(entry) && entry.xpGained < 0) {
+          current.adjustmentLossXP += Math.abs(entry.xpGained);
+        } else {
+          current.lostXP += Math.abs(Math.min(0, entry.xpGained));
+        }
         current.runs += 1;
         current.bestXP = Math.max(current.bestXP, entry.xpGained);
         totals[dateKey] = current;
@@ -377,15 +416,32 @@ export function HistorySidebar({
     0
   );
   const totalDailyGainedXP = dailyChartData.reduce(
-    (sum, point) => sum + point.gainedXP,
+    (sum, point) => sum + point.farmedXP,
     0
   );
-  const selectedDayGainedXP = selectedDayEntries.reduce(
-    (sum, entry) => sum + Math.max(0, entry.xpGained),
+  const selectedDayFarmedXP = selectedDayEntries.reduce(
+    (sum, entry) => sum + (isFarmEntry(entry) ? entry.xpGained : 0),
+    0
+  );
+  const selectedDayAdjustmentGainXP = selectedDayEntries.reduce(
+    (sum, entry) =>
+      sum + (isManualAdjustment(entry) && entry.xpGained > 0 ? entry.xpGained : 0),
+    0
+  );
+  const selectedDayAdjustmentLossXP = selectedDayEntries.reduce(
+    (sum, entry) =>
+      sum +
+      (isManualAdjustment(entry) && entry.xpGained < 0
+        ? Math.abs(entry.xpGained)
+        : 0),
     0
   );
   const selectedDayLostXP = selectedDayEntries.reduce(
-    (sum, entry) => sum + Math.abs(Math.min(0, entry.xpGained)),
+    (sum, entry) =>
+      sum +
+      (!isManualAdjustment(entry) && entry.xpGained < 0
+        ? Math.abs(entry.xpGained)
+        : 0),
     0
   );
   const selectedDayNetXP = selectedDayEntries.reduce(
@@ -659,18 +715,22 @@ export function HistorySidebar({
                     </div>
                     <div>
                       <p className={`${theme.muted} text-[10px] font-black uppercase`}>
-                        Ganho
+                        Farmado
                       </p>
                       <p className="text-sm font-black text-emerald-300">
-                        +{selectedDayGainedXP.toLocaleString("pt-BR")}
+                        +{selectedDayFarmedXP.toLocaleString("pt-BR")}
                       </p>
                     </div>
                     <div>
                       <p className={`${theme.muted} text-[10px] font-black uppercase`}>
-                        Perda
+                        Ajustes
                       </p>
                       <p className="text-sm font-black text-red-300">
-                        -{selectedDayLostXP.toLocaleString("pt-BR")}
+                        {formatSignedXP(
+                          selectedDayAdjustmentGainXP -
+                            selectedDayAdjustmentLossXP -
+                            selectedDayLostXP
+                        )}
                       </p>
                     </div>
                   </div>
@@ -734,7 +794,7 @@ export function HistorySidebar({
                             cursor={{ fill: "rgba(234,179,8,0.08)" }}
                           />
                           <Bar
-                            dataKey="gainedXP"
+                            dataKey="farmedXP"
                             fill="#34d399"
                             radius={[8, 8, 4, 4]}
                             maxBarSize={34}
@@ -742,7 +802,7 @@ export function HistorySidebar({
                             {dailyChartData.map((point) => (
                               <Cell
                                 key={point.dateKey}
-                                fill={point.gainedXP > 0 ? "#34d399" : "#3f3f46"}
+                                fill={point.farmedXP > 0 ? "#34d399" : "#3f3f46"}
                               />
                             ))}
                           </Bar>
