@@ -6,6 +6,8 @@ interface ProfileBadgesCardProps {
 
 export function getProfileBadges(billing: BillingState) {
   const couponCode = billing.subscription?.coupon_code?.toUpperCase();
+  const isFounder =
+    couponCode === "FOUNDERS" || billing.subscription?.plan === "premium_lifetime";
 
   return [
     billing.isSuperAdmin
@@ -15,7 +17,7 @@ export function getProfileBadges(billing: BillingState) {
           className: "border-yellow-400/40 bg-yellow-500/15 text-yellow-200",
         }
       : null,
-    couponCode === "FOUNDERS"
+    isFounder
       ? {
           label: "Fundador",
           description: "Apoiador fundador do XP Tracker.",
