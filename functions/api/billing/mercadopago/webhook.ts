@@ -1,5 +1,6 @@
 import {
   jsonError,
+  LIFETIME_PRICE_CENTS,
   recordPaymentEvent,
   securityHeaders,
   upsertActiveSubscription,
@@ -70,6 +71,12 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     typeof payment.transaction_amount === "number"
       ? Math.round(payment.transaction_amount * 100)
       : null;
+  const inferredCouponCode =
+    payment.metadata?.coupon_code ??
+    (payment.status === "approved" &&
+    amountCents === LIFETIME_PRICE_CENTS
+      ? "FOUNDERS"
+      : null);
 
   await recordPaymentEvent({
     userId,
@@ -77,7 +84,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     eventType: "payment",
     status: payment.status ?? null,
     paymentMode: payment.metadata?.payment_mode ?? payment.payment_type_id ?? null,
-    couponCode: payment.metadata?.coupon_code ?? null,
+    couponCode: inferredCouponCode,
     amountCents,
     rawEvent: {
       id: paymentId,
@@ -86,6 +93,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       payment_method_id: payment.payment_method_id,
       payment_type_id: payment.payment_type_id,
       metadata: payment.metadata,
+      inferred_coupon_code: inferredCouponCode,
       referral_credit_cents: Number.isFinite(referralCreditCents)
         ? referralCreditCents
         : 0,
@@ -108,7 +116,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   await upsertActiveSubscription({
     userId,
     paymentId: String(paymentId),
-    couponCode: payment.metadata?.coupon_code,
+    couponCode: inferredCouponCode,
     referralCreditCents: Number.isFinite(referralCreditCents)
       ? referralCreditCents
       : 0,
