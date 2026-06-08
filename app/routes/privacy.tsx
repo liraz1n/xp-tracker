@@ -46,6 +46,22 @@ export default function PrivacyRoute() {
           ],
         },
         {
+          title: "Cookies e analytics",
+          paragraphs: [
+            "No momento, o XP Tracker não usa cookies de publicidade, rastreamento comercial ou analytics de terceiros para criar perfil de navegação.",
+            "Podemos usar apenas recursos técnicos necessários para login, sessão, segurança, preferência de tema e funcionamento do app. Se analytics, pixels ou cookies não essenciais forem adicionados no futuro, esta política deverá ser atualizada e o usuário será informado quando necessário.",
+          ],
+        },
+        {
+          title: "Registro de fornecedores",
+          items: [
+            "Google: autenticação e dados básicos do perfil usado no login.",
+            "Supabase: autenticação, banco de dados, políticas de acesso e armazenamento do progresso.",
+            "Cloudflare: hospedagem, entrega do site e execução das funções de backend.",
+            "Mercado Pago: checkout, Pix, cartão, status de pagamento e confirmação por webhook.",
+          ],
+        },
+        {
           title: "Pagamentos",
           paragraphs: [
             "O XP Tracker não armazena número de cartão, código de segurança, senha bancária ou chave Pix. O pagamento é processado pelo Mercado Pago em ambiente próprio.",
@@ -71,7 +87,7 @@ export default function PrivacyRoute() {
           title: "Seus direitos",
           paragraphs: [
             "Você pode solicitar acesso, correção ou exclusão dos seus dados pessoais. Também pode excluir a conta dentro do painel, quando a função estiver disponível para seu usuário.",
-            "Para pedidos relacionados a dados, use a Caixa de Sugestão do app ou entre em contato com o responsável pelo XP Tracker.",
+            "Enquanto um canal oficial de privacidade não estiver publicado, pedidos relacionados a dados podem ser enviados pela Caixa de Sugestão do app. Após a criação do contato oficial, esta política deverá ser atualizada com o endereço correto.",
           ],
         },
         {
