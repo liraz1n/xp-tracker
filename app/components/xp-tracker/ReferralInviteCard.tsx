@@ -42,7 +42,7 @@ export function ReferralInviteCard({
   if (guestMode) return null;
 
   return (
-    <section className={`${theme.card} mb-4 md:mb-5 rounded-3xl border p-4 md:p-5 shadow-[0_0_34px_rgba(234,179,8,0.08)]`}>
+    <section className={`${theme.card} rounded-3xl border p-4 md:p-5 shadow-[0_0_34px_rgba(234,179,8,0.08)]`}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-wide text-yellow-400">

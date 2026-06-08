@@ -12,6 +12,7 @@ export const HEADER_GLYPHS = {
 } as const;
 
 export const FLOATING_GLYPHS = {
+  invite: "🎁",
   doubleXp: "⚡",
   teletofus: "🎮",
   death: "💀",
