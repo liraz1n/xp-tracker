@@ -27,7 +27,7 @@ function getStartOfDay(date: Date) {
 }
 
 function sumXP(entries: HistoryEntry[]) {
-  return entries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  return entries.reduce((sum, entry) => sum + Math.max(0, entry.xpGained), 0);
 }
 
 function getRunCount(source?: string) {
@@ -74,7 +74,7 @@ export function GoalsRankingCard({
   const bestDay = Object.entries(
     history.reduce<Record<string, number>>((days, entry) => {
       const key = getDateKey(new Date(entry.date));
-      days[key] = (days[key] ?? 0) + entry.xpGained;
+      days[key] = (days[key] ?? 0) + Math.max(0, entry.xpGained);
       return days;
     }, {})
   ).sort((a, b) => b[1] - a[1])[0];

@@ -231,7 +231,7 @@ export default function Home() {
   const todayKey = new Date().toISOString().slice(0, 10);
   const xpToday = tracker.history
     .filter((entry) => new Date(entry.date).toISOString().slice(0, 10) === todayKey)
-    .reduce((sum, entry) => sum + entry.xpGained, 0);
+    .reduce((sum, entry) => sum + Math.max(0, entry.xpGained), 0);
   const notifications = useMemo(
     () =>
       buildNotifications({

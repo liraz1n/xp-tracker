@@ -20,6 +20,10 @@ function formatXP(value: number) {
   return value.toLocaleString("pt-BR");
 }
 
+function getProgressXP(entry: HistoryEntry) {
+  return Math.max(0, entry.xpGained);
+}
+
 function isSameDay(left: Date, right: Date) {
   return (
     left.getFullYear() === right.getFullYear() &&
@@ -66,15 +70,15 @@ export function SmartHistoryCard({
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
   const weekEntries = history.filter((entry) => new Date(entry.date) >= sevenDaysAgo);
-  const xpToday = todayEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
-  const xpWeek = weekEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const xpToday = todayEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const xpWeek = weekEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
   const bestEntry = history.reduce<HistoryEntry | null>(
     (best, entry) => (!best || entry.xpGained > best.xpGained ? entry : best),
     null
   );
   const averagePerEntry =
     history.length > 0
-      ? Math.round(history.reduce((sum, entry) => sum + entry.xpGained, 0) / history.length)
+      ? Math.round(history.reduce((sum, entry) => sum + getProgressXP(entry), 0) / history.length)
       : 0;
   const weekAverage = weekEntries.length > 0 ? Math.round(xpWeek / 7) : 0;
   const daysByWeekAverage =
@@ -82,7 +86,7 @@ export function SmartHistoryCard({
 
   const activityTotals = history.reduce<Record<string, number>>((totals, entry) => {
     const activityName = getActivityName(entry);
-    totals[activityName] = (totals[activityName] ?? 0) + entry.xpGained;
+    totals[activityName] = (totals[activityName] ?? 0) + getProgressXP(entry);
     return totals;
   }, {});
 

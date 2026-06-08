@@ -52,6 +52,10 @@ function formatXP(value: number) {
   return value.toLocaleString("pt-BR");
 }
 
+function getProgressXP(entry: HistoryEntry) {
+  return Math.max(0, entry.xpGained);
+}
+
 function getDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -108,13 +112,13 @@ export function UsageAchievementsCard({
   const today = new Date();
   const todayXP = history
     .filter((entry) => isSameDay(new Date(entry.date), today))
-    .reduce((sum, entry) => sum + entry.xpGained, 0);
+    .reduce((sum, entry) => sum + getProgressXP(entry), 0);
   const farmEntries = history.filter(isFarmEntry);
   const criptaEntries = history.filter(isCriptaEntry);
   const masmorraEntries = history.filter(isMasmorraEntry);
-  const farmXP = farmEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
-  const criptaXP = criptaEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
-  const masmorraXP = masmorraEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const farmXP = farmEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const criptaXP = criptaEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const masmorraXP = masmorraEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
   const farmRuns = farmEntries.reduce(
     (sum, entry) => sum + getRunCountFromSource(entry.source),
     0
@@ -127,7 +131,7 @@ export function UsageAchievementsCard({
     (sum, entry) => sum + getRunCountFromSource(entry.source),
     0
   );
-  const totalXP = history.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const totalXP = history.reduce((sum, entry) => sum + getProgressXP(entry), 0);
   const bestRunXP = history.reduce(
     (best, entry) => Math.max(best, entry.xpGained),
     0
