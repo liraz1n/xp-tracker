@@ -27,7 +27,7 @@ const options: Array<{
 export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
   const [open, setOpen] = useState(false);
   const active = mode !== "off";
-  const floatingIconClass = "text-2xl leading-none";
+  const floatingIconClass = "text-xl leading-none";
 
   function selectMode(nextMode: DoubleXpMode) {
     onChange(mode === nextMode ? "off" : nextMode);
@@ -35,7 +35,7 @@ export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
   }
 
   return (
-    <div className="fixed bottom-[10.75rem] right-5 z-30">
+    <div className="fixed bottom-[9.5rem] right-5 z-30">
       {open && (
         <>
           <button
@@ -45,7 +45,7 @@ export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
             onClick={() => setOpen(false)}
           />
 
-          <div className="absolute bottom-16 right-0 z-10 w-72 rounded-3xl border border-yellow-500/30 bg-zinc-950/95 p-3 shadow-[0_0_42px_rgba(234,179,8,0.2)] backdrop-blur">
+          <div className="absolute bottom-14 right-0 z-10 w-72 rounded-3xl border border-yellow-500/30 bg-zinc-950/95 p-3 shadow-[0_0_42px_rgba(234,179,8,0.2)] backdrop-blur">
             <div className="flex items-center justify-between gap-3 px-3 pb-2">
               <p className="text-xs font-black uppercase text-yellow-400">
                 Evento Double XP
@@ -91,7 +91,7 @@ export function DoubleXpAction({ mode, onChange }: DoubleXpActionProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`relative z-10 flex h-14 w-14 items-center justify-center rounded-full border shadow-[0_0_34px_rgba(234,179,8,0.22)] transition-all ${
+        className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border shadow-[0_0_30px_rgba(234,179,8,0.2)] transition-all ${
           active
             ? "border-yellow-300 bg-yellow-400 text-black"
             : "border-yellow-500/40 bg-yellow-500/15 text-yellow-200 hover:border-yellow-400 hover:bg-yellow-500 hover:text-black"

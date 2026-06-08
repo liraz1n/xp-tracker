@@ -53,7 +53,7 @@ export function DeathAction({
     deathModes.find((mode) => mode.id === selectedMode) ?? deathModes[0];
   const xpLost = Math.floor(userTotalXP * (selectedPenalty.percent / 100));
   const canConfirm = !disabled && userTotalXP > 0 && xpLost > 0;
-  const floatingIconClass = "text-2xl leading-none";
+  const floatingIconClass = "text-xl leading-none";
 
   function confirmDeath() {
     if (!canConfirm) return;
@@ -68,7 +68,7 @@ export function DeathAction({
         type="button"
         disabled={disabled}
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_34px_rgba(239,68,68,0.24)] transition-all hover:bg-red-500 hover:text-white disabled:pointer-events-none disabled:opacity-40"
+        className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_30px_rgba(239,68,68,0.22)] transition-all hover:bg-red-500 hover:text-white disabled:pointer-events-none disabled:opacity-40"
         aria-label="Registrar morte"
       >
         <span className={floatingIconClass}>{FLOATING_GLYPHS.death}</span>

@@ -6,10 +6,10 @@ const TELETOFUS_SITE_URL = "https://teletofus.com";
 
 export function TeletofusLink() {
   const [open, setOpen] = useState(false);
-  const floatingIconClass = "text-2xl leading-none";
+  const floatingIconClass = "text-xl leading-none";
 
   return (
-    <div className="fixed bottom-24 right-5 z-30">
+    <div className="fixed bottom-[5.25rem] right-5 z-30">
       {open && (
         <>
           <button
@@ -19,7 +19,7 @@ export function TeletofusLink() {
             onClick={() => setOpen(false)}
           />
 
-          <div className="absolute bottom-16 right-0 z-10 w-64 rounded-3xl border border-cyan-500/30 bg-zinc-950/95 p-3 shadow-[0_0_42px_rgba(34,211,238,0.16)] backdrop-blur">
+          <div className="absolute bottom-14 right-0 z-10 w-64 rounded-3xl border border-cyan-500/30 bg-zinc-950/95 p-3 shadow-[0_0_42px_rgba(34,211,238,0.16)] backdrop-blur">
             <p className="px-3 pb-2 text-xs font-black uppercase text-cyan-300">
               Teletofus
             </p>
@@ -56,7 +56,7 @@ export function TeletofusLink() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-500/15 text-cyan-200 shadow-[0_0_34px_rgba(34,211,238,0.2)] transition-all hover:border-cyan-300 hover:bg-cyan-400 hover:text-black"
+        className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-500/15 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.18)] transition-all hover:border-cyan-300 hover:bg-cyan-400 hover:text-black"
         aria-expanded={open}
         aria-label="Abrir menu Teletofus"
       >
