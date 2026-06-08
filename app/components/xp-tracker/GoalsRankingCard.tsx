@@ -1,4 +1,5 @@
 import type { HistoryEntry } from "~/hooks/useXpTracker";
+import { getLocalDateKey } from "~/utils/dateKeys";
 
 interface GoalsRankingCardProps {
   history: HistoryEntry[];
@@ -17,7 +18,7 @@ function formatXP(value: number) {
 }
 
 function getDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return getLocalDateKey(date);
 }
 
 function getStartOfDay(date: Date) {

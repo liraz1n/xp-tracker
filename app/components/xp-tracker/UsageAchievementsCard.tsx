@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { HistoryEntry } from "~/hooks/useXpTracker";
+import { getLocalDateKey, isSameLocalDay } from "~/utils/dateKeys";
 
 interface UsageAchievementsCardProps {
   history: HistoryEntry[];
@@ -24,7 +25,7 @@ interface Achievement {
 }
 
 function isSameDay(date: Date, reference: Date) {
-  return date.toDateString() === reference.toDateString();
+  return isSameLocalDay(date, reference);
 }
 
 function getRunCountFromSource(source?: string) {
@@ -57,7 +58,7 @@ function getProgressXP(entry: HistoryEntry) {
 }
 
 function getDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return getLocalDateKey(date);
 }
 
 function getCurrentStreak(history: HistoryEntry[]) {

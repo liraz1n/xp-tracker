@@ -29,6 +29,7 @@ import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
 import { TeletofusLink } from "~/components/xp-tracker/TeletofusLink";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
+import { getLocalDateKey } from "~/utils/dateKeys";
 
 type SidebarTab = "historico" | "grafico";
 
@@ -228,9 +229,9 @@ export default function Home() {
   const shouldShowOnboarding =
     tracker.totalXP === 0 && tracker.currentXP === 0 && tracker.history.length === 0;
   const premiumLocked = tracker.billing.accessStatus === "locked";
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = getLocalDateKey(new Date());
   const xpToday = tracker.history
-    .filter((entry) => new Date(entry.date).toISOString().slice(0, 10) === todayKey)
+    .filter((entry) => getLocalDateKey(new Date(entry.date)) === todayKey)
     .reduce((sum, entry) => sum + Math.max(0, entry.xpGained), 0);
   const notifications = useMemo(
     () =>
