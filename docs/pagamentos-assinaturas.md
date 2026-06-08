@@ -12,7 +12,8 @@ Build 1.4.7 documenta o estado atual da base comercial do XP Tracker: trial, pla
 
 - BETA50: 50% de desconto por 6 meses.
 - TOFUS: 50% de desconto para os 10 primeiros usos.
-- FOUNDERS: R$ 2,50 por mes para os 10 primeiros assinantes.
+- FOUNDERS: R$ 20 em pagamento unico para acesso vitalicio dos 10 primeiros fundadores.
+- OGANDALF: R$ 2,50 por mes para os 10 primeiros usos.
 
 ## O que ja existe nesta etapa
 

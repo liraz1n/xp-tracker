@@ -22,6 +22,7 @@ export function SubscriptionPanel({
   if (!open) return null;
 
   const subscription = billing.subscription;
+  const isLifetimePlan = subscription?.plan === "premium_lifetime";
   const renewalDate = subscription?.current_period_ends_at
     ? new Date(subscription.current_period_ends_at).toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -82,10 +83,10 @@ export function SubscriptionPanel({
 
           <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
             <p className={`${theme.muted} text-xs font-black uppercase`}>
-              Valor mensal
+              {isLifetimePlan ? "Valor vitalício" : "Valor mensal"}
             </p>
             <p className="mt-1 font-black text-yellow-300">
-              {billing.priceLabel}
+              {isLifetimePlan ? "R$ 20,00" : billing.priceLabel}
             </p>
           </div>
 
@@ -100,10 +101,10 @@ export function SubscriptionPanel({
 
           <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
             <p className={`${theme.muted} text-xs font-black uppercase`}>
-              Renovacao
+              {isLifetimePlan ? "Acesso" : "Renovacao"}
             </p>
             <p className="mt-1 font-black text-indigo-300">
-              {renewalDate ?? "Aguardando"}
+              {isLifetimePlan ? "Vitalício" : renewalDate ?? "Aguardando"}
             </p>
           </div>
         </div>

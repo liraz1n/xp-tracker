@@ -74,6 +74,10 @@ Aplique os SQLs em ordem:
 3. `supabase/sql/003_user_total_xp.sql`
 4. `supabase/sql/004_security_audit.sql`
 5. `supabase/sql/005_admin_payment_logs_badges.sql`
+6. `supabase/sql/006_suggestions_box.sql`
+7. `supabase/sql/007_delete_account_policy.sql`
+8. `supabase/sql/008_trial_three_days.sql`
+9. `supabase/sql/009_founders_lifetime_ogandalf.sql`
 
 ## Documentos de apoio
 

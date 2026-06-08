@@ -144,4 +144,4 @@ select
   count(*)::text as result
 from public.discount_coupons
 where active = true
-  and code in ('FOUNDERS', 'TOFUS');
+  and code in ('FOUNDERS', 'OGANDALF', 'TOFUS');

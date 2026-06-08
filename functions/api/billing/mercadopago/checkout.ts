@@ -2,6 +2,7 @@ import {
   getAuthenticatedUser,
   getBaseUrl,
   jsonError,
+  LIFETIME_PLAN_ID,
   PLAN_ID,
   PREMIUM_PRICE,
   recordPaymentEvent,
@@ -35,6 +36,9 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   };
   let finalPrice = PREMIUM_PRICE;
   let couponCode: string | null = null;
+  let planId = PLAN_ID;
+  let itemTitle = "XP Tracker Premium";
+  let itemDescription = "Acesso Premium mensal ao XP Tracker";
   const paymentMode = body.paymentMode === "pix" ? "pix" : "card";
   const paymentMethods =
     paymentMode === "pix"
@@ -70,6 +74,11 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       if (coupon) {
         finalPrice = coupon.price;
         couponCode = coupon.code;
+        if (coupon.code === "FOUNDERS") {
+          planId = LIFETIME_PLAN_ID;
+          itemTitle = "XP Tracker Premium Vitalício";
+          itemDescription = "Acesso vitalício ao XP Tracker";
+        }
       }
     } catch (error) {
       return jsonError(
@@ -90,9 +99,9 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       body: JSON.stringify({
         items: [
           {
-            id: PLAN_ID,
-            title: "XP Tracker Premium",
-            description: "Acesso Premium mensal ao XP Tracker",
+            id: planId,
+            title: itemTitle,
+            description: itemDescription,
             quantity: 1,
             currency_id: "BRL",
             unit_price: finalPrice,
@@ -104,7 +113,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
         external_reference: user.id,
         metadata: {
           user_id: user.id,
-          plan: PLAN_ID,
+          plan: planId,
           coupon_code: couponCode,
           payment_mode: paymentMode,
         },
@@ -139,6 +148,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       amountCents: Math.round(finalPrice * 100),
       rawEvent: {
         preference_id: preference.id,
+        plan: planId,
         payment_mode: paymentMode,
         coupon_code: couponCode,
       },

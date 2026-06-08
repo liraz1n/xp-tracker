@@ -50,7 +50,8 @@ export const SUPABASE_ANON_KEY = "sb_publishable_kzsAi2dFuLrMjcr6R06MNw_8Vuv5Ilq
 export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
 export const PLAN_ID = "premium_monthly";
-const ALLOWED_COUPONS = new Set(["BETA50", "TOFUS", "FOUNDERS"]);
+export const LIFETIME_PLAN_ID = "premium_lifetime";
+const ALLOWED_COUPONS = new Set(["BETA50", "TOFUS", "FOUNDERS", "OGANDALF"]);
 
 export const securityHeaders = {
   "cache-control": "no-store",
@@ -160,13 +161,14 @@ export async function upsertActiveSubscription({
   serviceRoleKey: string;
 }) {
   const now = new Date();
-  const periodEndsAt = new Date(now);
-  periodEndsAt.setDate(periodEndsAt.getDate() + 30);
   const appliedCoupon = await redeemCoupon({
     couponCode,
     userId,
     serviceRoleKey,
   });
+  const lifetimeAccess = appliedCoupon?.code === "FOUNDERS";
+  const periodEndsAt = new Date(now);
+  periodEndsAt.setDate(periodEndsAt.getDate() + 30);
 
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/user_subscriptions?on_conflict=user_id`,
@@ -180,12 +182,12 @@ export async function upsertActiveSubscription({
       },
       body: JSON.stringify({
         user_id: userId,
-        plan: PLAN_ID,
+        plan: lifetimeAccess ? LIFETIME_PLAN_ID : PLAN_ID,
         status: "active",
         provider: "mercado_pago",
         provider_subscription_id: paymentId,
         current_period_started_at: now.toISOString(),
-        current_period_ends_at: periodEndsAt.toISOString(),
+        current_period_ends_at: lifetimeAccess ? null : periodEndsAt.toISOString(),
         coupon_code: appliedCoupon?.code ?? null,
         discount_percent: appliedCoupon?.discountPercent ?? null,
         discount_amount_cents: appliedCoupon?.discountAmountCents ?? null,
@@ -436,6 +438,7 @@ function couponEndsAt(coupon: DiscountCouponRow) {
 
 function maxRedemptionsForCoupon(coupon: DiscountCouponRow | null) {
   if (coupon?.code === "FOUNDERS") return 10;
+  if (coupon?.code === "OGANDALF") return 10;
   if (coupon?.code === "TOFUS") return 10;
 
   return coupon?.max_redemptions ?? null;

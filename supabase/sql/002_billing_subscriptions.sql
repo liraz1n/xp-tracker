@@ -123,17 +123,17 @@ values
     10
   ),
   (
-    'LIRA',
-    'Primeiro mês grátis.',
-    'free_months',
-    1,
-    'once',
-    1,
-    null
+    'FOUNDERS',
+    'Acesso vitalício por pagamento único de R$ 20,00 para os 10 primeiros fundadores.',
+    'fixed_price_cents',
+    2000,
+    'forever',
+    null,
+    10
   ),
   (
-    'FOUNDERS',
-    'Preço fundador de R$ 2,50/mês para os 10 primeiros assinantes.',
+    'OGANDALF',
+    'Preço especial de R$ 2,50/mês para os 10 primeiros usos.',
     'fixed_price_cents',
     250,
     'forever',
@@ -184,8 +184,7 @@ for select
 to authenticated
 using (user_id::text = auth.uid()::text);
 
-update public.discount_coupons
-set active = false
+delete from public.discount_coupons
 where code = 'LIRA';
 
 update public.discount_coupons
@@ -209,10 +208,44 @@ where code = 'TOFUS';
 
 update public.discount_coupons
 set
-  description = 'Preço fundador de R$ 2,50/mês para os 10 primeiros assinantes.',
+  description = 'Acesso vitalício por pagamento único de R$ 20,00 para os 10 primeiros fundadores.',
+  discount_type = 'fixed_price_cents',
+  discount_value = 2000,
+  duration_type = 'forever',
+  duration_months = null,
   max_redemptions = 10,
   active = true
 where code = 'FOUNDERS';
+
+insert into public.discount_coupons (
+  code,
+  description,
+  discount_type,
+  discount_value,
+  duration_type,
+  duration_months,
+  max_redemptions,
+  active
+)
+values (
+  'OGANDALF',
+  'Preço especial de R$ 2,50/mês para os 10 primeiros usos.',
+  'fixed_price_cents',
+  250,
+  'forever',
+  null,
+  10,
+  true
+)
+on conflict (code) do update
+set
+  description = excluded.description,
+  discount_type = excluded.discount_type,
+  discount_value = excluded.discount_value,
+  duration_type = excluded.duration_type,
+  duration_months = excluded.duration_months,
+  max_redemptions = excluded.max_redemptions,
+  active = excluded.active;
 
 -- Verification query: should show one subscription row per user and the active coupons.
 select

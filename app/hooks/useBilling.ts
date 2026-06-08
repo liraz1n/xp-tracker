@@ -73,8 +73,13 @@ export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
   },
   {
     code: "FOUNDERS",
-    title: "♛ R$ 2,50/mês",
-    description: "Coroa de fundador para os 10 primeiros assinantes do XP Tracker.",
+    title: "R$ 20 vitalício",
+    description: "Pagamento único para acesso vitalício dos 10 primeiros fundadores.",
+  },
+  {
+    code: "OGANDALF",
+    title: "R$ 2,50/mês",
+    description: "Preço especial mensal para os 10 primeiros usos do cupom.",
   },
 ];
 

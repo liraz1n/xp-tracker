@@ -51,6 +51,7 @@ export function SubscriptionCard({
   const isActive = billing.accessStatus === "active";
   const isGuest = billing.accessStatus === "guest";
   const isSetupPending = billing.accessStatus === "setup_pending";
+  const isFoundersLifetime = appliedCouponCode === "FOUNDERS";
   const trialDays =
     billing.trialDaysRemaining === null ? 0 : billing.trialDaysRemaining;
 
@@ -183,7 +184,9 @@ export function SubscriptionCard({
                 ? "Abrindo checkout..."
                 : isActive
                   ? "Premium ativo"
-                  : "Assinar com Pix"}
+                  : isFoundersLifetime
+                    ? "Pagar vitalício com Pix"
+                    : "Assinar com Pix"}
             </button>
 
             <button
@@ -192,7 +195,11 @@ export function SubscriptionCard({
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
               className="rounded-xl border border-yellow-500/35 bg-yellow-400/10 px-4 py-3 text-sm font-black text-yellow-300 transition-all hover:border-yellow-400 hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {checkoutLoading ? "Abrindo cartão..." : "Assinar com Cartão"}
+              {checkoutLoading
+                ? "Abrindo cartão..."
+                : isFoundersLifetime
+                  ? "Pagar vitalício com Cartão"
+                  : "Assinar com Cartão"}
             </button>
           </div>
         </div>
