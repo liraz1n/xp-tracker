@@ -352,11 +352,7 @@ export default function Home() {
     <div
       className={`min-h-screen ${theme.bg} ${theme.text} select-none transition-colors duration-300 [&_input]:select-text [&_textarea]:select-text`}
     >
-      <ScreenshotProtection
-        userName={tracker.userName}
-        userEmail={tracker.user?.email ?? null}
-        darkMode={tracker.darkMode}
-      />
+      <ScreenshotProtection />
 
       <div className={`relative z-10 transition-all duration-300 ${sidebarOpen ? "md:mr-80" : "mr-0"}`}>
         <main className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">

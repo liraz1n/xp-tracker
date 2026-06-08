@@ -1,10 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-
-interface ScreenshotProtectionProps {
-  userName?: string | null;
-  userEmail?: string | null;
-  darkMode: boolean;
-}
+import { useEffect, useState } from "react";
 
 const PROTECTED_KEYS = new Set(["PrintScreen", "F12"]);
 
@@ -18,20 +12,10 @@ function isProtectedShortcut(event: KeyboardEvent) {
   );
 }
 
-export function ScreenshotProtection({
-  userName,
-  userEmail,
-  darkMode,
-}: ScreenshotProtectionProps) {
+export function ScreenshotProtection() {
   const [overlayMessage, setOverlayMessage] = useState("");
   const [windowBlurred, setWindowBlurred] = useState(false);
   const [devToolsDetected, setDevToolsDetected] = useState(false);
-  const watermarkLabel = useMemo(() => {
-    const name = userName?.trim() || "XP Tracker";
-    const email = userEmail?.trim();
-
-    return email ? `${name} - ${email}` : name;
-  }, [userEmail, userName]);
 
   useEffect(() => {
     let overlayTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -133,24 +117,6 @@ export function ScreenshotProtection({
 
   return (
     <>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-20 overflow-hidden select-none"
-      >
-        <div className="absolute -left-24 top-0 grid h-[140vh] w-[140vw] -rotate-12 grid-cols-3 gap-10 opacity-[0.055] md:grid-cols-4">
-          {Array.from({ length: 24 }).map((_, index) => (
-            <span
-              key={index}
-              className={`whitespace-nowrap text-xs font-black uppercase tracking-[0.28em] ${
-                darkMode ? "text-yellow-200" : "text-zinc-900"
-              }`}
-            >
-              {watermarkLabel}
-            </span>
-          ))}
-        </div>
-      </div>
-
       {activeOverlayMessage && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-6 text-center backdrop-blur-xl">
           <div className="max-w-md rounded-3xl border border-yellow-500/25 bg-zinc-950 p-6 shadow-[0_0_60px_rgba(234,179,8,0.18)]">
