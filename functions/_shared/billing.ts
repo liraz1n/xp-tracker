@@ -50,6 +50,7 @@ export const SUPABASE_URL = "https://vshglekspdbjnxngudmc.supabase.co";
 export const SUPABASE_ANON_KEY = "sb_publishable_kzsAi2dFuLrMjcr6R06MNw_8Vuv5Ilq";
 export const PREMIUM_PRICE = 5.99;
 export const PREMIUM_PRICE_CENTS = 599;
+export const LIFETIME_PRICE_CENTS = 2000;
 export const PLAN_ID = "premium_monthly";
 export const LIFETIME_PLAN_ID = "premium_lifetime";
 const ALLOWED_COUPONS = new Set(["BETA50", "TOFUS", "FOUNDERS", "OGANDALF"]);
@@ -496,6 +497,16 @@ async function userAlreadyRedeemedCoupon({
 }
 
 function applyCoupon(coupon: DiscountCouponRow): AppliedCoupon {
+  if (coupon.code === "FOUNDERS") {
+    return {
+      code: coupon.code,
+      price: LIFETIME_PRICE_CENTS / 100,
+      discountPercent: null,
+      discountAmountCents: null,
+      discountEndsAt: null,
+    };
+  }
+
   if (coupon.discount_type === "percent") {
     const discountPercent = Number(coupon.discount_value);
     const priceCents = Math.round(
