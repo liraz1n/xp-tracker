@@ -51,6 +51,13 @@ export default function TermsRoute() {
           ],
         },
         {
+          title: "Convites e créditos",
+          paragraphs: [
+            "Usuários logados podem receber um link de convite. A cada 5 amigos convidados e qualificados, o usuário ganha 1 crédito, equivalente a R$ 0,50 de desconto no checkout Premium.",
+            "Créditos não são dinheiro, não podem ser sacados e só podem ser usados como desconto dentro do XP Tracker. Convites próprios, duplicados, fraudulentos ou criados para abuso podem ser bloqueados.",
+          ],
+        },
+        {
           title: "Dados inseridos pelo usuário",
           paragraphs: [
             "Você é responsável pelos valores de XP, níveis, runs e ajustes manuais informados no painel. O XP Tracker calcula resultados com base nesses dados e nos valores cadastrados no sistema.",

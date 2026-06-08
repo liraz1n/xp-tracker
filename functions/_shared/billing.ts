@@ -22,6 +22,7 @@ export type MercadoPagoPaymentResponse = {
     user_id?: string;
     coupon_code?: string;
     payment_mode?: string;
+    referral_credit_cents?: string | number;
   };
 };
 
@@ -153,11 +154,13 @@ export async function upsertActiveSubscription({
   userId,
   paymentId,
   couponCode,
+  referralCreditCents,
   serviceRoleKey,
 }: {
   userId: string;
   paymentId: string;
   couponCode?: string | null;
+  referralCreditCents?: number | null;
   serviceRoleKey: string;
 }) {
   const now = new Date();
@@ -198,6 +201,15 @@ export async function upsertActiveSubscription({
 
   if (!response.ok) {
     throw new Error(await response.text());
+  }
+
+  if (referralCreditCents && referralCreditCents > 0) {
+    await recordReferralCreditUsage({
+      userId,
+      paymentId,
+      amountCents: referralCreditCents,
+      serviceRoleKey,
+    });
   }
 }
 
@@ -273,6 +285,101 @@ export async function resolveCouponForCheckout({
   }
 
   return applyCoupon(coupon);
+}
+
+export async function getAvailableReferralCreditCents({
+  userId,
+  serviceRoleKey,
+}: {
+  userId: string;
+  serviceRoleKey: string;
+}) {
+  const referralsResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/referrals?referrer_user_id=eq.${userId}&status=eq.qualified&select=id`,
+    {
+      headers: serviceRoleHeaders(serviceRoleKey),
+    }
+  );
+
+  if (!referralsResponse.ok) return 0;
+
+  const referrals = (await referralsResponse.json()) as { id: string }[];
+  const earnedCents = Math.floor(referrals.length / 5) * 50;
+
+  const transactionsResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/referral_credit_transactions?user_id=eq.${userId}&transaction_type=eq.checkout_discount&select=amount_cents`,
+    {
+      headers: serviceRoleHeaders(serviceRoleKey),
+    }
+  );
+
+  if (!transactionsResponse.ok) return earnedCents;
+
+  const transactions = (await transactionsResponse.json()) as {
+    amount_cents: number;
+  }[];
+  const usedCents = transactions.reduce(
+    (sum, transaction) => sum + Math.abs(Math.min(0, transaction.amount_cents)),
+    0
+  );
+
+  return Math.max(0, earnedCents - usedCents);
+}
+
+async function recordReferralCreditUsage({
+  userId,
+  paymentId,
+  amountCents,
+  serviceRoleKey,
+}: {
+  userId: string;
+  paymentId: string;
+  amountCents: number;
+  serviceRoleKey: string;
+}) {
+  const existingResponse = await fetch(
+    `${SUPABASE_URL}/rest/v1/referral_credit_transactions?user_id=eq.${userId}&transaction_type=eq.checkout_discount&reference_id=eq.${encodeURIComponent(
+      paymentId
+    )}&select=id&limit=1`,
+    {
+      headers: serviceRoleHeaders(serviceRoleKey),
+    }
+  );
+
+  if (existingResponse.ok) {
+    const existing = (await existingResponse.json()) as { id: string }[];
+
+    if (existing.length > 0) return;
+  }
+
+  const availableCents = await getAvailableReferralCreditCents({
+    userId,
+    serviceRoleKey,
+  });
+  const usageCents = Math.min(amountCents, availableCents);
+
+  if (usageCents <= 0) return;
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/referral_credit_transactions`,
+    {
+      method: "POST",
+      headers: serviceRoleHeaders(serviceRoleKey),
+      body: JSON.stringify({
+        user_id: userId,
+        amount_cents: -usageCents,
+        transaction_type: "checkout_discount",
+        reference_id: paymentId,
+        metadata: {
+          provider: "mercado_pago",
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    console.error("Could not record referral credit usage:", await response.text());
+  }
 }
 
 async function redeemCoupon({

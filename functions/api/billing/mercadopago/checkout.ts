@@ -1,6 +1,7 @@
 import {
   getAuthenticatedUser,
   getBaseUrl,
+  getAvailableReferralCreditCents,
   jsonError,
   LIFETIME_PLAN_ID,
   PLAN_ID,
@@ -33,9 +34,11 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   const body = (await request.json().catch(() => ({}))) as {
     couponCode?: string;
     paymentMode?: "card" | "pix";
+    useReferralCredits?: boolean;
   };
   let finalPrice = PREMIUM_PRICE;
   let couponCode: string | null = null;
+  let referralCreditCents = 0;
   let planId = PLAN_ID;
   let itemTitle = "XP Tracker Premium";
   let itemDescription = "Acesso Premium mensal ao XP Tracker";
@@ -88,6 +91,21 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     }
   }
 
+  if (body.useReferralCredits && serviceRoleKey && planId !== LIFETIME_PLAN_ID) {
+    const availableReferralCreditCents = await getAvailableReferralCreditCents({
+      userId: user.id,
+      serviceRoleKey,
+    });
+    const currentPriceCents = Math.round(finalPrice * 100);
+    const maxReferralDiscountCents = Math.max(0, currentPriceCents - 100);
+
+    referralCreditCents = Math.min(
+      availableReferralCreditCents,
+      maxReferralDiscountCents
+    );
+    finalPrice = Math.max(1, currentPriceCents - referralCreditCents) / 100;
+  }
+
   const preferenceResponse = await fetch(
     "https://api.mercadopago.com/checkout/preferences",
     {
@@ -116,6 +134,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
           plan: planId,
           coupon_code: couponCode,
           payment_mode: paymentMode,
+          referral_credit_cents: referralCreditCents,
         },
         payment_methods: paymentMethods,
         back_urls: {
@@ -151,6 +170,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
         plan: planId,
         payment_mode: paymentMode,
         coupon_code: couponCode,
+        referral_credit_cents: referralCreditCents,
       },
       serviceRoleKey,
     });

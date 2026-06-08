@@ -7,6 +7,7 @@ Este documento e um guia interno para operar pedidos de privacidade no XP Tracke
 - Conta: nome, e-mail, avatar e identificador do usuario pelo Supabase Auth/Google.
 - Progresso: nivel, XP restante, XP total, meta diaria, historico, runs, mortes, boosts e ajustes manuais.
 - Assinatura: plano, status, trial, cupom, datas de periodo e registros tecnicos de pagamento.
+- Convites: codigo de indicacao, usuario que convidou, usuario convidado, convites qualificados e creditos usados no checkout.
 - Sugestoes: texto enviado pelo usuario na Caixa de Sugestao.
 
 ## Fornecedores
@@ -41,6 +42,7 @@ Quando um usuario pedir acesso, correcao ou exclusao:
 - RLS habilitado nas tabelas com dados pessoais.
 - Service role e token do Mercado Pago apenas no Cloudflare, nunca no front-end.
 - Webhook de pagamento validando assinatura antes de liberar plano.
+- Convites e creditos controlados no Supabase/backend, sem depender de LocalStorage para saldo ou desconto.
 - Canal oficial de privacidade definido quando o e-mail/domino estiverem prontos.
 
 ## Revisao periodica

@@ -24,6 +24,7 @@ import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/
 import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
 import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
 import { ProfileBadgesCard } from "~/components/xp-tracker/ProfileBadgesCard";
+import { ReferralInviteCard } from "~/components/xp-tracker/ReferralInviteCard";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { ScreenshotProtection } from "~/components/xp-tracker/ScreenshotProtection";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
@@ -386,6 +387,16 @@ export default function Home() {
           <PaymentReturnCard status={paymentReturnStatus} theme={theme} />
 
           <ProfileBadgesCard billing={tracker.billing} />
+
+          {!shouldShowOnboarding && tracker.user && (
+            <ReferralInviteCard
+              summary={tracker.billing.referralSummary}
+              loading={tracker.billing.referralLoading}
+              error={tracker.billing.referralError}
+              guestMode={tracker.guestMode}
+              theme={theme}
+            />
+          )}
 
           {shouldShowOnboarding && (
             <OnboardingCard

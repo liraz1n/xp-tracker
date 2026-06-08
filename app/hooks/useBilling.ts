@@ -40,6 +40,16 @@ export interface CouponPreview {
 
 export type CheckoutPaymentMode = "card" | "pix";
 
+export interface ReferralSummary {
+  code: string;
+  qualifiedReferrals: number;
+  creditsEarned: number;
+  creditsUsed: number;
+  creditsAvailable: number;
+  availableCents: number;
+  nextCreditProgress: number;
+}
+
 export interface BillingState {
   accessStatus: BillingAccessStatus;
   isSuperAdmin: boolean;
@@ -52,12 +62,17 @@ export interface BillingState {
   trialEndsAt: string | null;
   planLabel: string;
   priceLabel: string;
+  referralSummary: ReferralSummary | null;
+  referralLoading: boolean;
+  referralError: string | null;
   checkoutLoading: boolean;
   checkoutError: string | null;
   startCheckout: (
     couponCode?: string,
-    paymentMode?: CheckoutPaymentMode
+    paymentMode?: CheckoutPaymentMode,
+    useReferralCredits?: boolean
   ) => Promise<void>;
+  reloadReferralSummary: () => Promise<void>;
 }
 
 export const ACTIVE_COUPON_PREVIEWS: CouponPreview[] = [
@@ -102,6 +117,26 @@ export function findCouponPreview(code: string) {
 
 export function isSuperAdminEmail(email?: string | null) {
   return SUPERADMIN_EMAILS.includes((email ?? "").trim().toLowerCase());
+}
+
+function mapReferralSummary(row: {
+  code: string;
+  qualified_referrals: number;
+  credits_earned: number;
+  credits_used: number;
+  credits_available: number;
+  available_cents: number;
+  next_credit_progress: number;
+}): ReferralSummary {
+  return {
+    code: row.code,
+    qualifiedReferrals: row.qualified_referrals,
+    creditsEarned: row.credits_earned,
+    creditsUsed: row.credits_used,
+    creditsAvailable: row.credits_available,
+    availableCents: row.available_cents,
+    nextCreditProgress: row.next_credit_progress,
+  };
 }
 
 function daysUntil(dateValue: string | null) {
@@ -158,7 +193,40 @@ export function useBilling({
   const [setupPending, setSetupPending] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [referralSummary, setReferralSummary] =
+    useState<ReferralSummary | null>(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [referralError, setReferralError] = useState<string | null>(null);
   const isSuperAdmin = isSuperAdminEmail(user?.email);
+
+  async function reloadReferralSummary() {
+    if (!user || guestMode) {
+      setReferralSummary(null);
+      setReferralLoading(false);
+      setReferralError(null);
+      return;
+    }
+
+    setReferralLoading(true);
+    setReferralError(null);
+
+    const { data, error } = await supabase
+      .rpc("get_my_referral_summary")
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Resumo de convites ainda não está configurado:", error);
+      setReferralSummary(null);
+      setReferralError("Convites ainda não estão configurados.");
+      setReferralLoading(false);
+      return;
+    }
+
+    setReferralSummary(
+      data ? mapReferralSummary(data as Parameters<typeof mapReferralSummary>[0]) : null
+    );
+    setReferralLoading(false);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -194,10 +262,14 @@ export function useBilling({
       setSubscription(null);
       setLoading(false);
       setSetupPending(false);
+      setReferralSummary(null);
+      setReferralLoading(false);
+      setReferralError(null);
       return;
     }
 
     loadSubscription(user.id);
+    reloadReferralSummary();
 
     return () => {
       cancelled = true;
@@ -206,7 +278,8 @@ export function useBilling({
 
   async function startCheckout(
     couponCode = "",
-    paymentMode: CheckoutPaymentMode = "card"
+    paymentMode: CheckoutPaymentMode = "card",
+    useReferralCredits = false
   ) {
     if (!user || guestMode) return;
 
@@ -230,6 +303,7 @@ export function useBilling({
         body: JSON.stringify({
           couponCode: couponCode.trim().toUpperCase(),
           paymentMode,
+          useReferralCredits,
         }),
       });
 
@@ -267,9 +341,13 @@ export function useBilling({
         trialEndsAt: null,
         planLabel: "Visitante",
         priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+        referralSummary: null,
+        referralLoading: false,
+        referralError: null,
         checkoutLoading,
         checkoutError,
         startCheckout,
+        reloadReferralSummary,
       };
     }
 
@@ -286,9 +364,13 @@ export function useBilling({
         trialEndsAt: null,
         planLabel: "Carregando plano",
         priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+        referralSummary,
+        referralLoading,
+        referralError,
         checkoutLoading,
         checkoutError,
         startCheckout,
+        reloadReferralSummary,
       };
     }
 
@@ -318,9 +400,24 @@ export function useBilling({
           ? "Premium"
           : "Teste grátis",
       priceLabel: formatCurrencyCents(PREMIUM_PRICE_CENTS),
+      referralSummary,
+      referralLoading,
+      referralError,
       checkoutLoading,
       checkoutError,
       startCheckout,
+      reloadReferralSummary,
     };
-  }, [guestMode, loading, setupPending, subscription, checkoutLoading, checkoutError, user]);
+  }, [
+    guestMode,
+    loading,
+    setupPending,
+    subscription,
+    referralSummary,
+    referralLoading,
+    referralError,
+    checkoutLoading,
+    checkoutError,
+    user,
+  ]);
 }

@@ -65,6 +65,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   }
 
   const userId = payment.external_reference ?? payment.metadata?.user_id;
+  const referralCreditCents = Number(payment.metadata?.referral_credit_cents ?? 0);
   const amountCents =
     typeof payment.transaction_amount === "number"
       ? Math.round(payment.transaction_amount * 100)
@@ -85,6 +86,9 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       payment_method_id: payment.payment_method_id,
       payment_type_id: payment.payment_type_id,
       metadata: payment.metadata,
+      referral_credit_cents: Number.isFinite(referralCreditCents)
+        ? referralCreditCents
+        : 0,
     },
     serviceRoleKey,
   });
@@ -105,6 +109,9 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     userId,
     paymentId: String(paymentId),
     couponCode: payment.metadata?.coupon_code,
+    referralCreditCents: Number.isFinite(referralCreditCents)
+      ? referralCreditCents
+      : 0,
     serviceRoleKey,
   });
 

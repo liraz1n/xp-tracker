@@ -14,6 +14,7 @@ export const GUEST_TARGET_LEVEL = 1;
 
 const MILESTONES = [25, 50, 75, 100];
 const GUEST_PROGRESS_DRAFT_KEY = "xpTrackerGuestProgressDraft";
+const REFERRAL_CODE_DRAFT_KEY = "xpTrackerReferralCode";
 const XP_PROGRESS_SELECT_BASE =
   "total_xp, current_xp, daily_goal, history, reached_milestones, last_saved_xp, dark_mode";
 const XP_PROGRESS_SELECT_LEVELS = `${XP_PROGRESS_SELECT_BASE}, current_level, target_level`;
@@ -92,6 +93,25 @@ function clearGuestProgressDraft() {
   if (typeof window === "undefined") return;
 
   window.localStorage.removeItem(GUEST_PROGRESS_DRAFT_KEY);
+}
+
+function readStoredReferralCode() {
+  if (typeof window === "undefined") return "";
+
+  return window.localStorage.getItem(REFERRAL_CODE_DRAFT_KEY) ?? "";
+}
+
+function storeReferralCodeFromUrl() {
+  if (typeof window === "undefined") return;
+
+  const referralCode = new URLSearchParams(window.location.search)
+    .get("ref")
+    ?.trim()
+    .toUpperCase();
+
+  if (!referralCode) return;
+
+  window.localStorage.setItem(REFERRAL_CODE_DRAFT_KEY, referralCode);
 }
 
 function sanitizeLevel(value: number) {
@@ -586,6 +606,8 @@ export function useXpTracker() {
   }
 
   useEffect(() => {
+    storeReferralCodeFromUrl();
+
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
     });
@@ -604,6 +626,19 @@ export function useXpTracker() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!user || guestMode) return;
+
+    const referralCode = readStoredReferralCode();
+
+    if (!referralCode) return;
+
+    supabase.rpc("accept_referral_code", { p_code: referralCode }).then(() => {
+      window.localStorage.removeItem(REFERRAL_CODE_DRAFT_KEY);
+      billing.reloadReferralSummary();
+    });
+  }, [billing, guestMode, user]);
 
   useEffect(() => {
     if (guestMode) return;

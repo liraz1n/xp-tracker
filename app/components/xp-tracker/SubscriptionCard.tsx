@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   findCouponPreview,
+  formatCurrencyCents,
   type BillingState,
   type CheckoutPaymentMode,
 } from "~/hooks/useBilling";
@@ -15,7 +16,11 @@ interface SubscriptionCardProps {
     muted: string;
     text: string;
   };
-  onCheckout?: (couponCode: string, paymentMode?: CheckoutPaymentMode) => void;
+  onCheckout?: (
+    couponCode: string,
+    paymentMode?: CheckoutPaymentMode,
+    useReferralCredits?: boolean
+  ) => void;
 }
 
 export function SubscriptionCard({
@@ -28,6 +33,7 @@ export function SubscriptionCard({
   const [couponCode, setCouponCode] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
   const [couponFeedback, setCouponFeedback] = useState("");
+  const [useReferralCredits, setUseReferralCredits] = useState(false);
   const couponPreview = useMemo(
     () => findCouponPreview(couponCode),
     [couponCode]
@@ -52,6 +58,8 @@ export function SubscriptionCard({
   const isGuest = billing.accessStatus === "guest";
   const isSetupPending = billing.accessStatus === "setup_pending";
   const isFoundersLifetime = appliedCouponCode === "FOUNDERS";
+  const referralAvailableCents = billing.referralSummary?.availableCents ?? 0;
+  const canUseReferralCredits = referralAvailableCents > 0 && !isFoundersLifetime;
   const trialDays =
     billing.trialDaysRemaining === null ? 0 : billing.trialDaysRemaining;
 
@@ -173,10 +181,42 @@ export function SubscriptionCard({
             </p>
           )}
 
+          {!isGuest && (
+            <label
+              className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-relaxed ${
+                canUseReferralCredits
+                  ? "border-emerald-500/25 bg-emerald-500/5 text-emerald-200"
+                  : "border-yellow-500/10 bg-black/20 text-zinc-500"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={useReferralCredits && canUseReferralCredits}
+                onChange={(event) => setUseReferralCredits(event.target.checked)}
+                disabled={!canUseReferralCredits}
+                className="mt-0.5 accent-emerald-400"
+              />
+              <span>
+                Usar créditos de convite
+                <strong className="block text-emerald-300">
+                  {canUseReferralCredits
+                    ? `${formatCurrencyCents(referralAvailableCents)} disponíveis`
+                    : "Sem créditos disponíveis"}
+                </strong>
+              </span>
+            </label>
+          )}
+
           <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
-              onClick={() => onCheckout?.(appliedCouponCode, "pix")}
+              onClick={() =>
+                onCheckout?.(
+                  appliedCouponCode,
+                  "pix",
+                  useReferralCredits && canUseReferralCredits
+                )
+              }
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
               className="rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
@@ -191,7 +231,13 @@ export function SubscriptionCard({
 
             <button
               type="button"
-              onClick={() => onCheckout?.(appliedCouponCode, "card")}
+              onClick={() =>
+                onCheckout?.(
+                  appliedCouponCode,
+                  "card",
+                  useReferralCredits && canUseReferralCredits
+                )
+              }
               disabled={!onCheckout || checkoutLoading || isActive || isGuest}
               className="rounded-xl border border-yellow-500/35 bg-yellow-400/10 px-4 py-3 text-sm font-black text-yellow-300 transition-all hover:border-yellow-400 hover:bg-yellow-400/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
