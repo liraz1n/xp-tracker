@@ -19,15 +19,15 @@ export function getProfileBadges(billing: BillingState) {
       : null,
     isFounder
       ? {
-          label: "Fundador",
-          description: "Apoiador fundador do XP Tracker.",
+          label: "FOUNDERS",
+          description: "Selo dos 10 primeiros usuários que garantiram o plano vitalício.",
           className: "border-emerald-400/35 bg-emerald-500/10 text-emerald-300",
         }
       : null,
     couponCode === "TOFUS"
       ? {
-          label: "Tofus",
-          description: "Badge especial do cupom TOFUS.",
+          label: "TOFUS",
+          description: "Selo para usuários que aderiram com o cupom TOFUS.",
           className: "border-cyan-400/35 bg-cyan-500/10 text-cyan-300",
         }
       : null,
