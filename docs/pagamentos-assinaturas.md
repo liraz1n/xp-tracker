@@ -4,7 +4,7 @@ Build 1.4.7 documenta o estado atual da base comercial do XP Tracker: trial, pla
 
 ## Plano inicial
 
-- Trial: 7 dias gratis para usuarios autenticados.
+- Trial: 3 dias gratis para usuarios autenticados.
 - Premium: R$ 5,99 por mes.
 - Visitante: pode testar a ferramenta, mas nao salva na nuvem de forma permanente.
 

@@ -9,7 +9,7 @@ Aplicacao web para acompanhar progresso de XP, runs de farm, metas diarias, hist
 - Dashboard com progresso, estimativas, ranking de metas, marcos de uso e historico inteligente.
 - Registro rapido de runs, duplicacao de registros, desfazer ultimo progresso e penalidade de morte.
 - Persistencia em nuvem para usuarios autenticados com acesso liberado.
-- Trial de 7 dias, bloqueio apos trial, checkout Mercado Pago, cupons e webhook de pagamento.
+- Trial de 3 dias, bloqueio apos trial, checkout Mercado Pago, cupons e webhook de pagamento.
 - Painel superadmin com visao de usuarios, plano, cupons, pagamentos e progresso.
 - Scripts SQL versionados em `supabase/sql`.
 

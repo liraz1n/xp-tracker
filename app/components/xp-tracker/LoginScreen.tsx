@@ -58,7 +58,7 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
                 Se gostar, clique em salvar com Google dentro do painel; o progresso feito como visitante será levado para sua conta.
               </p>
               <p className="text-yellow-300">
-                Com Google, o salvamento na nuvem fica liberado durante o teste grátis de 7 dias. Depois disso, é preciso assinar para continuar sincronizando.
+                Com Google, o salvamento na nuvem fica liberado durante o teste grátis de 3 dias. Depois disso, é preciso assinar para continuar sincronizando.
               </p>
             </div>
           </div>

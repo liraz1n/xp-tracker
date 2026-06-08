@@ -3,7 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "~/supabase";
 
 export const PREMIUM_PRICE_CENTS = 599;
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 3;
 export const SUPERADMIN_EMAILS = ["ewertonpro11@gmail.com"];
 
 export type BillingAccessStatus =

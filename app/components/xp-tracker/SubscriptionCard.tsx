@@ -115,13 +115,13 @@ export function SubscriptionCard({
                 : isGuest
                   ? "Entre com Google para iniciar o teste grátis e salvar seu progresso na nuvem."
                   : isSetupPending
-                    ? "Entre no teste grátis de 7 dias e assine para manter o salvamento na nuvem após o período inicial."
-                    : "Durante o teste grátis de 7 dias, você usa os recursos completos e salva na nuvem. Depois, assine para continuar sincronizando o progresso."}
+                    ? "Entre no teste grátis de 3 dias e assine para manter o salvamento na nuvem após o período inicial."
+                    : "Durante o teste grátis de 3 dias, você usa os recursos completos e salva na nuvem. Depois, assine para continuar sincronizando o progresso."}
           </p>
 
           {billing.accessStatus === "trialing" && (
             <p className="mt-3 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-200">
-              O login com Google não mantém a nuvem grátis para sempre: seu progresso sincroniza durante o teste de 7 dias. Após o teste, a assinatura mantém o acesso e o salvamento contínuo.
+              O login com Google não mantém a nuvem grátis para sempre: seu progresso sincroniza durante o teste de 3 dias. Após o teste, a assinatura mantém o acesso e o salvamento contínuo.
             </p>
           )}
         </div>

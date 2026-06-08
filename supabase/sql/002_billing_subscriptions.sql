@@ -8,7 +8,7 @@ create table if not exists public.user_subscriptions (
   status text not null default 'trialing'
     check (status in ('trialing', 'active', 'past_due', 'canceled', 'expired')),
   trial_started_at timestamptz not null default now(),
-  trial_ends_at timestamptz not null default (now() + interval '7 days'),
+  trial_ends_at timestamptz not null default (now() + interval '3 days'),
   current_period_started_at timestamptz,
   current_period_ends_at timestamptz,
   provider text,
