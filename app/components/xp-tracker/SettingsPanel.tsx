@@ -38,6 +38,51 @@ function formatInputValue(value: number) {
   return value === 0 ? "" : value;
 }
 
+const SETTINGS_DRAFT_STORAGE_KEY = "xpTrackerSettingsDraft";
+
+interface SettingsDraft {
+  totalXP: number;
+  currentXP: number;
+  userTotalXP: number;
+  dailyGoal: number;
+  currentLevel: number;
+}
+
+function readSettingsDraft(): SettingsDraft | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawDraft = window.localStorage.getItem(SETTINGS_DRAFT_STORAGE_KEY);
+    if (!rawDraft) return null;
+
+    const draft = JSON.parse(rawDraft) as Partial<SettingsDraft>;
+    return {
+      totalXP: Math.max(0, Number(draft.totalXP) || 0),
+      currentXP: Math.max(0, Number(draft.currentXP) || 0),
+      userTotalXP: Math.max(0, Number(draft.userTotalXP) || 0),
+      dailyGoal: Math.max(0, Number(draft.dailyGoal) || 0),
+      currentLevel: sanitizeLevel(Number(draft.currentLevel) || 0),
+    };
+  } catch {
+    window.localStorage.removeItem(SETTINGS_DRAFT_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeSettingsDraft(draft: SettingsDraft) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    SETTINGS_DRAFT_STORAGE_KEY,
+    JSON.stringify(draft)
+  );
+}
+
+function clearSettingsDraft() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(SETTINGS_DRAFT_STORAGE_KEY);
+}
+
 export function SettingsPanel({
   open,
   totalXP,
@@ -71,18 +116,28 @@ export function SettingsPanel({
   useEffect(() => {
     if (!open) return;
 
-    setDraftTotalXP(totalXP);
-    setDraftCurrentXP(currentXP);
-    setDraftUserTotalXP(userTotalXP);
-    setDraftDailyGoal(dailyGoal);
-    setDraftCurrentLevel(currentLevel);
+    const savedDraft = readSettingsDraft();
+
+    setDraftTotalXP(savedDraft?.totalXP ?? totalXP);
+    setDraftCurrentXP(savedDraft?.currentXP ?? currentXP);
+    setDraftUserTotalXP(savedDraft?.userTotalXP ?? userTotalXP);
+    setDraftDailyGoal(savedDraft?.dailyGoal ?? dailyGoal);
+    setDraftCurrentLevel(savedDraft?.currentLevel ?? currentLevel);
     setSettingsError(null);
     setConfirmDeleteOpen(false);
     autoSaveReady.current = false;
-  }, [open, totalXP, currentXP, userTotalXP, dailyGoal, currentLevel]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
+
+    writeSettingsDraft({
+      totalXP: draftTotalXP,
+      currentXP: Math.max(0, draftCurrentXP),
+      userTotalXP: draftUserTotalXP,
+      dailyGoal: draftDailyGoal,
+      currentLevel: draftCurrentLevel,
+    });
 
     if (!autoSaveReady.current) {
       autoSaveReady.current = true;
@@ -95,7 +150,7 @@ export function SettingsPanel({
 
     autoSaveTimeout.current = setTimeout(async () => {
       setSettingsError(null);
-      await onSaveRef.current({
+      const saved = await onSaveRef.current({
         totalXP: draftTotalXP,
         currentXP: Math.max(0, draftCurrentXP),
         userTotalXP: draftUserTotalXP,
@@ -103,6 +158,10 @@ export function SettingsPanel({
         currentLevel: draftCurrentLevel,
         targetLevel: draftCurrentLevel + 1,
       });
+
+      if (saved !== false) {
+        clearSettingsDraft();
+      }
     }, 900);
 
     return () => {
@@ -143,6 +202,7 @@ export function SettingsPanel({
     setIsSavingSettings(false);
 
     if (saved !== false) {
+      clearSettingsDraft();
       onClose();
       return;
     }
@@ -165,6 +225,7 @@ export function SettingsPanel({
       return;
     }
 
+    clearSettingsDraft();
     setConfirmDeleteOpen(false);
     onClose();
   }
@@ -264,7 +325,10 @@ export function SettingsPanel({
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={onReset}
+              onClick={() => {
+                clearSettingsDraft();
+                onReset();
+              }}
               className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white"
             >
               Resetar progresso

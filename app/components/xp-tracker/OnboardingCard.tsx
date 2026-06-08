@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 
 interface OnboardingCardProps {
   guestMode: boolean;
@@ -32,6 +32,51 @@ function formatInputValue(value: number) {
   return value === 0 ? "" : value;
 }
 
+const ONBOARDING_DRAFT_STORAGE_KEY = "xpTrackerOnboardingDraft";
+
+interface OnboardingDraft {
+  currentLevel: number;
+  totalXP: number;
+  currentXP: number;
+  userTotalXP: number;
+  dailyGoal: number;
+}
+
+function readOnboardingDraft(): OnboardingDraft | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawDraft = window.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY);
+    if (!rawDraft) return null;
+
+    const draft = JSON.parse(rawDraft) as Partial<OnboardingDraft>;
+    return {
+      currentLevel: sanitizeLevel(Number(draft.currentLevel) || 0),
+      totalXP: sanitizeNumber(Number(draft.totalXP) || 0),
+      currentXP: sanitizeNumber(Number(draft.currentXP) || 0),
+      userTotalXP: sanitizeNumber(Number(draft.userTotalXP) || 0),
+      dailyGoal: sanitizeNumber(Number(draft.dailyGoal) || 0),
+    };
+  } catch {
+    window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeOnboardingDraft(draft: OnboardingDraft) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    ONBOARDING_DRAFT_STORAGE_KEY,
+    JSON.stringify(draft)
+  );
+}
+
+function clearOnboardingDraft() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+}
+
 export function OnboardingCard({
   guestMode,
   theme,
@@ -47,8 +92,31 @@ export function OnboardingCard({
   const targetLevel = currentLevel + 1;
   const canStart = totalXP > 0 && currentXPValue > 0;
 
+  useEffect(() => {
+    const savedDraft = readOnboardingDraft();
+    if (!savedDraft) return;
+
+    setCurrentLevel(savedDraft.currentLevel);
+    setTotalXP(savedDraft.totalXP);
+    setCurrentXP(savedDraft.currentXP);
+    setUserTotalXP(savedDraft.userTotalXP);
+    setDailyGoal(savedDraft.dailyGoal);
+  }, []);
+
+  useEffect(() => {
+    writeOnboardingDraft({
+      currentLevel,
+      totalXP,
+      currentXP: currentXPValue,
+      userTotalXP,
+      dailyGoal,
+    });
+  }, [currentLevel, totalXP, currentXPValue, userTotalXP, dailyGoal]);
+
   function submitSetup() {
     if (!canStart) return;
+
+    clearOnboardingDraft();
 
     onStart({
       totalXP,
