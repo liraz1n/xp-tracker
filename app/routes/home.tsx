@@ -31,7 +31,7 @@ import { TeletofusLink } from "~/components/xp-tracker/TeletofusLink";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 import { getLocalDateKey } from "~/utils/dateKeys";
 
-type SidebarTab = "historico" | "grafico";
+type SidebarTab = "historico" | "grafico" | "resultado";
 
 interface MobileDashboardSectionProps {
   title: string;

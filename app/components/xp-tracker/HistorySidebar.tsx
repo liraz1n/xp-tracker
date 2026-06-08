@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import {
   ChartIcon,
+  CheckCircleIcon,
   CopyIcon,
   PencilIcon,
   ScrollIcon,
@@ -29,7 +30,7 @@ interface HistoryEntry {
   source?: string;
 }
 
-type SidebarTab = "historico" | "grafico";
+type SidebarTab = "historico" | "grafico" | "resultado";
 type ChartFilter = "all" | "7d" | "30d" | "month";
 type ChartView = "daily" | "remaining";
 type HistoryTypeFilter = "all" | "cripta" | "masmorra" | "manual";
@@ -83,6 +84,7 @@ interface DailyChartPoint {
 const tabs = [
   { id: "historico", label: "Histórico", icon: ScrollIcon },
   { id: "grafico", label: "Gráfico", icon: ChartIcon },
+  { id: "resultado", label: "Resultado", icon: CheckCircleIcon },
 ] as const;
 
 const chartFilters: { id: ChartFilter; label: string }[] = [
@@ -138,6 +140,17 @@ function formatDateLabel(dateKey: string) {
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
+  });
+}
+
+function formatFullDateLabel(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
   });
 }
 
@@ -212,6 +225,13 @@ function isFarmEntry(entry: HistoryEntry) {
     !isDeathEntry(entry) &&
     (/Cripta|Masmorra|Plano de farm|Caçada|Cacada/i.test(source) || source === "")
   );
+}
+
+function isResultDayEntry(entry: HistoryEntry, dateKey: string) {
+  const entryDate = new Date(entry.date);
+  const entryMinutes = entryDate.getHours() * 60 + entryDate.getMinutes();
+
+  return getDateKey(entryDate) === dateKey && entryMinutes >= 1 && entryMinutes <= 1439;
 }
 
 function ChartTooltip({
@@ -410,6 +430,11 @@ export function HistorySidebar({
       (entry) => getDateKey(new Date(entry.date)) === selectedDate
     );
   }, [history, selectedDate]);
+  const resultDayEntries = useMemo(() => {
+    return history
+      .filter((entry) => isResultDayEntry(entry, selectedDate))
+      .sort((left, right) => new Date(right.date).getTime() - new Date(left.date).getTime());
+  }, [history, selectedDate]);
 
   const totalFilteredXp = chartData.reduce(
     (sum, point) => sum + point.xpGained,
@@ -454,6 +479,25 @@ export function HistorySidebar({
     (best, entry) => (!best || entry.xpGained > best.xpGained ? entry : best),
     null
   );
+  const resultRegisteredFarmXP = resultDayEntries.reduce(
+    (sum, entry) => sum + (isFarmEntry(entry) ? entry.xpGained : 0),
+    0
+  );
+  const resultAdjustmentGainXP = resultDayEntries.reduce(
+    (sum, entry) =>
+      sum + (isManualAdjustment(entry) && entry.xpGained > 0 ? entry.xpGained : 0),
+    0
+  );
+  const resultLossXP = resultDayEntries.reduce(
+    (sum, entry) => sum + (entry.xpGained < 0 ? Math.abs(entry.xpGained) : 0),
+    0
+  );
+  const resultPositiveXP = resultRegisteredFarmXP + resultAdjustmentGainXP;
+  const resultNetXP = resultDayEntries.reduce(
+    (sum, entry) => sum + entry.xpGained,
+    0
+  );
+  const resultEndingXP = resultDayEntries[0]?.xpRemaining ?? null;
   const latestPoint = chartData[chartData.length - 1];
 
   return (
@@ -463,7 +507,7 @@ export function HistorySidebar({
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between px-4 pt-4 pb-0 border-b border-inherit">
+        <div className="flex items-center justify-between px-3 pt-4 pb-0 border-b border-inherit">
           <div className="flex gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -473,7 +517,7 @@ export function HistorySidebar({
                   type="button"
                   key={tab.id}
                   onClick={() => setSidebarTab(tab.id)}
-                  className={`px-3 py-2 rounded-t-xl text-xs font-bold border transition-all ${
+                  className={`px-2 py-2 rounded-t-xl text-[11px] font-bold border transition-all ${
                     sidebarTab === tab.id ? theme.tabActive : theme.tabInactive
                   }`}
                 >
@@ -621,6 +665,138 @@ export function HistorySidebar({
                 )}
               </>
             )
+          )}
+
+          {sidebarTab === "resultado" && (
+            <div>
+              <div className="mb-4">
+                <p className="text-sm font-black text-yellow-300">
+                  Resultado do dia
+                </p>
+                <p className={`${theme.muted} mt-1 text-xs`}>
+                  Resumo local de 00:01 até 23:59.
+                </p>
+              </div>
+
+              <div className="mb-4 rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-3">
+                <label className={`${theme.muted} mb-1 block text-[10px] font-black uppercase`}>
+                  Consultar data
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="dd/mm/aaaa"
+                  value={selectedDateInput}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    const parsedDate = parseDateInputBR(nextValue);
+
+                    setSelectedDateInput(nextValue);
+
+                    if (parsedDate) {
+                      setSelectedDate(parsedDate);
+                    }
+                  }}
+                  className="w-full rounded-xl border border-yellow-500/20 bg-black/30 px-3 py-2 text-sm font-bold text-yellow-100 outline-none focus:border-yellow-300"
+                />
+                <p className={`${theme.muted} mt-2 text-xs`}>
+                  {formatFullDateLabel(selectedDate)}
+                </p>
+              </div>
+
+              <div className="mb-4 rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+                <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                  Saldo do dia
+                </p>
+                <p className={`mt-1 text-2xl font-black ${resultNetXP < 0 ? "text-red-300" : "text-emerald-300"}`}>
+                  {formatSignedXP(resultNetXP)} XP
+                </p>
+                <p className={`${theme.muted} mt-2 text-xs leading-relaxed`}>
+                  No dia {formatFullDateLabel(selectedDate)}, você ficou com saldo de{" "}
+                  <span className={resultNetXP < 0 ? "font-black text-red-300" : "font-black text-emerald-300"}>
+                    {formatSignedXP(resultNetXP)} XP
+                  </span>.
+                </p>
+              </div>
+
+              <div className="mb-4 grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2">
+                  <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                    Ganho
+                  </p>
+                  <p className="text-sm font-black text-emerald-300">
+                    +{resultPositiveXP.toLocaleString("pt-BR")}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2">
+                  <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                    Perdas
+                  </p>
+                  <p className="text-sm font-black text-red-300">
+                    -{resultLossXP.toLocaleString("pt-BR")}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2">
+                  <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                    Registros
+                  </p>
+                  <p className="text-sm font-black text-cyan-200">
+                    {resultDayEntries.length}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-yellow-500/15 bg-yellow-500/5 px-3 py-2">
+                  <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
+                    XP restante
+                  </p>
+                  <p className="text-sm font-black text-yellow-300">
+                    {resultEndingXP === null ? "--" : resultEndingXP.toLocaleString("pt-BR")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-3">
+                <p className="text-xs font-black uppercase text-yellow-300">
+                  Histórico reduzido
+                </p>
+
+                {resultDayEntries.length === 0 ? (
+                  <p className={`${theme.muted} mt-3 text-sm`}>
+                    Nenhum registro entre 00:01 e 23:59 nesta data.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {resultDayEntries.slice(0, 8).map((entry, index) => (
+                      <div
+                        key={`${entry.date}-resultado-${index}`}
+                        className="rounded-xl border border-yellow-500/10 bg-black/25 px-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className={`text-sm font-black ${entry.xpGained < 0 ? "text-red-300" : "text-emerald-300"}`}>
+                              {formatSignedXP(entry.xpGained)} XP
+                            </p>
+                            <p className={`${theme.muted} mt-0.5 text-[11px]`}>
+                              {entry.source ?? "Progresso manual"}
+                            </p>
+                          </div>
+                          <p className={`${theme.muted} shrink-0 text-[11px] font-bold`}>
+                            {new Date(entry.date).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {resultDayEntries.length > 8 && (
+                      <p className={`${theme.muted} pt-1 text-xs`}>
+                        +{resultDayEntries.length - 8} registros no dia.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {sidebarTab === "grafico" && (
