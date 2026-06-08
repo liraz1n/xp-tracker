@@ -2,7 +2,7 @@
   darkMode?: boolean;
 }
 
-const BUILD_LABEL = "0.9.14";
+const BUILD_LABEL = "0.9.15";
 const BUILD_DATE = "01/06/2026";
 const HOSTING_LABEL = "Cloudflare Pages";
 const SITE_URL = "xp-tracker.pages.dev";
@@ -43,9 +43,15 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
       </div>
 
       <div className="mx-auto mt-4 flex max-w-6xl flex-col gap-1 md:flex-row md:items-center md:justify-between">
-        <p>
-          Dados protegidos por Google, Supabase e Row Level Security.
-        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>Dados protegidos por Google, Supabase e Row Level Security.</span>
+          <a className="font-bold text-yellow-300 hover:text-yellow-200" href="/privacidade">
+            Privacidade
+          </a>
+          <a className="font-bold text-yellow-300 hover:text-yellow-200" href="/termos">
+            Termos
+          </a>
+        </div>
         <p className="flex flex-wrap items-center gap-2">
           <span>© {currentYear}</span>
           <span>{BUILD_DATE}</span>

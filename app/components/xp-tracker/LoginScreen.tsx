@@ -60,6 +60,17 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
               <p className="text-yellow-300">
                 Com Google, o salvamento na nuvem fica liberado durante o teste grátis de 3 dias. Depois disso, é preciso assinar para continuar sincronizando.
               </p>
+              <p>
+                Ao entrar, você concorda com os{" "}
+                <a className="font-bold text-yellow-300 hover:text-yellow-200" href="/termos">
+                  Termos de Uso
+                </a>{" "}
+                e entende como seus dados são tratados na{" "}
+                <a className="font-bold text-yellow-300 hover:text-yellow-200" href="/privacidade">
+                  Política de Privacidade
+                </a>
+                .
+              </p>
             </div>
           </div>
 
