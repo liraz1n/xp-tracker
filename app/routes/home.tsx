@@ -123,6 +123,13 @@ export default function Home() {
       ? value
       : null;
   }, []);
+  const paymentReturnId = useMemo(() => {
+    if (typeof window === "undefined") return null;
+
+    const params = new URLSearchParams(window.location.search);
+
+    return params.get("payment_id") ?? params.get("collection_id");
+  }, []);
 
   function formatDate(days: number) {
     const date = new Date();
@@ -305,6 +312,48 @@ export default function Home() {
       cancelled = true;
     };
   }, [tracker.billing.isSuperAdmin, tracker.user]);
+
+  useEffect(() => {
+    if (!paymentReturnStatus || paymentReturnStatus === "failure" || !paymentReturnId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function reconcilePaymentReturn() {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token || cancelled) return;
+
+      const response = await fetch("/api/billing/mercadopago/reconcile", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          paymentId: paymentReturnId,
+        }),
+      });
+
+      if (cancelled || !response.ok) return;
+
+      const result = (await response.json()) as { status?: string };
+
+      if (result.status === "approved") {
+        window.setTimeout(() => {
+          window.location.replace("/");
+        }, 800);
+      }
+    }
+
+    reconcilePaymentReturn();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentReturnStatus, paymentReturnId]);
 
   if (!tracker.user && !tracker.guestMode) {
     return (
