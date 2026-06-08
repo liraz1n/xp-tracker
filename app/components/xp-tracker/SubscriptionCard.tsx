@@ -42,6 +42,9 @@ export function SubscriptionCard({
     () => findCouponPreview(appliedCouponCode),
     [appliedCouponCode]
   );
+  const typedCouponCode = couponCode.trim().toUpperCase();
+  const checkoutCouponCode =
+    appliedCouponCode || (findCouponPreview(typedCouponCode) ? typedCouponCode : "");
 
   if (
     !alwaysShow &&
@@ -57,7 +60,7 @@ export function SubscriptionCard({
   const isActive = billing.accessStatus === "active";
   const isGuest = billing.accessStatus === "guest";
   const isSetupPending = billing.accessStatus === "setup_pending";
-  const isFoundersLifetime = appliedCouponCode === "FOUNDERS";
+  const isFoundersLifetime = checkoutCouponCode === "FOUNDERS";
   const referralAvailableCents = billing.referralSummary?.availableCents ?? 0;
   const canUseReferralCredits = referralAvailableCents > 0 && !isFoundersLifetime;
   const trialDays =
@@ -212,7 +215,7 @@ export function SubscriptionCard({
               type="button"
               onClick={() =>
                 onCheckout?.(
-                  appliedCouponCode,
+                  checkoutCouponCode,
                   "pix",
                   useReferralCredits && canUseReferralCredits
                 )
@@ -233,7 +236,7 @@ export function SubscriptionCard({
               type="button"
               onClick={() =>
                 onCheckout?.(
-                  appliedCouponCode,
+                  checkoutCouponCode,
                   "card",
                   useReferralCredits && canUseReferralCredits
                 )
