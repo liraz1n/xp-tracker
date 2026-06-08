@@ -1,5 +1,6 @@
 import { ACTIVE_COUPON_PREVIEWS, type BillingState } from "~/hooks/useBilling";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
+import { XIcon } from "~/components/xp-tracker/UiIcons";
 
 interface SubscriptionPanelProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function SubscriptionPanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className={`${theme.card} max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
+      <div className={`${theme.card} relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border p-5 md:p-8 shadow-[0_0_60px_rgba(234,179,8,0.18)]`}>
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-sm font-black uppercase tracking-wide text-yellow-400">
@@ -57,9 +58,10 @@ export function SubscriptionPanel({
           <button
             type="button"
             onClick={onClose}
-            className={`${theme.muted} rounded-2xl border border-yellow-500/20 px-4 py-2 font-bold transition-all hover:text-yellow-300`}
+            className={`${theme.muted} absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-red-500/35 bg-red-500/10 text-red-200 transition-all hover:border-red-400 hover:bg-red-500/20 hover:text-red-100 md:right-6 md:top-6`}
+            aria-label="Fechar painel do plano"
           >
-            Fechar
+            <XIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -101,7 +103,7 @@ export function SubscriptionPanel({
 
           <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
             <p className={`${theme.muted} text-xs font-black uppercase`}>
-              {isLifetimePlan ? "Acesso" : "Renovacao"}
+              {isLifetimePlan ? "Acesso" : "Renovação"}
             </p>
             <p className="mt-1 font-black text-indigo-300">
               {isLifetimePlan ? "Vitalício" : renewalDate ?? "Aguardando"}
