@@ -53,9 +53,14 @@ export function buildNotifications({
     billing.accessStatus === "trialing" &&
     billing.trialDaysRemaining !== null &&
     billing.trialDaysRemaining <= 1;
+  const couponCode = billing.subscription?.coupon_code?.toUpperCase();
+  const isLifetimeUser =
+    billing.subscription?.plan === "premium_lifetime" || couponCode === "FOUNDERS";
 
   const notifications: Array<AppNotification | null> = [
-    billing.accessStatus === "trialing" && billing.trialDaysRemaining !== null
+    !isLifetimeUser &&
+    billing.accessStatus === "trialing" &&
+    billing.trialDaysRemaining !== null
       ? {
           title: trialEndingSoon
             ? "Seu teste termina em breve"
@@ -70,7 +75,7 @@ export function buildNotifications({
           actionLabel: "Assinar agora",
         }
       : null,
-    billing.accessStatus === "locked"
+    !isLifetimeUser && billing.accessStatus === "locked"
       ? {
           title: "Seu teste grátis terminou",
           message:
@@ -80,7 +85,7 @@ export function buildNotifications({
           actionLabel: "Ver planos",
         }
       : null,
-    billing.accessStatus === "setup_pending"
+    !isLifetimeUser && billing.accessStatus === "setup_pending"
       ? {
           title: "Ative seu acesso Premium",
           message:
@@ -90,7 +95,7 @@ export function buildNotifications({
           actionLabel: "Conhecer plano",
         }
       : null,
-    billing.subscription?.coupon_code
+    !isLifetimeUser && billing.subscription?.coupon_code
       ? {
           title: "Cupom aplicado",
           message: `${billing.subscription.coupon_code} está vinculado ao seu plano.`,
