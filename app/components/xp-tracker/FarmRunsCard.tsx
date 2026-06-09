@@ -652,12 +652,23 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
     ],
   },
   masmorras: {
+    1: [
+      "fenda-solar-magia",
+      "fenda-solar-forca",
+      "fenda-solar-combate",
+    ],
+    2: [
+      "templo-oasis-2",
+    ],
     4: [
       "planicie-4",
       "floresta-4",
       "pantano-4",
       "cemiterio-4",
       "deserto-4",
+      "templo-altheryn-4",
+      "covil-hydra-maior-4",
+      "covil-zulgor-4",
     ],
     5: [
       "planicie-5",
@@ -665,6 +676,9 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "pantano-5",
       "cemiterio-5",
       "deserto-5",
+      "templo-altheryn-5",
+      "covil-hydra-maior-5",
+      "covil-zulgor-5",
     ],
   },
 };
