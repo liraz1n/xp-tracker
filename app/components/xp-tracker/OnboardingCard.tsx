@@ -141,8 +141,18 @@ export function OnboardingCard({
           </h2>
 
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
-            Resgate seus dados no game e informe seu nível atual, quanto XP falta para upar, seu XP total e a meta diária.
+            Resgate seus dados no game e informe seu nível atual, quanto XP o jogo pede para upar, quanto ainda falta, seu XP total e a meta diária.
           </p>
+
+          <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 text-sm leading-relaxed text-cyan-100">
+            <p className="font-black text-cyan-300">Como preencher XP</p>
+            <p className={`${theme.muted} mt-1`}>
+              Se acabou de upar e o jogo mostra 1.000.000 XP para o próximo nível,
+              coloque 1.000.000 em <strong>XP necessário para upar</strong> e
+              em <strong>XP Restante</strong>. Depois, apenas o XP Restante vai
+              diminuindo conforme você registra ganhos.
+            </p>
+          </div>
 
           {guestMode && (
             <p className="mt-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
@@ -176,7 +186,7 @@ export function OnboardingCard({
 
           <label className="block">
             <span className="block text-yellow-400 text-sm mb-2">
-              XP para Upar
+              XP necessário para upar
             </span>
             <input
               type="number"

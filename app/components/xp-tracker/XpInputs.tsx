@@ -25,9 +25,11 @@ function formatInputValue(value: number) {
 }
 
 export const XP_FIELD_HELP = {
-  totalXP: "Adicione abaixo o XP que falta para você upar de nível.",
+  totalXP:
+    "Informe quanto XP o jogo pede para sair deste nível. Normalmente esse valor fica fixo durante o nível.",
   userXP: "Adicione abaixo o XP total do seu personagem.",
-  currentXP: "Adicione abaixo o XP restante para você upar de nível.",
+  currentXP:
+    "Informe quanto XP ainda falta para upar. Esse valor diminui conforme você registra runs, farm avulso ou ajustes manuais.",
   dailyGoal: "Adicione abaixo o XP que você almeja fazer diariamente.",
 } as const;
 
@@ -45,7 +47,7 @@ export function XpInputs({
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
   const fields = [
     {
-      label: "XP para Upar",
+      label: "XP necessário para upar",
       value: totalXP,
       setter: onTotalXPChange,
       help: XP_FIELD_HELP.totalXP,

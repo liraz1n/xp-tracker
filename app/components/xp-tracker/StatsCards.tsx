@@ -79,8 +79,8 @@ export function StatsCards({
 
       <div className={`${theme.card} relative border rounded-2xl p-4 md:p-5 min-w-0`}>
         <div className="mb-1.5 flex items-start justify-between gap-2">
-          <p className={`${theme.muted} text-xs md:text-sm`}>XP para Upar</p>
-          <HelpButton id="totalXP" label="XP para Upar" help={XP_FIELD_HELP.totalXP} activeHelp={activeHelp} onToggle={toggleHelp} />
+          <p className={`${theme.muted} text-xs md:text-sm`}>XP necessário para upar</p>
+          <HelpButton id="totalXP" label="XP necessário para upar" help={XP_FIELD_HELP.totalXP} activeHelp={activeHelp} onToggle={toggleHelp} />
         </div>
         <h2 className={`${statValueClass} text-yellow-300`}>
           {totalXP.toLocaleString("pt-BR")}

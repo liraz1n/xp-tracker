@@ -239,7 +239,7 @@ export function SettingsPanel({
               Configurações
             </h2>
             <p className={`${theme.muted} mt-2`}>
-              Ajuste nível atual, XP restante, XP para upar e meta diária.
+              Ajuste nível atual, XP restante, XP necessário para upar e meta diária.
             </p>
           </div>
 
@@ -288,6 +288,19 @@ export function SettingsPanel({
           onCurrentXPChange={updateDraftCurrentXP}
           onDailyGoalChange={setDraftDailyGoal}
         />
+
+        <div className="mb-8 rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-4 md:p-5">
+          <h3 className="text-base font-black text-cyan-300">
+            Diferença entre os campos
+          </h3>
+          <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
+            <strong>XP necessário para upar</strong> é quanto o jogo pede para
+            sair do nível atual. <strong>XP Restante</strong> é quanto ainda
+            falta agora. Se você já está no meio do nível e só sabe quanto
+            falta, pode repetir esse valor nos dois campos e o XP Tracker passa
+            a acompanhar a partir desse ponto.
+          </p>
+        </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border border-emerald-500/20 bg-emerald-500/5 rounded-3xl p-4 md:p-6 mb-8">
           <div>
