@@ -18,6 +18,9 @@ export type MercadoPagoPaymentResponse = {
   transaction_amount?: number;
   payment_method_id?: string;
   payment_type_id?: string;
+  payer?: {
+    email?: string;
+  };
   metadata?: {
     user_id?: string;
     coupon_code?: string;
