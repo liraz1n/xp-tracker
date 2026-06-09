@@ -23,7 +23,9 @@ import { SuggestionBox } from "~/components/xp-tracker/SuggestionBox";
 import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/AdminPanelCard";
 import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
 import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
-import { ProfileBadgesCard } from "~/components/xp-tracker/ProfileBadgesCard";
+import {
+  getProfileBadges,
+} from "~/components/xp-tracker/ProfileBadgesCard";
 import { ReferralInviteAction } from "~/components/xp-tracker/ReferralInviteAction";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
@@ -267,6 +269,10 @@ export default function Home() {
         .join("|"),
     [notifications]
   );
+  const profileBadges = useMemo(
+    () => getProfileBadges(tracker.billing),
+    [tracker.billing]
+  );
   const unreadHistoryCount = Math.max(
     0,
     tracker.history.length - lastReadHistoryCount
@@ -410,6 +416,7 @@ export default function Home() {
             historyCount={unreadHistoryCount}
             guestMode={tracker.guestMode}
             notifications={notifications}
+            badges={profileBadges}
             unreadNotificationsCount={unreadNotificationsCount}
             notificationsOpen={notificationsOpen}
             theme={theme}
@@ -431,8 +438,6 @@ export default function Home() {
           />
 
           <PaymentReturnCard status={paymentReturnStatus} theme={theme} />
-
-          <ProfileBadgesCard billing={tracker.billing} />
 
           {shouldShowOnboarding && (
             <OnboardingCard

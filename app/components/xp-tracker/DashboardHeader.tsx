@@ -3,6 +3,7 @@ import {
   NotificationDropdown,
   type AppNotification,
 } from "~/components/xp-tracker/NotificationCenter";
+import type { ProfileBadge } from "~/components/xp-tracker/ProfileBadgesCard";
 import { HEADER_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -14,6 +15,7 @@ interface DashboardHeaderProps {
   historyCount: number;
   guestMode: boolean;
   notifications: AppNotification[];
+  badges: ProfileBadge[];
   unreadNotificationsCount: number;
   notificationsOpen: boolean;
   theme: {
@@ -37,6 +39,7 @@ export function DashboardHeader({
   historyCount,
   guestMode,
   notifications,
+  badges,
   unreadNotificationsCount,
   notificationsOpen,
   theme,
@@ -119,6 +122,23 @@ export function DashboardHeader({
           <p className="text-yellow-300 font-bold text-base md:text-lg">
             Bem-vindo, {userName}
           </p>
+
+          {badges.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
+              <span className="text-[10px] font-black uppercase text-yellow-400">
+                Selos:
+              </span>
+              {badges.map((badge) => (
+                <span
+                  key={badge.label}
+                  title={badge.description}
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-black ${badge.className}`}
+                >
+                  {badge.label}
+                </span>
+              ))}
+            </div>
+          )}
 
           {showSaveStatus && (
             <span
