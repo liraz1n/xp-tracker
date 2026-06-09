@@ -6,6 +6,8 @@ export interface AppNotification {
   title: string;
   message: string;
   tone: "yellow" | "emerald" | "cyan" | "red";
+  action?: "subscription";
+  actionLabel?: string;
 }
 
 interface NotificationDropdownProps {
@@ -14,6 +16,7 @@ interface NotificationDropdownProps {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
+  onOpenSubscription: () => void;
   buttonClassName: string;
   labelClassName: string;
   theme: {
@@ -45,23 +48,46 @@ export function buildNotifications({
     totalXP > 0
       ? Math.max(0, Math.min(100, ((totalXP - currentXP) / totalXP) * 100))
       : 0;
+  const trialDays = billing.trialDaysRemaining ?? 0;
+  const trialEndingSoon =
+    billing.accessStatus === "trialing" &&
+    billing.trialDaysRemaining !== null &&
+    billing.trialDaysRemaining <= 1;
 
-  return [
+  const notifications: Array<AppNotification | null> = [
     billing.accessStatus === "trialing" && billing.trialDaysRemaining !== null
       ? {
-          title: "Teste grátis ativo",
-          message: `Restam ${billing.trialDaysRemaining} dia${
-            billing.trialDaysRemaining === 1 ? "" : "s"
-          } para manter o salvamento na nuvem sem assinatura.`,
-          tone: "yellow" as const,
+          title: trialEndingSoon
+            ? "Seu teste termina em breve"
+            : "Teste grátis ativo",
+          message: trialEndingSoon
+            ? "Assine agora para manter seu progresso salvo na nuvem, sem perder acesso aos recursos Premium."
+            : `Restam ${trialDays} dia${
+                trialDays === 1 ? "" : "s"
+              } de teste grátis. Assine antes do prazo acabar para continuar salvando na nuvem.`,
+          tone: trialEndingSoon ? ("red" as const) : ("yellow" as const),
+          action: "subscription" as const,
+          actionLabel: "Assinar agora",
         }
       : null,
     billing.accessStatus === "locked"
       ? {
-          title: "Acesso premium pendente",
+          title: "Seu teste grátis terminou",
           message:
-            "Assine para liberar salvamento contínuo, runs e histórico inteligente.",
+            "Assine agora para recuperar o salvamento na nuvem, runs, conquistas e histórico inteligente.",
           tone: "red" as const,
+          action: "subscription" as const,
+          actionLabel: "Ver planos",
+        }
+      : null,
+    billing.accessStatus === "setup_pending"
+      ? {
+          title: "Ative seu acesso Premium",
+          message:
+            "Você ainda não iniciou seu plano. Assine para garantir o salvamento contínuo do seu progresso.",
+          tone: "yellow" as const,
+          action: "subscription" as const,
+          actionLabel: "Conhecer plano",
         }
       : null,
     billing.subscription?.coupon_code
@@ -100,7 +126,9 @@ export function buildNotifications({
           tone: "red" as const,
         }
       : null,
-  ].filter((notification): notification is AppNotification =>
+  ];
+
+  return notifications.filter((notification): notification is AppNotification =>
     Boolean(notification)
   );
 }
@@ -111,6 +139,7 @@ export function NotificationDropdown({
   open,
   onToggle,
   onClose,
+  onOpenSubscription,
   buttonClassName,
   labelClassName,
   theme,
@@ -192,6 +221,18 @@ export function NotificationDropdown({
                     >
                       {notification.message}
                     </p>
+                    {notification.action === "subscription" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenSubscription();
+                        }}
+                        className="mt-3 rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-3 py-2 text-xs font-black text-black transition-all hover:scale-[1.02]"
+                      >
+                        {notification.actionLabel ?? "Abrir plano"}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

@@ -153,6 +153,7 @@ export function DashboardHeader({
             open={notificationsOpen}
             onToggle={onToggleNotifications}
             onClose={onCloseNotifications}
+            onOpenSubscription={onOpenSubscription}
             buttonClassName={iconButtonClass}
             labelClassName={iconLabelClass}
             theme={theme}
