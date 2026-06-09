@@ -26,7 +26,6 @@ import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
 import { ProfileBadgesCard } from "~/components/xp-tracker/ProfileBadgesCard";
 import { ReferralInviteAction } from "~/components/xp-tracker/ReferralInviteAction";
 import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
-import { ScreenshotProtection } from "~/components/xp-tracker/ScreenshotProtection";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
 import { TeletofusLink } from "~/components/xp-tracker/TeletofusLink";
@@ -402,8 +401,6 @@ export default function Home() {
     <div
       className={`min-h-screen ${theme.bg} ${theme.text} select-none transition-colors duration-300 [&_input]:select-text [&_textarea]:select-text`}
     >
-      <ScreenshotProtection />
-
       <div className={`relative z-10 transition-all duration-300 ${sidebarOpen ? "md:mr-80" : "mr-0"}`}>
         <main className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
           <DashboardHeader
