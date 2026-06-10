@@ -1205,7 +1205,39 @@ export function useXpTracker() {
   const userName =
     guestMode
       ? "Visitante"
-      : user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email;
+      : user?.user_metadata?.display_name ||
+        user?.user_metadata?.full_name ||
+        user?.user_metadata?.name ||
+        user?.email;
+
+  async function updateDisplayName(displayName: string) {
+    if (!user || guestMode) return false;
+
+    const sanitizedDisplayName = displayName.trim().replace(/\s+/g, " ");
+
+    if (!sanitizedDisplayName || sanitizedDisplayName.length > 32) {
+      return false;
+    }
+
+    setSaveStatus("saving");
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        ...user.user_metadata,
+        display_name: sanitizedDisplayName,
+      },
+    });
+
+    if (error || !data.user) {
+      console.error("Erro ao atualizar apelido:", error);
+      setSaveStatus("error");
+      return false;
+    }
+
+    setUser(data.user);
+    setSaveStatus("saved");
+    return true;
+  }
 
   return {
     totalXP,
@@ -1226,6 +1258,7 @@ export function useXpTracker() {
     guestMode,
     billing,
     userName,
+    updateDisplayName,
     currentLevel,
     targetLevel,
     userTotalXP,

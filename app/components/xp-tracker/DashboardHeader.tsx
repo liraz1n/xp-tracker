@@ -5,6 +5,7 @@ import {
 } from "~/components/xp-tracker/NotificationCenter";
 import type { ProfileBadge } from "~/components/xp-tracker/ProfileBadgesCard";
 import { HEADER_GLYPHS } from "~/components/xp-tracker/StableGlyphs";
+import { PencilIcon, XIcon } from "~/components/xp-tracker/UiIcons";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -28,6 +29,7 @@ interface DashboardHeaderProps {
   onCloseNotifications: () => void;
   onOpenSubscription: () => void;
   onOpenSettings: () => void;
+  onRenameUser: (displayName: string) => Promise<boolean>;
   onLoginWithGoogle: () => void;
   onLogout: () => void;
 }
@@ -49,6 +51,7 @@ export function DashboardHeader({
   onCloseNotifications,
   onOpenSubscription,
   onOpenSettings,
+  onRenameUser,
   onLoginWithGoogle,
   onLogout,
 }: DashboardHeaderProps) {
@@ -79,6 +82,10 @@ export function DashboardHeader({
     },
   }[saveStatus];
   const [showSaveStatus, setShowSaveStatus] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [displayNameDraft, setDisplayNameDraft] = useState(userName ?? "");
+  const [renameSaving, setRenameSaving] = useState(false);
+  const [renameError, setRenameError] = useState("");
 
   const iconButtonClass = `${theme.card} border rounded-2xl w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center gap-0.5 hover:border-yellow-400 transition-all`;
   const iconLabelClass = "text-[9px] md:text-[10px] font-bold leading-none text-zinc-400";
@@ -101,6 +108,40 @@ export function DashboardHeader({
     return () => window.clearTimeout(timer);
   }, [saveStatus]);
 
+  useEffect(() => {
+    if (renameOpen) return;
+
+    setDisplayNameDraft(userName ?? "");
+  }, [renameOpen, userName]);
+
+  async function submitRename() {
+    const nextName = displayNameDraft.trim().replace(/\s+/g, " ");
+
+    if (!nextName) {
+      setRenameError("Informe um apelido.");
+      return;
+    }
+
+    if (nextName.length > 32) {
+      setRenameError("Use até 32 caracteres.");
+      return;
+    }
+
+    setRenameSaving(true);
+    setRenameError("");
+
+    const saved = await onRenameUser(nextName);
+
+    setRenameSaving(false);
+
+    if (!saved) {
+      setRenameError("Não foi possível salvar agora.");
+      return;
+    }
+
+    setRenameOpen(false);
+  }
+
   return (
     <div className="flex flex-col gap-4 md:gap-6 md:flex-row md:justify-between md:items-start mb-6 md:mb-10">
       <div>
@@ -119,9 +160,25 @@ export function DashboardHeader({
 
       <div className="flex flex-col md:items-end gap-3">
         <div className="flex flex-col md:items-end gap-2">
-          <p className="text-yellow-300 font-bold text-base md:text-lg">
-            Bem-vindo, {userName}
-          </p>
+          <div className="flex items-center gap-2 md:justify-end">
+            <p className="text-yellow-300 font-bold text-base md:text-lg">
+              Bem-vindo, {userName}
+            </p>
+            {!guestMode && (
+              <button
+                type="button"
+                aria-label="Editar apelido"
+                onClick={() => {
+                  setRenameError("");
+                  setDisplayNameDraft(userName ?? "");
+                  setRenameOpen(true);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-yellow-300 transition-all hover:bg-yellow-500 hover:text-black"
+              >
+                <PencilIcon className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
 
           {badges.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
@@ -202,6 +259,76 @@ export function DashboardHeader({
           </button>
         </div>
       </div>
+
+      {renameOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className={`${theme.card} w-full max-w-sm rounded-3xl border p-5 shadow-[0_0_50px_rgba(234,179,8,0.14)]`}>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase text-yellow-400">
+                  Perfil
+                </p>
+                <h2 className="text-xl font-black text-yellow-300">
+                  Editar apelido
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setRenameOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-red-300 transition-all hover:bg-red-500 hover:text-white"
+              >
+                <XIcon className="h-4 w-4" />
+              </button>
+            </div>
+
+            <label className="mb-1 block text-xs font-black uppercase text-zinc-500">
+              Como quer aparecer
+            </label>
+            <input
+              value={displayNameDraft}
+              maxLength={32}
+              onChange={(event) => {
+                setDisplayNameDraft(event.target.value);
+                setRenameError("");
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  submitRename();
+                }
+              }}
+              className="w-full rounded-2xl border border-yellow-500/20 bg-black px-4 py-3 font-bold text-white outline-none transition-all focus:border-yellow-300"
+            />
+            <p className={`${theme.muted} mt-2 text-xs`}>
+              Esse nome aparece no topo do site. O login Google continua o mesmo.
+            </p>
+            {renameError && (
+              <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300">
+                {renameError}
+              </p>
+            )}
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setRenameOpen(false)}
+                className="flex-1 rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-black text-zinc-300 transition-all hover:border-zinc-500"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={renameSaving}
+                onClick={submitRename}
+                className="flex-1 rounded-2xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {renameSaving ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

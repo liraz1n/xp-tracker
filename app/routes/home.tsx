@@ -494,6 +494,7 @@ export default function Home() {
             onCloseNotifications={closeNotifications}
             onOpenSubscription={() => setShowSubscriptionPanel(true)}
             onOpenSettings={() => setShowSettings(true)}
+            onRenameUser={tracker.updateDisplayName}
             onLoginWithGoogle={tracker.loginWithGoogle}
             onLogout={tracker.logout}
           />
