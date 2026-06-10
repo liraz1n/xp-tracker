@@ -255,6 +255,20 @@ export function useBilling({
 
       setSubscription((data as UserSubscriptionRow | null) ?? null);
       setSetupPending(!data);
+
+      if (!data) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .rpc("get_my_subscription_status")
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (!fallbackError && fallbackData) {
+          setSubscription(fallbackData as UserSubscriptionRow);
+          setSetupPending(false);
+        }
+      }
+
       setLoading(false);
     }
 
