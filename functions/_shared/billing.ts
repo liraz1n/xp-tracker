@@ -606,7 +606,7 @@ function maxRedemptionsForCoupon(coupon: DiscountCouponRow | null) {
   return coupon?.max_redemptions ?? null;
 }
 
-function serviceRoleHeaders(serviceRoleKey: string) {
+export function serviceRoleHeaders(serviceRoleKey: string) {
   return {
     apikey: serviceRoleKey,
     authorization: `Bearer ${serviceRoleKey}`,
