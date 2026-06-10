@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "~/supabase";
 
@@ -67,7 +67,6 @@ export interface BillingState {
   referralError: string | null;
   checkoutLoading: boolean;
   checkoutError: string | null;
-  reloadSubscription: () => Promise<void>;
   startCheckout: (
     couponCode?: string,
     paymentMode?: CheckoutPaymentMode,
@@ -229,41 +228,6 @@ export function useBilling({
     setReferralLoading(false);
   }
 
-  const reloadSubscription = useCallback(async () => {
-    if (guestMode || !user || !progressLoaded) {
-      setSubscription(null);
-      setLoading(false);
-      setSetupPending(false);
-      return;
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-
-    if (!token) return;
-
-    setLoading(true);
-
-    const statusResponse = await fetch("/api/billing/status", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!statusResponse.ok) {
-      setLoading(false);
-      return;
-    }
-
-    const status = (await statusResponse.json()) as {
-      subscription?: UserSubscriptionRow | null;
-    };
-
-    setSubscription(status.subscription ?? null);
-    setSetupPending(!status.subscription);
-    setLoading(false);
-  }, [guestMode, progressLoaded, user]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -286,17 +250,12 @@ export function useBilling({
         setSubscription(null);
         setSetupPending(true);
         setLoading(false);
-        reloadSubscription();
         return;
       }
 
       setSubscription((data as UserSubscriptionRow | null) ?? null);
       setSetupPending(!data);
       setLoading(false);
-
-      if (!data) {
-        reloadSubscription();
-      }
     }
 
     if (guestMode || !user || !progressLoaded) {
@@ -315,37 +274,7 @@ export function useBilling({
     return () => {
       cancelled = true;
     };
-  }, [guestMode, progressLoaded, reloadSubscription, user]);
-
-  useEffect(() => {
-    if (guestMode || !user || !progressLoaded || subscription) return;
-
-    reloadSubscription();
-  }, [guestMode, progressLoaded, reloadSubscription, subscription, user]);
-
-  useEffect(() => {
-    if (guestMode || !user || !progressLoaded) return;
-
-    const subscriptionChannel = supabase
-      .channel(`billing-subscription-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "user_subscriptions",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          reloadSubscription();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscriptionChannel);
-    };
-  }, [guestMode, progressLoaded, reloadSubscription, user]);
+  }, [guestMode, progressLoaded, user]);
 
   async function startCheckout(
     couponCode = "",
@@ -417,7 +346,6 @@ export function useBilling({
         referralError: null,
         checkoutLoading,
         checkoutError,
-        reloadSubscription,
         startCheckout,
         reloadReferralSummary,
       };
@@ -441,7 +369,6 @@ export function useBilling({
         referralError,
         checkoutLoading,
         checkoutError,
-        reloadSubscription,
         startCheckout,
         reloadReferralSummary,
       };
@@ -478,7 +405,6 @@ export function useBilling({
       referralError,
       checkoutLoading,
       checkoutError,
-      reloadSubscription,
       startCheckout,
       reloadReferralSummary,
     };
@@ -492,7 +418,6 @@ export function useBilling({
     referralError,
     checkoutLoading,
     checkoutError,
-    reloadSubscription,
     user,
   ]);
 }
