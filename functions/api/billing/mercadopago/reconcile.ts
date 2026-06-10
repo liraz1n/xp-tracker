@@ -52,8 +52,14 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   }
 
   const paymentUserId = payment.external_reference ?? payment.metadata?.user_id;
+  const paymentEmail = payment.payer?.email?.trim().toLowerCase() ?? "";
+  const currentUserEmail = user.email?.trim().toLowerCase() ?? "";
 
-  if (paymentUserId !== user.id) {
+  if (paymentUserId && paymentUserId !== user.id) {
+    return jsonError("Payment does not belong to the current user.", 403);
+  }
+
+  if (!paymentUserId && (!paymentEmail || paymentEmail !== currentUserEmail)) {
     return jsonError("Payment does not belong to the current user.", 403);
   }
 
@@ -82,6 +88,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       status_detail: payment.status_detail,
       payment_method_id: payment.payment_method_id,
       payment_type_id: payment.payment_type_id,
+      payer_email: payment.payer?.email ?? null,
       metadata: payment.metadata,
       inferred_coupon_code: inferredCouponCode,
       source: "return_reconciliation",

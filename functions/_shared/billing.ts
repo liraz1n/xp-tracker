@@ -29,6 +29,11 @@ export type MercadoPagoPaymentResponse = {
   };
 };
 
+export type SupabaseAdminUser = {
+  id: string;
+  email?: string;
+};
+
 type DiscountCouponRow = {
   id: string;
   code: string;
@@ -100,6 +105,38 @@ export async function getAuthenticatedUser(request: Request) {
   return response.json() as Promise<{ id: string; email?: string }>;
 }
 
+export async function findUserByEmail(email: string, serviceRoleKey: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!normalizedEmail) return null;
+
+  for (let page = 1; page <= 10; page += 1) {
+    const response = await fetch(
+      `${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=1000`,
+      {
+        headers: serviceRoleHeaders(serviceRoleKey),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const payload = (await response.json()) as
+      | SupabaseAdminUser[]
+      | { users?: SupabaseAdminUser[] };
+    const users = Array.isArray(payload) ? payload : payload.users ?? [];
+    const foundUser = users.find(
+      (user) => (user.email ?? "").trim().toLowerCase() === normalizedEmail
+    );
+
+    if (foundUser) return foundUser;
+    if (users.length < 1000) return null;
+  }
+
+  return null;
+}
+
 export async function verifyMercadoPagoWebhookSignature(
   request: Request,
   url: URL,
@@ -168,12 +205,14 @@ export async function upsertActiveSubscription({
   serviceRoleKey: string;
 }) {
   const now = new Date();
+  const normalizedCouponCode = couponCode?.trim().toUpperCase() ?? null;
   const appliedCoupon = await redeemCoupon({
-    couponCode,
+    couponCode: normalizedCouponCode,
     userId,
     serviceRoleKey,
   });
-  const lifetimeAccess = appliedCoupon?.code === "FOUNDERS";
+  const lifetimeAccess =
+    normalizedCouponCode === "FOUNDERS" || appliedCoupon?.code === "FOUNDERS";
   const periodEndsAt = new Date(now);
   periodEndsAt.setDate(periodEndsAt.getDate() + 30);
 
@@ -195,7 +234,9 @@ export async function upsertActiveSubscription({
         provider_subscription_id: paymentId,
         current_period_started_at: now.toISOString(),
         current_period_ends_at: lifetimeAccess ? null : periodEndsAt.toISOString(),
-        coupon_code: appliedCoupon?.code ?? null,
+        coupon_code: lifetimeAccess
+          ? "FOUNDERS"
+          : (appliedCoupon?.code ?? normalizedCouponCode),
         discount_percent: appliedCoupon?.discountPercent ?? null,
         discount_amount_cents: appliedCoupon?.discountAmountCents ?? null,
         discount_ends_at: appliedCoupon?.discountEndsAt ?? null,

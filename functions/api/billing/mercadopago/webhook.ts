@@ -1,4 +1,5 @@
 import {
+  findUserByEmail,
   jsonError,
   LIFETIME_PRICE_CENTS,
   recordPaymentEvent,
@@ -65,7 +66,14 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
     return jsonError("Could not inspect Mercado Pago payment.", 502);
   }
 
-  const userId = payment.external_reference ?? payment.metadata?.user_id;
+  const paymentEmail = payment.payer?.email?.trim() ?? "";
+  const paymentUserId = payment.external_reference ?? payment.metadata?.user_id;
+  const targetUser = paymentUserId
+    ? { id: paymentUserId, email: paymentEmail || null }
+    : paymentEmail
+      ? await findUserByEmail(paymentEmail, serviceRoleKey)
+      : null;
+  const userId = targetUser?.id ?? null;
   const referralCreditCents = Number(payment.metadata?.referral_credit_cents ?? 0);
   const amountCents =
     typeof payment.transaction_amount === "number"
@@ -92,6 +100,7 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
       status_detail: payment.status_detail,
       payment_method_id: payment.payment_method_id,
       payment_type_id: payment.payment_type_id,
+      payer_email: paymentEmail || null,
       metadata: payment.metadata,
       inferred_coupon_code: inferredCouponCode,
       referral_credit_cents: Number.isFinite(referralCreditCents)
@@ -109,8 +118,13 @@ export const onRequestPost: PagesFunction<BillingEnv> = async ({
   }
 
   if (!userId) {
-    console.error("Approved Mercado Pago payment without user reference:", paymentId);
-    return jsonError("Payment has no user reference.", 422);
+    console.error("Approved Mercado Pago payment without matched user:", {
+      paymentId,
+      payerEmail: paymentEmail || null,
+      metadata: payment.metadata,
+      externalReference: payment.external_reference,
+    });
+    return jsonError("Payment has no matched user.", 422);
   }
 
   await upsertActiveSubscription({

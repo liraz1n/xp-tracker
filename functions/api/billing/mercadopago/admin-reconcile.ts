@@ -1,10 +1,10 @@
 import {
+  findUserByEmail,
   getAuthenticatedUser,
   jsonError,
   LIFETIME_PRICE_CENTS,
   recordPaymentEvent,
   securityHeaders,
-  SUPABASE_URL,
   upsertActiveSubscription,
   type BillingEnv,
   type MercadoPagoPaymentResponse,
@@ -15,53 +15,8 @@ type AdminReconcilePayment = {
   email?: string | null;
 };
 
-type SupabaseAdminUser = {
-  id: string;
-  email?: string;
-};
-
-function serviceRoleHeaders(serviceRoleKey: string) {
-  return {
-    apikey: serviceRoleKey,
-    authorization: `Bearer ${serviceRoleKey}`,
-    "content-type": "application/json",
-  };
-}
-
 function isSuperAdminEmail(email?: string | null) {
   return (email ?? "").trim().toLowerCase() === "ewertonpro11@gmail.com";
-}
-
-async function findUserByEmail(email: string, serviceRoleKey: string) {
-  const normalizedEmail = email.trim().toLowerCase();
-
-  if (!normalizedEmail) return null;
-
-  for (let page = 1; page <= 10; page += 1) {
-    const response = await fetch(
-      `${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=1000`,
-      {
-        headers: serviceRoleHeaders(serviceRoleKey),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-
-    const payload = (await response.json()) as
-      | SupabaseAdminUser[]
-      | { users?: SupabaseAdminUser[] };
-    const users = Array.isArray(payload) ? payload : payload.users ?? [];
-    const foundUser = users.find(
-      (user) => (user.email ?? "").trim().toLowerCase() === normalizedEmail
-    );
-
-    if (foundUser) return foundUser;
-    if (users.length < 1000) return null;
-  }
-
-  return null;
 }
 
 export const onRequestPost: PagesFunction<BillingEnv> = async ({
