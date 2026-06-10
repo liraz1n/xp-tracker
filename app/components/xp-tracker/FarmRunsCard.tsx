@@ -860,6 +860,13 @@ function getDoubleXpMultiplier(
   return doubleXpMode === "dungeon" && activity.category === "Masmorra" ? 2 : 1;
 }
 
+function getHistoryActivityLabel(activity: Pick<ResolvedFarmActivity, "category" | "name">) {
+  if (activity.category === "Masmorra") return `Masmorra ${activity.name}`;
+  if (activity.category === "Cripta") return activity.name;
+
+  return activity.name;
+}
+
 function getEffectiveActivityXP(
   activity: Pick<ResolvedFarmActivity, "category" | "xp">,
   doubleXpMode: DoubleXpMode
@@ -1133,7 +1140,7 @@ export function FarmRunsCard({
 
     onApplyFarmProgress({
       xpGained: baseXpTotal,
-      source: `${runs}x ${getActivityLabel(selectedActivity)} - ${selectedActivity.levelRangeLabel}`,
+      source: `${runs}x ${getHistoryActivityLabel(selectedActivity)} - ${selectedActivity.levelRangeLabel}`,
       sourceCategory: selectedActivity.category,
     });
   }
@@ -1143,7 +1150,7 @@ export function FarmRunsCard({
 
     onApplyFarmProgress({
       xpGained: activity.xp,
-      source: `1x ${getActivityLabel(activity)} - ${activity.levelRangeLabel}`,
+      source: `1x ${getHistoryActivityLabel(activity)} - ${activity.levelRangeLabel}`,
       sourceCategory: activity.category,
     });
 
@@ -1166,7 +1173,7 @@ export function FarmRunsCard({
     if (farmPlan.totalXP <= 0) return;
 
     const source = farmPlan.items
-      .map((item) => `${item.runs}x ${item.activity.name} (${item.activity.levelRangeLabel})`)
+      .map((item) => `${item.runs}x ${getHistoryActivityLabel(item.activity)} (${item.activity.levelRangeLabel})`)
       .join(" + ");
 
     onApplyFarmProgress({

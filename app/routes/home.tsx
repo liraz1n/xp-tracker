@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { supabase } from "~/supabase";
 import { LoginScreen } from "~/components/xp-tracker/LoginScreen";
 import { DashboardHeader } from "~/components/xp-tracker/DashboardHeader";
@@ -16,9 +16,15 @@ import { EditHistoryEntryModal } from "~/components/xp-tracker/EditHistoryEntryM
 import { OnboardingCard } from "~/components/xp-tracker/OnboardingCard";
 import { FarmRunsCard } from "~/components/xp-tracker/FarmRunsCard";
 import { SmartHistoryCard } from "~/components/xp-tracker/SmartHistoryCard";
-import { UsageAchievementsCard } from "~/components/xp-tracker/UsageAchievementsCard";
+import {
+  getUsageAchievements,
+  UsageAchievementsCard,
+} from "~/components/xp-tracker/UsageAchievementsCard";
 import { GoalsRankingCard } from "~/components/xp-tracker/GoalsRankingCard";
-import { buildNotifications } from "~/components/xp-tracker/NotificationCenter";
+import {
+  buildNotifications,
+  type AppNotification,
+} from "~/components/xp-tracker/NotificationCenter";
 import { SuggestionBox } from "~/components/xp-tracker/SuggestionBox";
 import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/AdminPanelCard";
 import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
@@ -114,6 +120,10 @@ export default function Home() {
   const [lastReadHistoryCount, setLastReadHistoryCount] = useState(0);
   const [historyReadInitialized, setHistoryReadInitialized] = useState(false);
   const [lastReadNotificationKey, setLastReadNotificationKey] = useState("");
+  const [achievementNotifications, setAchievementNotifications] = useState<AppNotification[]>([]);
+  const [achievementToast, setAchievementToast] = useState<AppNotification | null>(null);
+  const completedAchievementKeys = useRef<Set<string> | null>(null);
+  const achievementToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const paymentReturnStatus = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -243,6 +253,10 @@ export default function Home() {
   const xpToday = tracker.history
     .filter((entry) => getLocalDateKey(new Date(entry.date)) === todayKey)
     .reduce((sum, entry) => sum + Math.max(0, entry.xpGained), 0);
+  const completedUsageAchievements = useMemo(
+    () => getUsageAchievements(tracker.history, tracker.dailyGoal).completedAchievements,
+    [tracker.dailyGoal, tracker.history]
+  );
   const notifications = useMemo(
     () =>
       buildNotifications({
@@ -252,8 +266,10 @@ export default function Home() {
         dailyGoal: tracker.dailyGoal,
         xpToday,
         saveStatus: tracker.saveStatus,
+        achievementNotifications,
       }),
     [
+      achievementNotifications,
       tracker.billing,
       tracker.currentXP,
       tracker.totalXP,
@@ -288,6 +304,58 @@ export default function Home() {
     setLastReadHistoryCount(tracker.history.length);
     setHistoryReadInitialized(true);
   }, [historyReadInitialized, tracker.history.length, tracker.progressLoaded]);
+
+  useEffect(() => {
+    if (!tracker.progressLoaded) return;
+
+    const nextKeys = new Set(
+      completedUsageAchievements.map(
+        (achievement) => `${achievement.groupKey}:${achievement.target}`
+      )
+    );
+
+    if (!completedAchievementKeys.current) {
+      completedAchievementKeys.current = nextKeys;
+      return;
+    }
+
+    const previousKeys = completedAchievementKeys.current;
+    const unlockedNow = completedUsageAchievements.filter(
+      (achievement) => !previousKeys.has(`${achievement.groupKey}:${achievement.target}`)
+    );
+
+    completedAchievementKeys.current = nextKeys;
+
+    if (unlockedNow.length === 0) return;
+
+    const nextNotifications = unlockedNow.map<AppNotification>((achievement) => ({
+      title: "Conquista desbloqueada",
+      message: `${achievement.title} foi liberada. ${achievement.value}`,
+      tone: "emerald",
+    }));
+
+    setAchievementNotifications((current) => [
+      ...nextNotifications,
+      ...current,
+    ].slice(0, 8));
+    setAchievementToast(nextNotifications[0]);
+
+    if (achievementToastTimeout.current) {
+      clearTimeout(achievementToastTimeout.current);
+    }
+
+    achievementToastTimeout.current = setTimeout(() => {
+      setAchievementToast(null);
+    }, 5000);
+  }, [completedUsageAchievements, tracker.progressLoaded]);
+
+  useEffect(() => {
+    return () => {
+      if (achievementToastTimeout.current) {
+        clearTimeout(achievementToastTimeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -672,6 +740,17 @@ export default function Home() {
             onConfirm={tracker.registerDeath}
           />
         </>
+      )}
+
+      {achievementToast && (
+        <div className="fixed bottom-5 left-4 right-4 z-50 rounded-2xl border border-emerald-500/30 bg-zinc-950/95 p-4 text-white shadow-[0_0_40px_rgba(16,185,129,0.25)] backdrop-blur md:left-auto md:right-6 md:w-96">
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+            Nova conquista
+          </p>
+          <p className="mt-1 text-base font-black text-yellow-300">
+            {achievementToast.message}
+          </p>
+        </div>
       )}
 
       <EditHistoryEntryModal

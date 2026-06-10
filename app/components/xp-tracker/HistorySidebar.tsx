@@ -185,6 +185,25 @@ function isDeathEntry(entry: HistoryEntry) {
   return /Morte/i.test(entry.source ?? "");
 }
 
+function normalizeSource(source?: string) {
+  return (source ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function isMasmorraSource(source?: string) {
+  const normalized = normalizeSource(source);
+
+  return /masmorra|planicie|floresta|pantano|cemiterio|deserto|altheryn|hydra|zul'?gor|fenda solar|templo do oasis|oasis/.test(
+    normalized
+  );
+}
+
+function isCriptaSource(source?: string) {
+  return /cripta/.test(normalizeSource(source));
+}
+
 function isFarmEntry(entry: HistoryEntry) {
   const source = entry.source ?? "";
 
@@ -192,7 +211,10 @@ function isFarmEntry(entry: HistoryEntry) {
     entry.xpGained > 0 &&
     !isManualAdjustment(entry) &&
     !isDeathEntry(entry) &&
-    (/Cripta|Masmorra|Plano de farm|Caçada|Cacada/i.test(source) || source === "")
+    (/plano de farm|cacada/.test(normalizeSource(source)) ||
+      isCriptaSource(source) ||
+      isMasmorraSource(source) ||
+      source === "")
   );
 }
 
@@ -322,10 +344,13 @@ export function HistorySidebar({
         const source = entry.source ?? "";
 
         if (historyTypeFilter === "manual") {
-          return !/Cripta|Masmorra/i.test(source);
+          return !isCriptaSource(source) && !isMasmorraSource(source);
         }
 
-        return source.toLowerCase().includes(historyTypeFilter);
+        if (historyTypeFilter === "cripta") return isCriptaSource(source);
+        if (historyTypeFilter === "masmorra") return isMasmorraSource(source);
+
+        return normalizeSource(source).includes(historyTypeFilter);
       })
       .sort((left, right) => {
         if (historySort === "xp_desc") return right.entry.xpGained - left.entry.xpGained;

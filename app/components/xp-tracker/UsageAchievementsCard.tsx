@@ -14,7 +14,7 @@ interface UsageAchievementsCardProps {
 
 type AchievementTab = "pending" | "completed";
 
-interface Achievement {
+export interface UsageAchievement {
   groupKey: string;
   title: string;
   description: string;
@@ -32,21 +32,42 @@ function getRunCountFromSource(source?: string) {
   if (!source) return 0;
 
   const matches = [...source.matchAll(/(\d+)x/g)];
-  if (matches.length === 0) return /Cripta|Masmorra|Plano de farm/i.test(source) ? 1 : 0;
+  if (matches.length === 0) return isFarmSource(source) ? 1 : 0;
 
   return matches.reduce((sum, match) => sum + Number(match[1]), 0);
 }
 
+function normalizeSource(source?: string) {
+  return (source ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function isMasmorraSource(source?: string) {
+  const normalized = normalizeSource(source);
+
+  return /masmorra|planicie|floresta|pantano|cemiterio|deserto|altheryn|hydra|zul'?gor|fenda solar|templo do oasis|oasis/.test(
+    normalized
+  );
+}
+
+function isFarmSource(source?: string) {
+  const normalized = normalizeSource(source);
+
+  return /cripta|plano de farm|cacada|caçada/.test(normalized) || isMasmorraSource(source);
+}
+
 function isFarmEntry(entry: HistoryEntry) {
-  return /Cripta|Masmorra|Plano de farm/i.test(entry.source ?? "");
+  return isFarmSource(entry.source);
 }
 
 function isCriptaEntry(entry: HistoryEntry) {
-  return /Cripta/i.test(entry.source ?? "");
+  return /cripta/.test(normalizeSource(entry.source));
 }
 
 function isMasmorraEntry(entry: HistoryEntry) {
-  return /Masmorra/i.test(entry.source ?? "");
+  return isMasmorraSource(entry.source);
 }
 
 function formatXP(value: number) {
@@ -89,7 +110,7 @@ function buildThresholdAchievements({
   current: number;
   thresholds: number[];
   suffix: string;
-  tone: Achievement["tone"];
+  tone: UsageAchievement["tone"];
 }) {
   return thresholds.map((target) => ({
     groupKey,
@@ -100,6 +121,144 @@ function buildThresholdAchievements({
     value: `${formatXP(Math.min(current, target))}/${formatXP(target)} ${suffix}`,
     tone,
   }));
+}
+
+export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number) {
+  const today = new Date();
+  const todayXP = history
+    .filter((entry) => isSameDay(new Date(entry.date), today))
+    .reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const farmEntries = history.filter(isFarmEntry);
+  const criptaEntries = history.filter(isCriptaEntry);
+  const masmorraEntries = history.filter(isMasmorraEntry);
+  const farmXP = farmEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const criptaXP = criptaEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const masmorraXP = masmorraEntries.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const farmRuns = farmEntries.reduce(
+    (sum, entry) => sum + getRunCountFromSource(entry.source),
+    0
+  );
+  const criptaRuns = criptaEntries.reduce(
+    (sum, entry) => sum + getRunCountFromSource(entry.source),
+    0
+  );
+  const masmorraRuns = masmorraEntries.reduce(
+    (sum, entry) => sum + getRunCountFromSource(entry.source),
+    0
+  );
+  const totalXP = history.reduce((sum, entry) => sum + getProgressXP(entry), 0);
+  const bestRunXP = history.reduce(
+    (best, entry) => Math.max(best, entry.xpGained),
+    0
+  );
+  const activeDays = new Set(
+    history.map((entry) => getDateKey(new Date(entry.date)))
+  ).size;
+  const currentStreak = getCurrentStreak(history);
+
+  const achievements: UsageAchievement[] = [
+    ...buildThresholdAchievements({
+      groupKey: "farm-runs",
+      prefix: "Farmador",
+      description: "Acumule runs registradas por atalhos, criptas, masmorras ou plano.",
+      current: farmRuns,
+      thresholds: [1, 5, 10, 25, 50, 100, 150, 250, 500, 1000],
+      suffix: "runs",
+      tone: "emerald",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "total-xp",
+      prefix: "XP acumulado",
+      description: "Some XP registrado em qualquer fonte do histÃ³rico.",
+      current: totalXP,
+      thresholds: [50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000],
+      suffix: "XP",
+      tone: "yellow",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "cripta-runs",
+      prefix: "Cripta dominada",
+      description: "Registre runs de cripta e avance nos marcos de exploraÃ§Ã£o.",
+      current: criptaRuns,
+      thresholds: [1, 5, 10, 25, 50, 100, 250],
+      suffix: "runs",
+      tone: "cyan",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "cripta-xp",
+      prefix: "XP de cripta",
+      description: "Some XP vindo especificamente de criptas.",
+      current: criptaXP,
+      thresholds: [100000, 250000, 500000, 1000000, 2500000, 5000000],
+      suffix: "XP",
+      tone: "cyan",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "masmorra-runs",
+      prefix: "Masmorra limpa",
+      description: "Registre masmorras para criar uma rotina de farm consistente.",
+      current: masmorraRuns,
+      thresholds: [1, 5, 10, 25, 50, 100, 250],
+      suffix: "runs",
+      tone: "violet",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "masmorra-xp",
+      prefix: "XP de masmorra",
+      description: "Some XP vindo especificamente de masmorras.",
+      current: masmorraXP,
+      thresholds: [50000, 100000, 250000, 500000, 1000000, 2500000],
+      suffix: "XP",
+      tone: "violet",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "streak-days",
+      prefix: "SequÃªncia",
+      description: "Registre progresso em dias seguidos.",
+      current: currentStreak,
+      thresholds: [2, 3, 5, 7, 14, 21, 30],
+      suffix: "dias",
+      tone: "emerald",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "active-days",
+      prefix: "Dias ativos",
+      description: "Volte ao XP Tracker em dias diferentes e mantenha o hÃ¡bito vivo.",
+      current: activeDays,
+      thresholds: [2, 5, 10, 20, 30, 60, 100],
+      suffix: "dias",
+      tone: "yellow",
+    }),
+    ...buildThresholdAchievements({
+      groupKey: "best-run",
+      prefix: "Melhor registro",
+      description: "FaÃ§a um registro grande de XP em uma Ãºnica entrada.",
+      current: bestRunXP,
+      thresholds: [10000, 25000, 50000, 100000, 250000, 500000],
+      suffix: "XP",
+      tone: "cyan",
+    }),
+    {
+      groupKey: "daily-goal",
+      title: "Meta diÃ¡ria batida",
+      description: "Alcance a meta diÃ¡ria usando registros de hoje.",
+      current: dailyGoal > 0 ? todayXP : 0,
+      target: dailyGoal > 0 ? dailyGoal : 1,
+      value:
+        dailyGoal > 0
+          ? `${formatXP(Math.min(todayXP, dailyGoal))}/${formatXP(dailyGoal)} XP`
+          : "Sem meta diÃ¡ria",
+      tone: "emerald",
+    },
+  ];
+
+  return {
+    achievements,
+    completedAchievements: achievements.filter(
+      (achievement) => achievement.current >= achievement.target
+    ),
+    farmRuns,
+  };
 }
 
 export function UsageAchievementsCard({
@@ -142,7 +301,7 @@ export function UsageAchievementsCard({
   ).size;
   const currentStreak = getCurrentStreak(history);
 
-  const achievements = useMemo<Achievement[]>(() => {
+  const achievements = useMemo<UsageAchievement[]>(() => {
     return [
       ...buildThresholdAchievements({
         groupKey: "farm-runs",
@@ -255,7 +414,7 @@ export function UsageAchievementsCard({
   const completedAchievements = achievements.filter(
     (achievement) => achievement.current >= achievement.target
   );
-  const nextPendingAchievements = achievements.reduce<Achievement[]>(
+  const nextPendingAchievements = achievements.reduce<UsageAchievement[]>(
     (nextAchievements, achievement) => {
       if (achievement.current >= achievement.target) return nextAchievements;
 
