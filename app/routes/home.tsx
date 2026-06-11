@@ -541,6 +541,7 @@ export default function Home() {
               currentLevel={tracker.currentLevel}
               totalXP={tracker.totalXP}
               doubleXpMode={tracker.doubleXpMode}
+              wisdomElixirActive={tracker.wisdomElixirActive}
               theme={theme}
               onApplyFarmProgress={tracker.applyFarmProgress}
             />
@@ -722,7 +723,11 @@ export default function Home() {
         <>
           <DoubleXpAction
             mode={tracker.doubleXpMode}
+            wisdomElixirActive={tracker.wisdomElixirActive}
+            wisdomElixirEndsAt={tracker.wisdomElixirEndsAt}
             onChange={tracker.setDoubleXpMode}
+            onActivateWisdomElixir={tracker.activateWisdomElixir}
+            onDeactivateWisdomElixir={tracker.deactivateWisdomElixir}
           />
           {tracker.user && (
             <ReferralInviteAction

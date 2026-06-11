@@ -70,6 +70,7 @@ interface ProgressSnapshot {
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 export type DeathPenaltyMode = "peace-necklace" | "no-necklace";
 export type DoubleXpMode = "off" | "hunt" | "dungeon";
+export const WISDOM_ELIXIR_DURATION_MS = 30 * 60 * 1000;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -199,12 +200,17 @@ export function useXpTracker() {
   const [targetLevel, setTargetLevel] = useState(DEFAULT_TARGET_LEVEL);
   const [userTotalXP, setUserTotalXP] = useState(DEFAULT_USER_TOTAL_XP);
   const [doubleXpMode, setDoubleXpMode] = useState<DoubleXpMode>("off");
+  const [wisdomElixirEndsAt, setWisdomElixirEndsAt] = useState<number | null>(null);
   const billing = useBilling({ user, guestMode, progressLoaded });
 
   const milestoneTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wisdomElixirTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const levelColumnsAvailable = useRef(true);
   const userTotalXPColumnAvailable = useRef(true);
+
+  const wisdomElixirActive =
+    wisdomElixirEndsAt !== null && wisdomElixirEndsAt > Date.now();
 
   function getProgressSelectColumns() {
     if (levelColumnsAvailable.current && userTotalXPColumnAvailable.current) {
@@ -745,8 +751,32 @@ export function useXpTracker() {
       if (saveTimeout.current) {
         clearTimeout(saveTimeout.current);
       }
+
+      if (wisdomElixirTimeout.current) {
+        clearTimeout(wisdomElixirTimeout.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (wisdomElixirTimeout.current) {
+      clearTimeout(wisdomElixirTimeout.current);
+      wisdomElixirTimeout.current = null;
+    }
+
+    if (!wisdomElixirEndsAt) return;
+
+    const timeLeft = wisdomElixirEndsAt - Date.now();
+
+    if (timeLeft <= 0) {
+      setWisdomElixirEndsAt(null);
+      return;
+    }
+
+    wisdomElixirTimeout.current = setTimeout(() => {
+      setWisdomElixirEndsAt(null);
+    }, timeLeft);
+  }, [wisdomElixirEndsAt]);
 
   const completedXP = Math.max(0, totalXP - currentXP);
   const percentageValue =
@@ -826,12 +856,14 @@ export function useXpTracker() {
   }) {
     if (currentXP <= 0 || xpGained <= 0) return;
 
-    const multiplier =
+    const eventMultiplier =
       (doubleXpMode === "dungeon" && sourceCategory === "Masmorra") ||
       (doubleXpMode === "hunt" && sourceCategory === "Cacada")
         ? 2
         : 1;
-    const effectiveXP = xpGained * multiplier;
+    const elixirMultiplier = wisdomElixirActive ? 1.1 : 1;
+    const multiplier = eventMultiplier * elixirMultiplier;
+    const effectiveXP = Math.floor(xpGained * multiplier);
     const newCurrentXP = Math.max(0, currentXP - effectiveXP);
     const appliedXP = currentXP - newCurrentXP;
 
@@ -842,7 +874,15 @@ export function useXpTracker() {
       xpGained: appliedXP,
       xpRemaining: newCurrentXP,
       totalXP,
-      source: multiplier > 1 ? `${source} (2XP ativo)` : source,
+      source:
+        multiplier > 1
+          ? `${source} (${[
+              eventMultiplier > 1 ? "2XP ativo" : "",
+              wisdomElixirActive ? "Elixir da Sabedoria" : "",
+            ]
+              .filter(Boolean)
+              .join(" + ")})`
+          : source,
     };
 
     setCurrentXP(newCurrentXP);
@@ -1239,6 +1279,14 @@ export function useXpTracker() {
     return true;
   }
 
+  function activateWisdomElixir() {
+    setWisdomElixirEndsAt(Date.now() + WISDOM_ELIXIR_DURATION_MS);
+  }
+
+  function deactivateWisdomElixir() {
+    setWisdomElixirEndsAt(null);
+  }
+
   return {
     totalXP,
     setTotalXP,
@@ -1264,6 +1312,10 @@ export function useXpTracker() {
     userTotalXP,
     doubleXpMode,
     setDoubleXpMode,
+    wisdomElixirActive,
+    wisdomElixirEndsAt,
+    activateWisdomElixir,
+    deactivateWisdomElixir,
     setCurrentLevel,
     setTargetLevel,
     saveStatus,
