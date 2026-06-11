@@ -90,7 +90,7 @@ export function OnboardingCard({
 
   const currentXPValue = Math.max(0, currentXP);
   const targetLevel = currentLevel + 1;
-  const canStart = totalXP > 0 && currentXPValue > 0;
+  const canStart = currentLevel > 0 && totalXP > 0 && currentXPValue > 0;
 
   useEffect(() => {
     const savedDraft = readOnboardingDraft();
@@ -143,6 +143,15 @@ export function OnboardingCard({
           <p className={`${theme.muted} mt-3 leading-relaxed`}>
             Resgate seus dados no game e informe seu nível atual, quanto XP o jogo pede para upar, quanto ainda falta, seu XP total e a meta diária.
           </p>
+
+          <div className="mt-4 rounded-2xl border border-yellow-500/25 bg-yellow-500/10 px-4 py-3 text-sm leading-relaxed text-yellow-100">
+            <p className="font-black text-yellow-300">Nível atual obrigatório</p>
+            <p className={`${theme.muted} mt-1`}>
+              O nível do personagem é essencial para calcular o XP correto das
+              criptas. A mesma cripta pode entregar XP diferente para um jogador
+              nível 22 e para um jogador nível 38.
+            </p>
+          </div>
 
           <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 text-sm leading-relaxed text-cyan-100">
             <p className="font-black text-cyan-300">Como preencher XP</p>
@@ -271,7 +280,7 @@ export function OnboardingCard({
             </button>
 
             <p className={`${theme.muted} text-sm`}>
-              Se já souber seu nível real, ajuste os campos antes de começar.
+              Preencha obrigatoriamente seu nível real antes de começar.
             </p>
           </div>
         </div>

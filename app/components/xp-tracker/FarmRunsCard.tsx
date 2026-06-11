@@ -1197,7 +1197,7 @@ export function FarmRunsCard({
             </h2>
 
             <p className={`${theme.muted} mt-1.5 text-sm leading-relaxed`}>
-              Criptas usam XP cadastrado por nível. Masmorras usam XP fixo por quantidade de jogadores.
+              Criptas usam XP por nível do personagem e nível alcançado na cripta. Masmorras usam XP fixo por quantidade de jogadores.
             </p>
           </div>
 
@@ -1246,7 +1246,7 @@ export function FarmRunsCard({
                 </select>
                 {visibleActivities.length === 0 && (
                   <p className={`${theme.muted} mt-2 text-xs`}>
-                    Sem dados de XP para o nível {currentLevel} nesta categoria.
+                    Sem dados de XP para personagem nível {currentLevel} nesta categoria.
                   </p>
                 )}
               </label>
@@ -1313,7 +1313,7 @@ export function FarmRunsCard({
                 <p className={`${theme.muted} text-xs`}>
                   {selectedActivity
                     ? `${selectedActivity.category} selecionada para ${selectedActivity.levelRangeLabel}. O registro entra automaticamente no histórico.`
-                    : `Aguardando dados de XP para o nível ${currentLevel}.`}
+                    : `Aguardando dados de XP para personagem nível ${currentLevel}.`}
                 </p>
               </div>
 
@@ -1392,7 +1392,7 @@ export function FarmRunsCard({
               <div>
                 <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <p className={`${theme.muted} text-xs`}>
-                    {quickActivities.length} atalhos cadastrados por nível.
+                    {quickActivities.length} atalhos cadastrados para o seu nível atual.
                   </p>
 
                   {quickFeedback && (
