@@ -125,6 +125,20 @@ function formatSignedXP(value: number) {
   return "0";
 }
 
+function getHistoryEntryDisplay(entry: HistoryEntry) {
+  if (entry.xpGained < 0 && isManualAdjustment(entry)) {
+    return {
+      label: `Correção ${Math.abs(entry.xpGained).toLocaleString("pt-BR")}`,
+      className: "text-yellow-300",
+    };
+  }
+
+  return {
+    label: formatSignedXP(entry.xpGained),
+    className: entry.xpGained < 0 ? "text-red-400" : "text-emerald-400",
+  };
+}
+
 function getDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -185,6 +199,13 @@ function isDeathEntry(entry: HistoryEntry) {
   return /Morte/i.test(entry.source ?? "");
 }
 
+function getEntrySignedResultXP(entry: HistoryEntry) {
+  if (entry.xpGained > 0) return entry.xpGained;
+  if (isDeathEntry(entry)) return entry.xpGained;
+
+  return 0;
+}
+
 function normalizeSource(source?: string) {
   return (source ?? "")
     .normalize("NFD")
@@ -216,6 +237,14 @@ function isFarmEntry(entry: HistoryEntry) {
       isMasmorraSource(source) ||
       source === "")
   );
+}
+
+function isCriptaEntry(entry: HistoryEntry) {
+  return entry.xpGained > 0 && !isManualAdjustment(entry) && isCriptaSource(entry.source);
+}
+
+function isMasmorraEntry(entry: HistoryEntry) {
+  return entry.xpGained > 0 && !isManualAdjustment(entry) && isMasmorraSource(entry.source);
 }
 
 function isResultDayEntry(entry: HistoryEntry, dateKey: string) {
@@ -268,9 +297,15 @@ function ChartTooltip({
             </span>
           </p>
           <p>
-            <span className="text-zinc-500">Ajustes/perdas: </span>
+            <span className="text-zinc-500">Perdas por morte: </span>
             <span className="font-bold text-red-400">
-              -{(point.lostXP + point.adjustmentLossXP).toLocaleString("pt-BR")} XP
+              -{point.lostXP.toLocaleString("pt-BR")} XP
+            </span>
+          </p>
+          <p>
+            <span className="text-zinc-500">Correções manuais: </span>
+            <span className="font-bold text-yellow-300">
+              {point.adjustmentLossXP.toLocaleString("pt-BR")} XP
             </span>
           </p>
           <p>
@@ -391,7 +426,7 @@ export function HistorySidebar({
           bestXP: 0,
         };
 
-        current.netXP += entry.xpGained;
+        current.netXP += getEntrySignedResultXP(entry);
         current.gainedXP += Math.max(0, entry.xpGained);
         if (isFarmEntry(entry)) {
           current.farmedXP += entry.xpGained;
@@ -399,7 +434,7 @@ export function HistorySidebar({
           current.adjustmentGainXP += entry.xpGained;
         } else if (isManualAdjustment(entry) && entry.xpGained < 0) {
           current.adjustmentLossXP += Math.abs(entry.xpGained);
-        } else {
+        } else if (isDeathEntry(entry)) {
           current.lostXP += Math.abs(Math.min(0, entry.xpGained));
         }
         current.runs += 1;
@@ -455,13 +490,13 @@ export function HistorySidebar({
   const selectedDayLostXP = selectedDayEntries.reduce(
     (sum, entry) =>
       sum +
-      (!isManualAdjustment(entry) && entry.xpGained < 0
+      (isDeathEntry(entry) && entry.xpGained < 0
         ? Math.abs(entry.xpGained)
         : 0),
     0
   );
   const selectedDayNetXP = selectedDayEntries.reduce(
-    (sum, entry) => sum + entry.xpGained,
+    (sum, entry) => sum + getEntrySignedResultXP(entry),
     0
   );
   const selectedDayGainedXP =
@@ -474,18 +509,32 @@ export function HistorySidebar({
     (sum, entry) => sum + (isFarmEntry(entry) ? entry.xpGained : 0),
     0
   );
+  const resultCriptaEntries = resultDayEntries.filter(isCriptaEntry);
+  const resultMasmorraEntries = resultDayEntries.filter(isMasmorraEntry);
+  const resultManualEntries = resultDayEntries.filter(isManualAdjustment);
+  const resultCriptaXP = resultCriptaEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const resultMasmorraXP = resultMasmorraEntries.reduce((sum, entry) => sum + entry.xpGained, 0);
+  const resultManualPositiveXP = resultManualEntries.reduce(
+    (sum, entry) => sum + Math.max(0, entry.xpGained),
+    0
+  );
+  const resultManualCorrectionXP = resultManualEntries.reduce(
+    (sum, entry) => sum + Math.abs(Math.min(0, entry.xpGained)),
+    0
+  );
   const resultAdjustmentGainXP = resultDayEntries.reduce(
     (sum, entry) =>
       sum + (isManualAdjustment(entry) && entry.xpGained > 0 ? entry.xpGained : 0),
     0
   );
   const resultLossXP = resultDayEntries.reduce(
-    (sum, entry) => sum + (entry.xpGained < 0 ? Math.abs(entry.xpGained) : 0),
+    (sum, entry) =>
+      sum + (isDeathEntry(entry) && entry.xpGained < 0 ? Math.abs(entry.xpGained) : 0),
     0
   );
   const resultPositiveXP = resultRegisteredFarmXP + resultAdjustmentGainXP;
   const resultNetXP = resultDayEntries.reduce(
-    (sum, entry) => sum + entry.xpGained,
+    (sum, entry) => sum + getEntrySignedResultXP(entry),
     0
   );
   const resultEndingXP = resultDayEntries[0]?.xpRemaining ?? null;
@@ -583,6 +632,7 @@ export function HistorySidebar({
                 ) : (
                   displayHistory.map(({ entry, index }) => {
                     const entryProgress = getEntryProgress(entry, totalXP);
+                    const entryDisplay = getHistoryEntryDisplay(entry);
 
                     return (
                       <div
@@ -591,8 +641,8 @@ export function HistorySidebar({
                       >
                         <div className="flex justify-between items-start gap-3">
                           <div>
-                            <span className={`${entry.xpGained < 0 ? "text-red-400" : "text-emerald-400"} font-bold`}>
-                              {formatSignedXP(entry.xpGained)} XP
+                            <span className={`${entryDisplay.className} font-bold`}>
+                              {entryDisplay.label} XP
                             </span>
                             <p className={`${theme.muted} text-xs mt-0.5`}>
                               {formatEntryDate(entry.date)}
@@ -715,7 +765,7 @@ export function HistorySidebar({
                 </div>
                 <div className="rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2">
                   <p className={`${theme.muted} text-[10px] font-bold uppercase`}>
-                    Perdas
+                    Perdas por morte
                   </p>
                   <p className="text-sm font-black text-red-300">
                     -{resultLossXP.toLocaleString("pt-BR")}
@@ -739,6 +789,48 @@ export function HistorySidebar({
                 </div>
               </div>
 
+              <div className="mb-4 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 p-3">
+                <p className="text-xs font-black uppercase text-cyan-200">
+                  Resumo por origem
+                </p>
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-cyan-500/10 bg-black/20 px-3 py-2">
+                    <span className={theme.muted}>
+                      {resultCriptaEntries.length} Criptas no dia
+                    </span>
+                    <span className="font-black text-emerald-300">
+                      +{resultCriptaXP.toLocaleString("pt-BR")} XP
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-cyan-500/10 bg-black/20 px-3 py-2">
+                    <span className={theme.muted}>
+                      {resultMasmorraEntries.length} Masmorras no dia
+                    </span>
+                    <span className="font-black text-emerald-300">
+                      +{resultMasmorraXP.toLocaleString("pt-BR")} XP
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-cyan-500/10 bg-black/20 px-3 py-2">
+                    <span className={theme.muted}>
+                      {resultManualEntries.length} ajustes manuais
+                    </span>
+                    <span className="font-black text-cyan-200">
+                      +{resultManualPositiveXP.toLocaleString("pt-BR")} XP
+                    </span>
+                  </div>
+                  {resultManualCorrectionXP > 0 && (
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-yellow-500/10 bg-black/20 px-3 py-2">
+                      <span className={theme.muted}>
+                        Correções manuais sem perda
+                      </span>
+                      <span className="font-black text-yellow-300">
+                        {resultManualCorrectionXP.toLocaleString("pt-BR")} XP
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-3">
                 <p className="text-xs font-black uppercase text-yellow-300">
                   Histórico reduzido
@@ -750,29 +842,33 @@ export function HistorySidebar({
                   </p>
                 ) : (
                   <div className="mt-3 space-y-2">
-                    {resultDayEntries.slice(0, 8).map((entry, index) => (
-                      <div
-                        key={`${entry.date}-resultado-${index}`}
-                        className="rounded-xl border border-yellow-500/10 bg-black/25 px-3 py-2"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className={`text-sm font-black ${entry.xpGained < 0 ? "text-red-300" : "text-emerald-300"}`}>
-                              {formatSignedXP(entry.xpGained)} XP
-                            </p>
-                            <p className={`${theme.muted} mt-0.5 text-[11px]`}>
-                              {entry.source ?? "Progresso manual"}
+                    {resultDayEntries.slice(0, 8).map((entry, index) => {
+                      const entryDisplay = getHistoryEntryDisplay(entry);
+
+                      return (
+                        <div
+                          key={`${entry.date}-resultado-${index}`}
+                          className="rounded-xl border border-yellow-500/10 bg-black/25 px-3 py-2"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className={`text-sm font-black ${entryDisplay.className}`}>
+                                {entryDisplay.label} XP
+                              </p>
+                              <p className={`${theme.muted} mt-0.5 text-[11px]`}>
+                                {entry.source ?? "Progresso manual"}
+                              </p>
+                            </div>
+                            <p className={`${theme.muted} shrink-0 text-[11px] font-bold`}>
+                              {new Date(entry.date).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </p>
                           </div>
-                          <p className={`${theme.muted} shrink-0 text-[11px] font-bold`}>
-                            {new Date(entry.date).toLocaleTimeString("pt-BR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {resultDayEntries.length > 8 && (
                       <p className={`${theme.muted} pt-1 text-xs`}>
                         +{resultDayEntries.length - 8} registros no dia.
@@ -880,17 +976,34 @@ export function HistorySidebar({
                     </div>
                     <div>
                       <p className={`${theme.muted} text-[10px] font-black uppercase`}>
-                        Ajustes
+                        Ajuste manual
                       </p>
-                      <p className="text-sm font-black text-red-300">
-                        {formatSignedXP(
-                          selectedDayAdjustmentGainXP -
-                            selectedDayAdjustmentLossXP -
-                            selectedDayLostXP
-                        )}
+                      <p className="text-sm font-black text-cyan-200">
+                        +{selectedDayAdjustmentGainXP.toLocaleString("pt-BR")}
                       </p>
                     </div>
                   </div>
+
+                  {(selectedDayAdjustmentLossXP > 0 || selectedDayLostXP > 0) && (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div>
+                        <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                          Correções manuais
+                        </p>
+                        <p className="text-sm font-black text-yellow-300">
+                          {selectedDayAdjustmentLossXP.toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                          Perdas por morte
+                        </p>
+                        <p className="text-sm font-black text-red-300">
+                          -{selectedDayLostXP.toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <p className={`${theme.muted} mt-3 text-xs`}>
                     Melhor registro:{" "}

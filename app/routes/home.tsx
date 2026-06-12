@@ -41,6 +41,45 @@ import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 import { getLocalDateKey } from "~/utils/dateKeys";
 
 type SidebarTab = "historico" | "grafico" | "resultado";
+const UI_STATE_STORAGE_KEY = "xpTrackerUiState";
+
+interface StoredUiState {
+  showSettings?: boolean;
+  showSubscriptionPanel?: boolean;
+  sidebarOpen?: boolean;
+  sidebarTab?: SidebarTab;
+  scrollY?: number;
+}
+
+function readStoredUiState(): StoredUiState | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawState = window.localStorage.getItem(UI_STATE_STORAGE_KEY);
+    if (!rawState) return null;
+
+    const state = JSON.parse(rawState) as StoredUiState;
+    return {
+      showSettings: Boolean(state.showSettings),
+      showSubscriptionPanel: Boolean(state.showSubscriptionPanel),
+      sidebarOpen: Boolean(state.sidebarOpen),
+      sidebarTab:
+        state.sidebarTab === "grafico" || state.sidebarTab === "resultado"
+          ? state.sidebarTab
+          : "historico",
+      scrollY: Number.isFinite(state.scrollY) ? Math.max(0, Number(state.scrollY)) : 0,
+    };
+  } catch {
+    window.localStorage.removeItem(UI_STATE_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeStoredUiState(state: StoredUiState) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(state));
+}
 
 interface MobileDashboardSectionProps {
   title: string;
@@ -124,6 +163,7 @@ export default function Home() {
   const [achievementToast, setAchievementToast] = useState<AppNotification | null>(null);
   const completedAchievementKeys = useRef<Set<string> | null>(null);
   const achievementToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const uiStateReady = useRef(false);
 
   const paymentReturnStatus = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -141,6 +181,59 @@ export default function Home() {
 
     return params.get("payment_id") ?? params.get("collection_id");
   }, []);
+
+  useEffect(() => {
+    const storedState = readStoredUiState();
+
+    if (storedState) {
+      setShowSettings(Boolean(storedState.showSettings));
+      setShowSubscriptionPanel(Boolean(storedState.showSubscriptionPanel));
+      setSidebarOpen(Boolean(storedState.sidebarOpen));
+      setSidebarTab(storedState.sidebarTab ?? "historico");
+
+      if (storedState.scrollY && storedState.scrollY > 0) {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: storedState.scrollY ?? 0, behavior: "auto" });
+        });
+      }
+    }
+
+    uiStateReady.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!uiStateReady.current) return;
+
+    const state = {
+      showSettings,
+      showSubscriptionPanel,
+      sidebarOpen,
+      sidebarTab,
+      scrollY: typeof window === "undefined" ? 0 : window.scrollY,
+    };
+
+    writeStoredUiState(state);
+  }, [showSettings, showSubscriptionPanel, sidebarOpen, sidebarTab]);
+
+  useEffect(() => {
+    function persistCurrentUiState() {
+      writeStoredUiState({
+        showSettings,
+        showSubscriptionPanel,
+        sidebarOpen,
+        sidebarTab,
+        scrollY: window.scrollY,
+      });
+    }
+
+    window.addEventListener("pagehide", persistCurrentUiState);
+    document.addEventListener("visibilitychange", persistCurrentUiState);
+
+    return () => {
+      window.removeEventListener("pagehide", persistCurrentUiState);
+      document.removeEventListener("visibilitychange", persistCurrentUiState);
+    };
+  }, [showSettings, showSubscriptionPanel, sidebarOpen, sidebarTab]);
 
   function formatDate(days: number) {
     const date = new Date();
