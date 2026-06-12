@@ -168,6 +168,52 @@ function formatFullDateLabel(dateKey: string) {
   });
 }
 
+function formatBrazilianDateInput(dateKey: string) {
+  const [year, month, day] = dateKey.split("-");
+
+  if (!year || !month || !day) return "";
+
+  return `${day}/${month}/${year}`;
+}
+
+function BrazilianDatePicker({
+  value,
+  onChange,
+  tone = "yellow",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  tone?: "yellow" | "cyan";
+}) {
+  const borderClass =
+    tone === "cyan"
+      ? "border-cyan-500/20 text-cyan-100 focus-within:border-cyan-300"
+      : "border-yellow-500/20 text-yellow-100 focus-within:border-yellow-300";
+
+  return (
+    <div className={`relative rounded-xl border bg-black/30 px-3 py-2 ${borderClass}`}>
+      <span className="pointer-events-none block pr-8 text-sm font-bold">
+        {formatBrazilianDateInput(value)}
+      </span>
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-80">
+        ◱
+      </span>
+      <input
+        type="date"
+        value={value}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          if (!nextValue) return;
+
+          onChange(nextValue);
+        }}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        aria-label="Consultar data"
+      />
+    </div>
+  );
+}
+
 function filterHistoryByPeriod(history: HistoryEntry[], filter: ChartFilter) {
   if (filter === "all") return history;
 
@@ -723,16 +769,9 @@ export function HistorySidebar({
                 <label className={`${theme.muted} mb-1 block text-[10px] font-black uppercase`}>
                   Consultar data
                 </label>
-                <input
-                  type="date"
+                <BrazilianDatePicker
                   value={selectedDate}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    if (!nextValue) return;
-
-                    setSelectedDate(nextValue);
-                  }}
-                  className="w-full rounded-xl border border-yellow-500/20 bg-black/30 px-3 py-2 text-sm font-bold text-yellow-100 outline-none focus:border-yellow-300"
+                  onChange={setSelectedDate}
                 />
                 <p className={`${theme.muted} mt-2 text-xs`}>
                   {formatFullDateLabel(selectedDate)}
@@ -934,16 +973,10 @@ export function HistorySidebar({
                   <label className={`${theme.muted} mb-1 block text-[10px] font-black uppercase`}>
                     Consultar data
                   </label>
-                  <input
-                    type="date"
+                  <BrazilianDatePicker
                     value={selectedDate}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      if (!nextValue) return;
-
-                      setSelectedDate(nextValue);
-                    }}
-                    className="w-full rounded-xl border border-cyan-500/20 bg-black/30 px-3 py-2 text-sm font-bold text-cyan-100 outline-none focus:border-cyan-300"
+                    onChange={setSelectedDate}
+                    tone="cyan"
                   />
                   <p className={`${theme.muted} mt-1 text-[11px]`}>
                     Formato brasileiro: dia/mês/ano.
