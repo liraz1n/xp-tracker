@@ -1019,6 +1019,18 @@ function getEffectiveActivityXP(
   );
 }
 
+function getEffectiveManualFarmXP(
+  xp: number,
+  doubleXpMode: DoubleXpMode,
+  wisdomElixirActive = false
+) {
+  const eventMultiplier = doubleXpMode === "hunt" ? 2 : 1;
+
+  return Math.floor(
+    xp * eventMultiplier * getWisdomElixirMultiplier(wisdomElixirActive)
+  );
+}
+
 function buildFarmPlan(currentXP: number, activities: ResolvedFarmActivity[]) {
   if (currentXP <= 0 || activities.length === 0) {
     return {
@@ -1111,6 +1123,7 @@ export function FarmRunsCard({
   const [planMode, setPlanMode] = useState<FarmPlanMode>("fewest-runs");
   const [quickRunTab, setQuickRunTab] = useState<QuickRunTab>("cripta-1");
   const [quickPlayerCount, setQuickPlayerCount] = useState(4);
+  const [manualFarmXP, setManualFarmXP] = useState(0);
   const [quickFeedback, setQuickFeedback] = useState<{
     activityId: string;
     label: string;
@@ -1174,6 +1187,17 @@ export function FarmRunsCard({
   const remainingAfterRun = Math.max(0, currentXP - xpTotal);
   const canApply = Boolean(selectedActivity) && totalXP > 0 && currentXP > 0 && xpApplied > 0;
   const canApplyQuickRun = totalXP > 0 && currentXP > 0;
+  const manualFarmBaseXP = Math.max(0, manualFarmXP);
+  const manualFarmEffectiveXP = getEffectiveManualFarmXP(
+    manualFarmBaseXP,
+    doubleXpMode,
+    wisdomElixirActive
+  );
+  const manualFarmAppliedXP = Math.min(currentXP, manualFarmEffectiveXP);
+  const manualFarmRemainingXP = Math.max(0, currentXP - manualFarmEffectiveXP);
+  const manualFarmHasBoost = manualFarmEffectiveXP > manualFarmBaseXP;
+  const canApplyManualFarm =
+    totalXP > 0 && currentXP > 0 && manualFarmBaseXP > 0 && manualFarmAppliedXP > 0;
 
   const planActivities = useMemo(() => {
     if (planMode === "only-cripta") {
@@ -1315,6 +1339,31 @@ export function FarmRunsCard({
     }, 3200);
   }
 
+  function applyManualFarmProgress() {
+    if (!canApplyManualFarm) return;
+
+    onApplyFarmProgress({
+      xpGained: manualFarmBaseXP,
+      source: "Farm avulso / Caçada solo",
+      sourceCategory: "Cacada",
+    });
+
+    setQuickFeedback({
+      activityId: "manual-farm",
+      label: "Farm avulso / Caçada solo",
+      xp: manualFarmAppliedXP,
+    });
+    setManualFarmXP(0);
+
+    if (quickFeedbackTimeout.current) {
+      clearTimeout(quickFeedbackTimeout.current);
+    }
+
+    quickFeedbackTimeout.current = setTimeout(() => {
+      setQuickFeedback(null);
+    }, 3200);
+  }
+
   function applyFarmPlan() {
     if (farmPlan.totalXP <= 0) return;
 
@@ -1350,6 +1399,81 @@ export function FarmRunsCard({
         </div>
 
         <div className="flex flex-col gap-4">
+          <div className="rounded-3xl border border-cyan-500/15 bg-cyan-500/5 p-3 md:p-4">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_180px_150px] lg:items-end">
+              <div>
+                <p className="text-cyan-200 font-black">
+                  Farm avulso / Caçada solo
+                </p>
+                <p className={`${theme.muted} mt-1 text-xs leading-relaxed`}>
+                  Use quando ganhar XP fora de cripta ou masmorra, como mobs,
+                  boss solto ou qualquer farm manual. 2XP Caçada e Elixir entram
+                  neste cálculo.
+                </p>
+              </div>
+
+              <label className="block">
+                <span className="block text-cyan-200 text-xs font-black mb-1.5">
+                  XP ganho manual
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  value={formatInputValue(manualFarmXP)}
+                  onChange={(event) =>
+                    setManualFarmXP(
+                      event.target.value === ""
+                        ? 0
+                        : Math.max(0, Math.floor(Number(event.target.value) || 0))
+                    )
+                  }
+                  className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-cyan-300`}
+                  placeholder="Ex.: 400"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={applyManualFarmProgress}
+                disabled={!canApplyManualFarm}
+                className="rounded-2xl border border-cyan-300/25 bg-cyan-500/15 px-4 py-3 text-sm font-black text-cyan-100 transition-all hover:bg-cyan-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-cyan-500/15 disabled:hover:text-cyan-100"
+              >
+                Registrar XP
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="rounded-2xl border border-cyan-500/10 bg-black/20 px-3 py-2">
+                <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                  XP aplicado
+                </p>
+                <p className="text-lg font-black text-cyan-200">
+                  +{formatXP(manualFarmAppliedXP)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-red-500/10 bg-black/20 px-3 py-2">
+                <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                  Restará
+                </p>
+                <p className="text-lg font-black text-red-300">
+                  {formatXP(manualFarmRemainingXP)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-yellow-500/10 bg-black/20 px-3 py-2">
+                <p className={`${theme.muted} text-[10px] font-black uppercase`}>
+                  Boost
+                </p>
+                <p className="text-lg font-black text-yellow-300">
+                  {manualFarmHasBoost
+                    ? `${doubleXpMode === "hunt" ? "2XP" : ""}${
+                        doubleXpMode === "hunt" && wisdomElixirActive ? " + " : ""
+                      }${wisdomElixirActive ? "Elixir +10%" : ""}`
+                    : "Sem boost"}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="hidden self-start rounded-3xl border border-yellow-500/15 bg-black/20 p-4 md:p-5">
             <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)_110px] gap-3">
               <label className="block">
