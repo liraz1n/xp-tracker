@@ -1,4 +1,4 @@
-Ôªøimport { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { XpInputs } from "~/components/xp-tracker/XpInputs";
 import { XIcon } from "~/components/xp-tracker/UiIcons";
 
@@ -105,14 +105,6 @@ export function SettingsPanel({
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const autoSaveReady = useRef(false);
-  const autoSaveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onSaveRef = useRef(onSave);
-
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  }, [onSave]);
-
   useEffect(() => {
     if (!open) return;
 
@@ -125,7 +117,6 @@ export function SettingsPanel({
     setDraftCurrentLevel(savedDraft?.currentLevel ?? currentLevel);
     setSettingsError(null);
     setConfirmDeleteOpen(false);
-    autoSaveReady.current = false;
   }, [open]);
 
   useEffect(() => {
@@ -139,36 +130,6 @@ export function SettingsPanel({
       currentLevel: draftCurrentLevel,
     });
 
-    if (!autoSaveReady.current) {
-      autoSaveReady.current = true;
-      return;
-    }
-
-    if (autoSaveTimeout.current) {
-      clearTimeout(autoSaveTimeout.current);
-    }
-
-    autoSaveTimeout.current = setTimeout(async () => {
-      setSettingsError(null);
-      const saved = await onSaveRef.current({
-        totalXP: draftTotalXP,
-        currentXP: Math.max(0, draftCurrentXP),
-        userTotalXP: draftUserTotalXP,
-        dailyGoal: draftDailyGoal,
-        currentLevel: draftCurrentLevel,
-        targetLevel: draftCurrentLevel + 1,
-      });
-
-      if (saved !== false) {
-        clearSettingsDraft();
-      }
-    }, 900);
-
-    return () => {
-      if (autoSaveTimeout.current) {
-        clearTimeout(autoSaveTimeout.current);
-      }
-    };
   }, [
     open,
     draftTotalXP,
@@ -208,7 +169,7 @@ export function SettingsPanel({
     }
 
     setSettingsError(
-      "N√£o foi poss√≠vel salvar o XP total do usu√°rio. Verifique se a coluna user_total_xp existe no Supabase."
+      "N„o foi possÌvel salvar o XP total do usu·rio. Verifique se a coluna user_total_xp existe no Supabase."
     );
   }
 
@@ -221,7 +182,7 @@ export function SettingsPanel({
     setIsDeletingAccount(false);
 
     if (deleted === false) {
-      setSettingsError("N√£o foi poss√≠vel deletar seus dados agora. Tente novamente em instantes.");
+      setSettingsError("N„o foi possÌvel deletar seus dados agora. Tente novamente em instantes.");
       return;
     }
 
@@ -236,10 +197,10 @@ export function SettingsPanel({
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-8">
           <div>
             <h2 className="text-3xl font-black text-yellow-300">
-              Configura√ß√µes
+              ConfiguraÁıes
             </h2>
             <p className={`${theme.muted} mt-2`}>
-              Ajuste n√≠vel atual, XP restante, XP necess√°rio para upar e meta di√°ria.
+              Ajuste nÌvel atual, XP restante, XP necess·rio para upar e meta di·ria.
             </p>
           </div>
 
@@ -247,7 +208,7 @@ export function SettingsPanel({
             type="button"
             onClick={onClose}
             className={`${theme.muted} absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-yellow-500/20 hover:text-yellow-300 transition-all md:static`}
-            aria-label="Fechar configura√ß√µes"
+            aria-label="Fechar configuraÁıes"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -256,7 +217,7 @@ export function SettingsPanel({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
             <label className="block text-yellow-400 text-sm mb-2">
-              N√≠vel atual
+              NÌvel atual
             </label>
             <input
               type="number"
@@ -272,7 +233,7 @@ export function SettingsPanel({
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
             <p className={`${theme.muted} mt-2 text-xs`}>
-              Pr√≥ximo n√≠vel: {draftCurrentLevel + 1}
+              PrÛximo nÌvel: {draftCurrentLevel + 1}
             </p>
           </div>
         </div>
@@ -291,12 +252,12 @@ export function SettingsPanel({
 
         <div className="mb-8 rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-4 md:p-5">
           <h3 className="text-base font-black text-cyan-300">
-            Diferen√ßa entre os campos
+            DiferenÁa entre os campos
           </h3>
           <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
-            <strong>XP necess√°rio para upar</strong> √© quanto o jogo pede para
-            sair do n√≠vel atual. <strong>XP Restante</strong> √© quanto ainda
-            falta agora. Se voc√™ j√° est√° no meio do n√≠vel e s√≥ sabe quanto
+            <strong>XP necess·rio para upar</strong> È quanto o jogo pede para
+            sair do nÌvel atual. <strong>XP Restante</strong> È quanto ainda
+            falta agora. Se vocÍ j· est· no meio do nÌvel e sÛ sabe quanto
             falta, pode repetir esse valor nos dois campos e o XP Tracker passa
             a acompanhar a partir desse ponto.
           </p>
@@ -308,7 +269,7 @@ export function SettingsPanel({
               Salvar ajustes
             </h3>
             <p className={`${theme.muted} mt-2`}>
-              Os ajustes s√£o salvos automaticamente e tamb√©m podem ser confirmados aqui.
+              Os ajustes ficam guardados neste aparelho enquanto vocÍ preenche. Clique em salvar para confirmar no histÛrico e na nuvem.
             </p>
             {settingsError && (
               <p className="mt-2 text-sm font-bold text-red-300">
@@ -323,7 +284,7 @@ export function SettingsPanel({
             disabled={isSavingSettings}
             className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
-            {isSavingSettings ? "Salvando..." : "Salvar altera√ß√µes"}
+            {isSavingSettings ? "Salvando..." : "Salvar alteraÁıes"}
           </button>
         </div>
 
@@ -332,7 +293,7 @@ export function SettingsPanel({
             Zona de risco
           </h3>
           <p className={`${theme.muted} mt-2 mb-5`}>
-            Voc√™ pode resetar seu progresso ou deletar os dados da sua conta no XP Tracker.
+            VocÍ pode resetar seu progresso ou deletar os dados da sua conta no XP Tracker.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -364,7 +325,7 @@ export function SettingsPanel({
                 Deletar conta?
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-                Isso apaga seus dados de progresso salvos no XP Tracker e encerra sua sess√£o. Essa a√ß√£o n√£o pode ser desfeita.
+                Isso apaga seus dados de progresso salvos no XP Tracker e encerra sua sess„o. Essa aÁ„o n„o pode ser desfeita.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">

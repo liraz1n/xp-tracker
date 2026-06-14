@@ -922,7 +922,43 @@ export function useXpTracker() {
   }
 
   function deleteHistoryEntry(indexToDelete: number) {
-    setHistory((prev) => prev.filter((_, index) => index !== indexToDelete));
+    const entryToDelete = history[indexToDelete];
+
+    if (!entryToDelete) return;
+
+    const nextHistory = history.filter((_, index) => index !== indexToDelete);
+    const nextCurrentXP = Math.max(0, currentXP + entryToDelete.xpGained);
+    const nextUserTotalXP = Math.max(0, userTotalXP - entryToDelete.xpGained);
+    const nextPercentage =
+      totalXP > 0 ? clamp(((totalXP - nextCurrentXP) / totalXP) * 100, 0, 100) : 0;
+
+    setHistory(nextHistory);
+    setCurrentXP(nextCurrentXP);
+    setLastSavedXP(nextCurrentXP);
+    setUserTotalXP(nextUserTotalXP);
+    setReachedMilestones(
+      MILESTONES.filter((milestone) => nextPercentage >= milestone)
+    );
+    setActiveMilestone(null);
+    setBarPulsing(false);
+
+    void persistProgressSnapshot(
+      {
+        totalXP,
+        currentXP: nextCurrentXP,
+        dailyGoal,
+        history: nextHistory,
+        reachedMilestones: MILESTONES.filter(
+          (milestone) => nextPercentage >= milestone
+        ),
+        lastSavedXP: nextCurrentXP,
+        darkMode,
+        currentLevel,
+        targetLevel,
+        userTotalXP: nextUserTotalXP,
+      },
+      { requireUserTotalXP: true }
+    );
   }
 
   function updateHistoryEntry(indexToUpdate: number, updatedEntry: HistoryEntry) {

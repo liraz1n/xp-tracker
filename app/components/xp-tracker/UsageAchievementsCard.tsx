@@ -169,7 +169,7 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     ...buildThresholdAchievements({
       groupKey: "total-xp",
       prefix: "XP acumulado",
-      description: "Some XP registrado em qualquer fonte do hist√É¬≥rico.",
+      description: "Some XP registrado em qualquer fonte do histÛrico.",
       current: totalXP,
       thresholds: [50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000],
       suffix: "XP",
@@ -178,7 +178,7 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     ...buildThresholdAchievements({
       groupKey: "cripta-runs",
       prefix: "Cripta dominada",
-      description: "Registre runs de cripta e avance nos marcos de explora√É¬ß√É¬£o.",
+      description: "Registre runs de cripta e avance nos marcos de exploraÁ„o.",
       current: criptaRuns,
       thresholds: [1, 5, 10, 25, 50, 100, 250],
       suffix: "runs",
@@ -213,7 +213,7 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     }),
     ...buildThresholdAchievements({
       groupKey: "streak-days",
-      prefix: "Sequ√É¬™ncia",
+      prefix: "SequÍncia",
       description: "Registre progresso em dias seguidos.",
       current: currentStreak,
       thresholds: [2, 3, 5, 7, 14, 21, 30],
@@ -223,7 +223,7 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     ...buildThresholdAchievements({
       groupKey: "active-days",
       prefix: "Dias ativos",
-      description: "Volte ao XP Tracker em dias diferentes e mantenha o h√É¬°bito vivo.",
+      description: "Volte ao XP Tracker em dias diferentes e mantenha o h·bito vivo.",
       current: activeDays,
       thresholds: [2, 5, 10, 20, 30, 60, 100],
       suffix: "dias",
@@ -232,7 +232,7 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     ...buildThresholdAchievements({
       groupKey: "best-run",
       prefix: "Melhor registro",
-      description: "Fa√É¬ßa um registro grande de XP em uma √É¬∫nica entrada.",
+      description: "FaÁa um registro grande de XP em uma ˙nica entrada.",
       current: bestRunXP,
       thresholds: [10000, 25000, 50000, 100000, 250000, 500000],
       suffix: "XP",
@@ -240,14 +240,14 @@ export function getUsageAchievements(history: HistoryEntry[], dailyGoal: number)
     }),
     {
       groupKey: "daily-goal",
-      title: "Meta di√É¬°ria batida",
-      description: "Alcance a meta di√É¬°ria usando registros de hoje.",
+      title: "Meta di·ria batida",
+      description: "Alcance a meta di·ria usando registros de hoje.",
       current: dailyGoal > 0 ? todayXP : 0,
       target: dailyGoal > 0 ? dailyGoal : 1,
       value:
         dailyGoal > 0
           ? `${formatXP(Math.min(todayXP, dailyGoal))}/${formatXP(dailyGoal)} XP`
-          : "Sem meta di√É¬°ria",
+          : "Sem meta di·ria",
       tone: "emerald",
     },
   ];
@@ -315,7 +315,7 @@ export function UsageAchievementsCard({
       ...buildThresholdAchievements({
         groupKey: "total-xp",
         prefix: "XP acumulado",
-        description: "Some XP registrado em qualquer fonte do hist√≥rico.",
+        description: "Some XP registrado em qualquer fonte do histÛrico.",
         current: totalXP,
         thresholds: [50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000],
         suffix: "XP",
@@ -386,14 +386,14 @@ export function UsageAchievementsCard({
       }),
       {
         groupKey: "daily-goal",
-        title: "Meta di√°ria batida",
-        description: "Alcance a meta di√°ria usando registros de hoje.",
+        title: "Meta di·ria batida",
+        description: "Alcance a meta di·ria usando registros de hoje.",
         current: dailyGoal > 0 ? todayXP : 0,
         target: dailyGoal > 0 ? dailyGoal : 1,
         value:
           dailyGoal > 0
             ? `${formatXP(Math.min(todayXP, dailyGoal))}/${formatXP(dailyGoal)} XP`
-            : "Sem meta di√°ria",
+            : "Sem meta di·ria",
         tone: "emerald",
       },
     ];
@@ -484,10 +484,10 @@ export function UsageAchievementsCard({
       {!isExpanded ? (
         <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-4">
           <p className="text-sm font-black text-yellow-200">
-            {nextPendingAchievements.length} pr√≥ximos marcos na fila
+            {nextPendingAchievements.length} prÛximos marcos na fila
           </p>
           <p className={`${theme.muted} mt-1 text-xs`}>
-            Abra para acompanhar os objetivos mais pr√≥ximos e os marcos j√° conclu√≠dos.
+            Abra para acompanhar os objetivos mais prÛximos e os marcos j· concluÌdos.
           </p>
         </div>
       ) : (
@@ -495,7 +495,7 @@ export function UsageAchievementsCard({
           <div className="mb-4 grid grid-cols-2 gap-2">
             {[
               { id: "pending" as const, label: "Marcos Pendentes", count: nextPendingAchievements.length },
-              { id: "completed" as const, label: "Marcos conclu√≠dos", count: completedAchievements.length },
+              { id: "completed" as const, label: "Marcos concluÌdos", count: completedAchievements.length },
             ].map((tab) => (
               <button
                 type="button"
