@@ -67,12 +67,12 @@ export function buildNotifications({
       ? {
           title: trialEndingSoon
             ? "Seu teste termina em breve"
-            : "Teste grátis ativo",
+            : "Teste gr\u00e1tis ativo",
           message: trialEndingSoon
             ? "Assine agora para manter seu progresso salvo na nuvem, sem perder acesso aos recursos Premium."
             : `Restam ${trialDays} dia${
                 trialDays === 1 ? "" : "s"
-              } de teste grátis. Assine antes do prazo acabar para continuar salvando na nuvem.`,
+              } de teste gr\u00e1tis. Assine antes do prazo acabar para continuar salvando na nuvem.`,
           tone: trialEndingSoon ? ("red" as const) : ("yellow" as const),
           action: "subscription" as const,
           actionLabel: "Assinar agora",
@@ -80,9 +80,9 @@ export function buildNotifications({
       : null,
     !isLifetimeUser && billing.accessStatus === "locked"
       ? {
-          title: "Seu teste grátis terminou",
+          title: "Seu teste gr\u00e1tis terminou",
           message:
-            "Assine agora para recuperar o salvamento na nuvem, runs, conquistas e histórico inteligente.",
+            "Assine agora para recuperar o salvamento na nuvem, runs, conquistas e hist\u00f3rico inteligente.",
           tone: "red" as const,
           action: "subscription" as const,
           actionLabel: "Ver planos",
@@ -92,7 +92,7 @@ export function buildNotifications({
       ? {
           title: "Ative seu acesso Premium",
           message:
-            "Você ainda não iniciou seu plano. Assine para garantir o salvamento contínuo do seu progresso.",
+            "Voc\u00ea ainda n\u00e3o iniciou seu plano. Assine para garantir o salvamento cont\u00ednuo do seu progresso.",
           tone: "yellow" as const,
           action: "subscription" as const,
           actionLabel: "Conhecer plano",
@@ -101,14 +101,14 @@ export function buildNotifications({
     !isLifetimeUser && billing.subscription?.coupon_code
       ? {
           title: "Cupom aplicado",
-          message: `${billing.subscription.coupon_code} está vinculado ao seu plano.`,
+          message: `${billing.subscription.coupon_code} est\u00e1 vinculado ao seu plano.`,
           tone: "emerald" as const,
         }
       : null,
     currentXP > 0 && progress >= 85
       ? {
-          title: "Você está perto de upar",
-          message: `Faltam ${formatXP(currentXP)} XP para fechar o nível atual.`,
+          title: "Voc\u00ea est\u00e1 perto de upar",
+          message: `Faltam ${formatXP(currentXP)} XP para fechar o n\u00edvel atual.`,
           tone: "emerald" as const,
         }
       : null,
@@ -116,11 +116,11 @@ export function buildNotifications({
       ? {
           title:
             xpToday >= dailyGoal
-              ? "Meta diária concluída"
-              : "Meta diária em andamento",
+              ? "Meta di\u00e1ria conclu\u00edda"
+              : "Meta di\u00e1ria em andamento",
           message:
             xpToday >= dailyGoal
-              ? `Hoje você já registrou ${formatXP(xpToday)} XP.`
+              ? `Hoje voc\u00ea j\u00e1 registrou ${formatXP(xpToday)} XP.`
               : `Faltam ${formatXP(
                   Math.max(0, dailyGoal - xpToday)
                 )} XP para bater a meta de hoje.`,
@@ -163,7 +163,7 @@ export function NotificationDropdown({
     <div className="relative">
       <button
         type="button"
-        aria-label="Abrir notificações"
+        aria-label="Abrir notificaÃ§Ãµes"
         onClick={onToggle}
         className={`${buttonClassName} relative`}
       >
@@ -191,7 +191,7 @@ export function NotificationDropdown({
           >
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-sm font-black text-yellow-300">
-                Notificações
+                NotificaÃ§Ãµes
               </p>
               <div className="flex items-center gap-2">
                 <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-[11px] font-black text-yellow-300">

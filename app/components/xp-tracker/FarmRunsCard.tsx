@@ -966,12 +966,7 @@ function matchesQuickRunTab(activity: FarmActivity, tab: QuickRunTab) {
   };
 
   const legacyLabel = levelByTab[tab];
-  const normalizedLabel = legacyLabel.replace("NÃ­vel", "Nível");
-
-  return (
-    activity.name.includes(legacyLabel) ||
-    activity.name.includes(normalizedLabel)
-  );
+  return activity.name.includes(legacyLabel);
 }
 
 function isCriptaTab(tab: QuickRunTab) {

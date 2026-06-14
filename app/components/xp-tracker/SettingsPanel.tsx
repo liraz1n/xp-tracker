@@ -169,7 +169,7 @@ export function SettingsPanel({
     }
 
     setSettingsError(
-      "Não foi possível salvar o XP total do usuário. Verifique se a coluna user_total_xp existe no Supabase."
+      "N\u00e3o foi poss\u00edvel salvar o XP total do usu\u00e1rio. Verifique se a coluna user_total_xp existe no Supabase."
     );
   }
 
@@ -182,7 +182,7 @@ export function SettingsPanel({
     setIsDeletingAccount(false);
 
     if (deleted === false) {
-      setSettingsError("Não foi possível deletar seus dados agora. Tente novamente em instantes.");
+      setSettingsError("N\u00e3o foi poss\u00edvel deletar seus dados agora. Tente novamente em instantes.");
       return;
     }
 
@@ -197,10 +197,10 @@ export function SettingsPanel({
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-8">
           <div>
             <h2 className="text-3xl font-black text-yellow-300">
-              Configurações
+              ConfiguraÃ§Ãµes
             </h2>
             <p className={`${theme.muted} mt-2`}>
-              Ajuste nível atual, XP restante, XP necessário para upar e meta diária.
+              Ajuste nÃ­vel atual, XP restante, XP necessÃ¡rio para upar e meta diÃ¡ria.
             </p>
           </div>
 
@@ -208,7 +208,7 @@ export function SettingsPanel({
             type="button"
             onClick={onClose}
             className={`${theme.muted} absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-yellow-500/20 hover:text-yellow-300 transition-all md:static`}
-            aria-label="Fechar configurações"
+            aria-label="Fechar configuraÃ§Ãµes"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -217,7 +217,7 @@ export function SettingsPanel({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className={`${theme.card} border rounded-3xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.15)]`}>
             <label className="block text-yellow-400 text-sm mb-2">
-              Nível atual
+              NÃ­vel atual
             </label>
             <input
               type="number"
@@ -233,7 +233,7 @@ export function SettingsPanel({
               className={`w-full ${theme.input} border rounded-2xl px-4 py-3 outline-none focus:border-yellow-400`}
             />
             <p className={`${theme.muted} mt-2 text-xs`}>
-              Próximo nível: {draftCurrentLevel + 1}
+              PrÃ³ximo nÃ­vel: {draftCurrentLevel + 1}
             </p>
           </div>
         </div>
@@ -252,12 +252,12 @@ export function SettingsPanel({
 
         <div className="mb-8 rounded-3xl border border-cyan-500/20 bg-cyan-500/5 p-4 md:p-5">
           <h3 className="text-base font-black text-cyan-300">
-            Diferença entre os campos
+            DiferenÃ§a entre os campos
           </h3>
           <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
-            <strong>XP necessário para upar</strong> é quanto o jogo pede para
-            sair do nível atual. <strong>XP Restante</strong> é quanto ainda
-            falta agora. Se você já está no meio do nível e só sabe quanto
+            <strong>XP necessÃ¡rio para upar</strong> Ã© quanto o jogo pede para
+            sair do nÃ­vel atual. <strong>XP Restante</strong> Ã© quanto ainda
+            falta agora. Se vocÃª jÃ¡ estÃ¡ no meio do nÃ­vel e sÃ³ sabe quanto
             falta, pode repetir esse valor nos dois campos e o XP Tracker passa
             a acompanhar a partir desse ponto.
           </p>
@@ -269,7 +269,7 @@ export function SettingsPanel({
               Salvar ajustes
             </h3>
             <p className={`${theme.muted} mt-2`}>
-              Os ajustes ficam guardados neste aparelho enquanto você preenche. Clique em salvar para confirmar no histórico e na nuvem.
+              Os ajustes ficam guardados neste aparelho enquanto vocÃª preenche. Clique em salvar para confirmar no histÃ³rico e na nuvem.
             </p>
             {settingsError && (
               <p className="mt-2 text-sm font-bold text-red-300">
@@ -284,7 +284,7 @@ export function SettingsPanel({
             disabled={isSavingSettings}
             className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-700 hover:scale-105 transition-all duration-300 px-5 py-3 md:px-6 md:py-4 rounded-2xl font-bold shadow-lg text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
-            {isSavingSettings ? "Salvando..." : "Salvar alterações"}
+            {isSavingSettings ? "Salvando..." : "Salvar altera\u00e7\u00f5es"}
           </button>
         </div>
 
@@ -293,7 +293,7 @@ export function SettingsPanel({
             Zona de risco
           </h3>
           <p className={`${theme.muted} mt-2 mb-5`}>
-            Você pode resetar seu progresso ou deletar os dados da sua conta no XP Tracker.
+            VocÃª pode resetar seu progresso ou deletar os dados da sua conta no XP Tracker.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -325,7 +325,7 @@ export function SettingsPanel({
                 Deletar conta?
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-                Isso apaga seus dados de progresso salvos no XP Tracker e encerra sua sessão. Essa ação não pode ser desfeita.
+                Isso apaga seus dados de progresso salvos no XP Tracker e encerra sua sessÃ£o. Essa aÃ§Ã£o nÃ£o pode ser desfeita.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
