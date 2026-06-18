@@ -300,6 +300,22 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xpByLevel: xpForExactLevel(31, 58290),
   },
   {
+    id: "cripta-n1-32-5",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 32",
+    detail: "5 jogadores",
+    players: 5,
+    xpByLevel: xpForExactLevel(32, 62942),
+  },
+  {
+    id: "cripta-n1-33-5",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 33",
+    detail: "5 jogadores",
+    players: 5,
+    xpByLevel: xpForExactLevel(33, 67920),
+  },
+  {
     id: "cripta-n1-27-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 27",
@@ -421,7 +437,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-10",
     category: "Cripta",
     name: "Cripta Nível 3 até 10",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(10, 35371),
   },
@@ -429,7 +445,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-11",
     category: "Cripta",
     name: "Cripta Nível 3 até 11",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(11, 40407),
   },
@@ -437,7 +453,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-12",
     category: "Cripta",
     name: "Cripta Nível 3 até 12",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(12, 45796),
   },
@@ -445,7 +461,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-13",
     category: "Cripta",
     name: "Cripta Nível 3 até 13",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(13, 51561),
   },
@@ -453,7 +469,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-14",
     category: "Cripta",
     name: "Cripta Nível 3 até 14",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(14, 57730),
   },
@@ -461,9 +477,17 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     id: "cripta-n3-15",
     category: "Cripta",
     name: "Cripta Nível 3 até 15",
-    detail: "4 jogadores",
+    detail: "4 ou 5 jogadores",
     players: 4,
     xpByLevel: xpForExactLevel(15, 64331),
+  },
+  {
+    id: "cripta-n3-16",
+    category: "Cripta",
+    name: "Cripta Nível 3 até 16",
+    detail: "4 ou 5 jogadores",
+    players: 4,
+    xpByLevel: xpForExactLevel(16, 71394),
   },
   {
     id: "planicie-4",
@@ -645,6 +669,15 @@ const QUICK_RUN_TABS = [
 
 type QuickRunTab = (typeof QUICK_RUN_TABS)[number]["id"];
 
+const QUICK_RUN_TAB_NOTES: Partial<Record<QuickRunTab, string>> = {
+  "cripta-1":
+    "Cripta 1 - níveis 22 à 27: jogadores acima do nível 27 ganham menos XP que jogadores entre 22 à 27.",
+  "cripta-2":
+    "Cripta 2 - níveis 28 à 35: jogadores acima do nível 35 ganham menos XP que jogadores entre 28 à 35.",
+  "cripta-3":
+    "Cripta 3 - níveis 35 à 50: jogadores ganham uma quantidade única de XP em 4 ou 5 jogadores.",
+};
+
 const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string[]>>>> = {
   "cripta-1": {
     3: [
@@ -703,6 +736,8 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n1-29-5",
       "cripta-n1-30-5",
       "cripta-n1-31-5",
+      "cripta-n1-32-5",
+      "cripta-n1-33-5",
     ],
   },
   "cripta-2": {
@@ -729,6 +764,16 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n3-13",
       "cripta-n3-14",
       "cripta-n3-15",
+      "cripta-n3-16",
+    ],
+    5: [
+      "cripta-n3-10",
+      "cripta-n3-11",
+      "cripta-n3-12",
+      "cripta-n3-13",
+      "cripta-n3-14",
+      "cripta-n3-15",
+      "cripta-n3-16",
     ],
   },
   masmorras: {
@@ -1275,6 +1320,7 @@ export function FarmRunsCard({
   const availableQuickPlayerCounts = useMemo(() => {
     return getAvailableQuickPlayerCounts(quickRunTab, currentLevel);
   }, [currentLevel, quickRunTab]);
+  const quickRunTabNote = QUICK_RUN_TAB_NOTES[quickRunTab];
 
   useEffect(() => {
     if (availableQuickPlayerCounts.length === 0) return;
@@ -1621,6 +1667,12 @@ export function FarmRunsCard({
                 ))}
               </div>
             </div>
+
+            {quickRunTabNote && (
+              <div className="mb-3 rounded-2xl border border-emerald-500/10 bg-black/20 px-3 py-2 text-xs leading-relaxed text-emerald-100/80">
+                {quickRunTabNote}
+              </div>
+            )}
 
             {availableQuickPlayerCounts.length > 0 && (
               <div className="mb-3 flex flex-wrap items-center gap-2">
