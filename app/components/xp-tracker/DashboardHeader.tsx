@@ -28,6 +28,7 @@ interface DashboardHeaderProps {
   onToggleNotifications: () => void;
   onCloseNotifications: () => void;
   onOpenSubscription: () => void;
+  onOpenCommunity: () => void;
   onOpenCommunityChat: (userId: string) => void;
   onOpenSettings: () => void;
   onRenameUser: (displayName: string) => Promise<boolean>;
@@ -51,6 +52,7 @@ export function DashboardHeader({
   onToggleNotifications,
   onCloseNotifications,
   onOpenSubscription,
+  onOpenCommunity,
   onOpenCommunityChat,
   onOpenSettings,
   onRenameUser,
@@ -233,6 +235,7 @@ export function DashboardHeader({
             onToggle={onToggleNotifications}
             onClose={onCloseNotifications}
             onOpenSubscription={onOpenSubscription}
+            onOpenCommunity={onOpenCommunity}
             onOpenCommunityChat={onOpenCommunityChat}
             buttonClassName={iconButtonClass}
             labelClassName={iconLabelClass}

@@ -75,6 +75,27 @@ interface CommunityMessageNotificationRow {
   created_at: string;
 }
 
+type CommunityRunActivity = "qualquer" | "cripta_1" | "cripta_2" | "cripta_3" | "masmorra";
+
+interface CommunityRunInviteNotificationRow {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  sender_name: string;
+  recipient_name: string;
+  activity_type: CommunityRunActivity;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  updated_at: string;
+}
+
+const COMMUNITY_RUN_ACTIVITY_LABELS: Record<CommunityRunActivity, string> = {
+  qualquer: "qualquer run",
+  cripta_1: "Cripta 1",
+  cripta_2: "Cripta 2",
+  cripta_3: "Cripta 3",
+  masmorra: "Masmorra",
+};
+
 function readStoredUiState(): StoredUiState | null {
   if (typeof window === "undefined") return null;
 
@@ -361,6 +382,17 @@ export default function Home() {
     }, 80);
   }
 
+  function openCommunityFromNotification() {
+    setCommunityOpenSignal((value) => value + 1);
+    setNotificationsOpen(false);
+
+    window.setTimeout(() => {
+      document
+        .getElementById("community-section")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
   async function loadCommunityNotifications() {
     if (!tracker.user || !tracker.progressLoaded) {
       setCommunityNotifications([]);
@@ -458,8 +490,69 @@ export default function Home() {
         communityUserId: message.sender_id,
       }));
 
+    const { data: runInviteData, error: runInviteError } = await supabase
+      .from("community_run_invites")
+      .select("id, sender_id, recipient_id, sender_name, recipient_name, activity_type, status, updated_at")
+      .or(`sender_id.eq.${tracker.user.id},recipient_id.eq.${tracker.user.id}`)
+      .in("status", ["pending", "accepted", "declined"])
+      .order("updated_at", { ascending: false })
+      .limit(8);
+
+    if (runInviteError) {
+      const errorText = `${runInviteError.code ?? ""} ${runInviteError.message ?? ""}`.toLowerCase();
+
+      if (
+        runInviteError.code !== "42P01" &&
+        runInviteError.code !== "PGRST205" &&
+        !errorText.includes("community_run_invites")
+      ) {
+        console.warn("Erro ao carregar convites de run:", runInviteError);
+      }
+    }
+
+    const runInviteNotifications = ((runInviteData as CommunityRunInviteNotificationRow[]) ?? [])
+      .map<AppNotification | null>((invite) => {
+        const isIncoming = invite.recipient_id === tracker.user?.id;
+        const isOutgoing = invite.sender_id === tracker.user?.id;
+        const activityLabel = COMMUNITY_RUN_ACTIVITY_LABELS[invite.activity_type] ?? "run";
+
+        if (invite.status === "pending" && isIncoming) {
+          return {
+            title: "Convite de run",
+            message: `${invite.sender_name} te chamou para ${activityLabel}.`,
+            tone: "cyan",
+            action: "community",
+            actionLabel: "Responder convite",
+          };
+        }
+
+        if (invite.status === "accepted" && isOutgoing) {
+          return {
+            title: "Convite aceito",
+            message: `${invite.recipient_name} aceitou sua run de ${activityLabel}.`,
+            tone: "emerald",
+            action: "community",
+            actionLabel: "Abrir Comunidade",
+          };
+        }
+
+        if (invite.status === "declined" && isOutgoing) {
+          return {
+            title: "Convite recusado",
+            message: `${invite.recipient_name} recusou sua run de ${activityLabel}.`,
+            tone: "yellow",
+            action: "community",
+            actionLabel: "Abrir Comunidade",
+          };
+        }
+
+        return null;
+      })
+      .filter((notification): notification is AppNotification => Boolean(notification));
+
     setCommunityNotifications([
       ...messageNotifications,
+      ...runInviteNotifications,
       ...friendshipNotifications,
     ].slice(0, 8));
   }
@@ -590,9 +683,7 @@ export default function Home() {
     notificationKey && notificationKey !== lastReadNotificationKey
       ? notifications.length
       : 0;
-  const unreadCommunityMessageCount = communityNotifications.filter(
-    (notification) => notification.action === "community-chat"
-  ).length;
+  const unreadCommunityMessageCount = communityNotifications.length;
 
   useEffect(() => {
     if (!tracker.progressLoaded || historyReadInitialized) return;
@@ -816,6 +907,7 @@ export default function Home() {
             onToggleNotifications={() => toggleNotifications(notificationKey)}
             onCloseNotifications={closeNotifications}
             onOpenSubscription={() => setShowSubscriptionPanel(true)}
+            onOpenCommunity={openCommunityFromNotification}
             onOpenCommunityChat={openCommunityChatFromNotification}
             onOpenSettings={() => setShowSettings(true)}
             onRenameUser={tracker.updateDisplayName}

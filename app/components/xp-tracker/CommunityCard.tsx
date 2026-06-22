@@ -65,8 +65,41 @@ interface CommunityBlockRow {
   created_at: string;
 }
 
+type CommunityRunActivity = "qualquer" | "cripta_1" | "cripta_2" | "cripta_3" | "masmorra";
+
+interface CommunityRunStatusRow {
+  user_id: string;
+  display_name: string;
+  looking_for_run: boolean;
+  activity_type: CommunityRunActivity;
+  note: string;
+  updated_at: string;
+}
+
+interface CommunityRunInviteRow {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  sender_name: string;
+  recipient_name: string;
+  activity_type: CommunityRunActivity;
+  note: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  created_at: string;
+  updated_at: string;
+  responded_at: string | null;
+}
+
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type CommunityView = "all" | "friends";
+
+const RUN_ACTIVITY_OPTIONS: Array<{ value: CommunityRunActivity; label: string }> = [
+  { value: "qualquer", label: "Qualquer run" },
+  { value: "cripta_1", label: "Cripta 1" },
+  { value: "cripta_2", label: "Cripta 2" },
+  { value: "cripta_3", label: "Cripta 3" },
+  { value: "masmorra", label: "Masmorra" },
+];
 
 function formatPercent(value: number) {
   return `${value.toFixed(2)}%`;
@@ -89,6 +122,10 @@ function formatChatDay(iso: string) {
   });
 }
 
+function getRunActivityLabel(activity: CommunityRunActivity) {
+  return RUN_ACTIVITY_OPTIONS.find((option) => option.value === activity)?.label ?? "Run";
+}
+
 function sanitizeCommunityName(name: string) {
   const fallback = "Jogador XP";
   const sanitized = name.trim().replace(/\s+/g, " ").slice(0, 40);
@@ -108,7 +145,9 @@ function isMissingCommunityTable(error: { code?: string; message?: string } | nu
     text.includes("community_friend_requests") ||
     text.includes("community_messages") ||
     text.includes("community_blocks") ||
-    text.includes("community_message_reports")
+    text.includes("community_message_reports") ||
+    text.includes("community_run_status") ||
+    text.includes("community_run_invites")
   );
 }
 
@@ -128,10 +167,17 @@ export function CommunityCard({
   const [profiles, setProfiles] = useState<CommunityProfileRow[]>([]);
   const [friendRequests, setFriendRequests] = useState<CommunityFriendRequestRow[]>([]);
   const [blocks, setBlocks] = useState<CommunityBlockRow[]>([]);
+  const [runStatuses, setRunStatuses] = useState<CommunityRunStatusRow[]>([]);
+  const [runInvites, setRunInvites] = useState<CommunityRunInviteRow[]>([]);
   const [shareProfile, setShareProfile] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [communityView, setCommunityView] = useState<CommunityView>("all");
   const [feedback, setFeedback] = useState("");
+  const [runStatusActivity, setRunStatusActivity] = useState<CommunityRunActivity>("qualquer");
+  const [runStatusNote, setRunStatusNote] = useState("");
+  const [runInviteProfile, setRunInviteProfile] = useState<CommunityProfileRow | null>(null);
+  const [runInviteActivity, setRunInviteActivity] = useState<CommunityRunActivity>("qualquer");
+  const [runInviteNote, setRunInviteNote] = useState("");
   const [activeChatProfile, setActiveChatProfile] = useState<CommunityProfileRow | null>(null);
   const [chatMessages, setChatMessages] = useState<CommunityMessageRow[]>([]);
   const [chatDraft, setChatDraft] = useState("");
@@ -167,6 +213,13 @@ export function CommunityCard({
         )
     );
   }, [friendRequests, user]);
+  const ownRunStatus = runStatuses.find((item) => item.user_id === user?.id);
+  const incomingRunInvites = runInvites.filter(
+    (invite) => invite.recipient_id === user?.id && invite.status === "pending"
+  );
+  const socialHistory = runInvites
+    .filter((invite) => invite.status === "accepted" || invite.status === "declined")
+    .slice(0, 6);
   const displayedProfiles = visibleProfiles.filter((profile) => {
     if (communityView === "all") return true;
 
@@ -191,6 +244,69 @@ export function CommunityCard({
         (block.blocker_id === user.id && block.blocked_id === profileId) ||
         (block.blocker_id === profileId && block.blocked_id === user.id)
     );
+  }
+
+  function getRunStatusForProfile(profileId: string) {
+    return runStatuses.find(
+      (runStatus) => runStatus.user_id === profileId && runStatus.looking_for_run
+    );
+  }
+
+  async function loadRunStatuses() {
+    if (!user) {
+      setRunStatuses([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_run_status")
+      .select("user_id, display_name, looking_for_run, activity_type, note, updated_at")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      if (!isMissingCommunityTable(error)) {
+        console.warn("Erro ao carregar status de runs:", error);
+      }
+
+      setRunStatuses([]);
+      return;
+    }
+
+    const rows = ((data as CommunityRunStatusRow[]) ?? []);
+    setRunStatuses(rows);
+
+    const ownStatus = rows.find((item) => item.user_id === user.id);
+    if (ownStatus) {
+      setRunStatusActivity(ownStatus.activity_type);
+      setRunStatusNote(ownStatus.note ?? "");
+    }
+  }
+
+  async function loadRunInvites() {
+    if (!user) {
+      setRunInvites([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_run_invites")
+      .select(
+        "id, sender_id, recipient_id, sender_name, recipient_name, activity_type, note, status, created_at, updated_at, responded_at"
+      )
+      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+      .order("updated_at", { ascending: false })
+      .limit(30);
+
+    if (error) {
+      if (!isMissingCommunityTable(error)) {
+        console.warn("Erro ao carregar convites de run:", error);
+      }
+
+      setRunInvites([]);
+      return;
+    }
+
+    setRunInvites((data as CommunityRunInviteRow[]) ?? []);
   }
 
   async function loadBlocks() {
@@ -249,6 +365,8 @@ export function CommunityCard({
     if (!user) {
       setProfiles([]);
       setBlocks([]);
+      setRunStatuses([]);
+      setRunInvites([]);
       setShareProfile(false);
       setStatus("idle");
       return;
@@ -285,6 +403,8 @@ export function CommunityCard({
     if (!ownShareEnabled) {
       setProfiles(ownProfile ? [ownProfile as CommunityProfileRow] : []);
       setFriendRequests([]);
+      setRunStatuses([]);
+      setRunInvites([]);
       setStatus("ready");
       return;
     }
@@ -309,6 +429,8 @@ export function CommunityCard({
     setProfiles((data as CommunityProfileRow[]) ?? []);
     await loadFriendRequests();
     await loadBlocks();
+    await loadRunStatuses();
+    await loadRunInvites();
     setStatus("ready");
   }
 
@@ -385,7 +507,122 @@ export function CommunityCard({
     );
     setFeedback("Seu nível ficou privado. Para ver outros jogadores, ative novamente.");
     setFriendRequests([]);
+    setRunStatuses([]);
+    setRunInvites([]);
     setStatus("ready");
+  }
+
+  async function saveRunStatus(nextLookingForRun: boolean) {
+    if (!user) return;
+
+    setFeedback("");
+
+    const { error } = await supabase
+      .from("community_run_status")
+      .upsert(
+        {
+          user_id: user.id,
+          display_name: sanitizeCommunityName(userName),
+          looking_for_run: nextLookingForRun,
+          activity_type: runStatusActivity,
+          note: runStatusNote.trim().slice(0, 120),
+        },
+        { onConflict: "user_id" }
+      );
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setFeedback("Procura de run precisa do SQL 016 no Supabase.");
+      } else {
+        setFeedback("Nao foi possivel atualizar seu status de run agora.");
+      }
+
+      console.warn("Erro ao salvar status de run:", error);
+      return;
+    }
+
+    setFeedback(
+      nextLookingForRun
+        ? `Voce esta procurando grupo para ${getRunActivityLabel(runStatusActivity)}.`
+        : "Voce saiu da procura de grupo."
+    );
+    await loadRunStatuses();
+    onFriendshipChanged?.();
+  }
+
+  function openRunInvite(profile: CommunityProfileRow) {
+    setRunInviteProfile(profile);
+    setRunInviteActivity(getRunStatusForProfile(profile.user_id)?.activity_type ?? "qualquer");
+    setRunInviteNote("");
+  }
+
+  function closeRunInvite() {
+    setRunInviteProfile(null);
+    setRunInviteActivity("qualquer");
+    setRunInviteNote("");
+  }
+
+  async function sendRunInvite() {
+    if (!user || !runInviteProfile) return;
+
+    setFeedback("");
+
+    const { error } = await supabase
+      .from("community_run_invites")
+      .insert({
+        sender_id: user.id,
+        recipient_id: runInviteProfile.user_id,
+        sender_name: sanitizeCommunityName(userName),
+        recipient_name: sanitizeCommunityName(runInviteProfile.display_name),
+        activity_type: runInviteActivity,
+        note: runInviteNote.trim().slice(0, 160),
+        status: "pending",
+      });
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setFeedback("Convites de run precisam do SQL 016 no Supabase.");
+      } else {
+        setFeedback("Nao foi possivel enviar o convite agora.");
+      }
+
+      console.warn("Erro ao enviar convite de run:", error);
+      return;
+    }
+
+    setFeedback(`Convite enviado para ${runInviteProfile.display_name}.`);
+    closeRunInvite();
+    await loadRunInvites();
+    onFriendshipChanged?.();
+  }
+
+  async function respondToRunInvite(
+    invite: CommunityRunInviteRow,
+    nextStatus: "accepted" | "declined"
+  ) {
+    if (!user || invite.recipient_id !== user.id) return;
+
+    const { error } = await supabase
+      .from("community_run_invites")
+      .update({
+        status: nextStatus,
+        responded_at: new Date().toISOString(),
+      })
+      .eq("id", invite.id);
+
+    if (error) {
+      console.warn("Erro ao responder convite de run:", error);
+      setFeedback("Nao foi possivel responder esse convite agora.");
+      return;
+    }
+
+    setFeedback(
+      nextStatus === "accepted"
+        ? `Voce aceitou a run de ${invite.sender_name}.`
+        : `Voce recusou a run de ${invite.sender_name}.`
+    );
+    await loadRunInvites();
+    onFriendshipChanged?.();
   }
 
   async function sendFriendRequest(profile: CommunityProfileRow) {
@@ -824,6 +1061,103 @@ export function CommunityCard({
             </button>
           </div>
 
+          <div className="rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-sm font-black text-cyan-200">
+                  Procurando grupo
+                </p>
+                <p className={`${theme.muted} mt-1 text-xs leading-relaxed`}>
+                  Avise seus amigos que voce esta disponivel para uma run. Sem quantidade de jogadores.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <select
+                  value={runStatusActivity}
+                  onChange={(event) => setRunStatusActivity(event.target.value as CommunityRunActivity)}
+                  className="rounded-xl border border-cyan-500/20 bg-black px-3 py-2 text-xs font-black text-cyan-100 outline-none"
+                >
+                  {RUN_ACTIVITY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  value={runStatusNote}
+                  onChange={(event) => setRunStatusNote(event.target.value.slice(0, 120))}
+                  placeholder="Ex.: bora depois das 20h"
+                  className="rounded-xl border border-cyan-500/20 bg-black px-3 py-2 text-xs font-bold text-white outline-none placeholder:text-zinc-600"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => saveRunStatus(!ownRunStatus?.looking_for_run)}
+                  className={`rounded-xl px-4 py-2 text-xs font-black transition-all hover:scale-[1.02] ${
+                    ownRunStatus?.looking_for_run
+                      ? "border border-red-500/25 bg-red-500/10 text-red-200"
+                      : "bg-gradient-to-r from-cyan-300 to-emerald-500 text-zinc-950"
+                  }`}
+                >
+                  {ownRunStatus?.looking_for_run ? "Parar procura" : "Ficar procurando"}
+                </button>
+              </div>
+            </div>
+
+            {ownRunStatus?.looking_for_run && (
+              <p className="mt-3 inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                Status ativo: {getRunActivityLabel(ownRunStatus.activity_type)}
+              </p>
+            )}
+          </div>
+
+          {incomingRunInvites.length > 0 && (
+            <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-4">
+              <p className="text-sm font-black text-yellow-200">
+                Convites de run
+              </p>
+              <div className="mt-3 space-y-2">
+                {incomingRunInvites.map((invite) => (
+                  <div
+                    key={invite.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-yellow-500/15 bg-black/20 p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="text-sm font-black text-white">
+                        {invite.sender_name} chamou voce para {getRunActivityLabel(invite.activity_type)}
+                      </p>
+                      {invite.note && (
+                        <p className={`${theme.muted} mt-1 text-xs`}>
+                          {invite.note}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => respondToRunInvite(invite, "accepted")}
+                        className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white transition-all hover:scale-[1.02]"
+                      >
+                        Aceitar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => respondToRunInvite(invite, "declined")}
+                        className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
+                      >
+                        Recusar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               {([
@@ -870,6 +1204,7 @@ export function CommunityCard({
                 const wasDeclined = request?.status === "declined";
                 const isBlockedByMe = block?.blocker_id === user.id;
                 const hasBlockedMe = block?.blocked_id === user.id;
+                const runStatus = getRunStatusForProfile(profile.user_id);
 
                 return (
                   <article
@@ -904,6 +1239,19 @@ export function CommunityCard({
                         </div>
                       )}
 
+                      {runStatus && !isSelf && (
+                        <div className="mt-3 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
+                          <p className="text-xs font-black text-cyan-200">
+                            Procurando: {getRunActivityLabel(runStatus.activity_type)}
+                          </p>
+                          {runStatus.note && (
+                            <p className={`${theme.muted} mt-1 text-xs`}>
+                              {runStatus.note}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       <div className="mt-4">
                         {isSelf ? (
                           <span className="inline-flex rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
@@ -921,6 +1269,15 @@ export function CommunityCard({
                                 className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
                               >
                                 Conversar
+                              </button>
+                            )}
+                            {!block && (
+                              <button
+                                type="button"
+                                onClick={() => openRunInvite(profile)}
+                                className="rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-200 transition-all hover:bg-yellow-500/15"
+                              >
+                                Convidar run
                               </button>
                             )}
                             {isBlockedByMe && block ? (
@@ -990,6 +1347,50 @@ export function CommunityCard({
               })}
             </div>
           )}
+
+          <div className="rounded-2xl border border-emerald-500/15 bg-black/20 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-emerald-200">
+                  Historico social
+                </p>
+                <p className={`${theme.muted} mt-1 text-xs`}>
+                  Runs combinadas e respostas recentes entre amigos.
+                </p>
+              </div>
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                {socialHistory.length}
+              </span>
+            </div>
+
+            {socialHistory.length === 0 ? (
+              <p className={`${theme.muted} mt-3 text-xs`}>
+                Nenhuma run social registrada ainda.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {socialHistory.map((invite) => {
+                  const isSender = invite.sender_id === user.id;
+                  const otherName = isSender ? invite.recipient_name : invite.sender_name;
+                  const statusLabel = invite.status === "accepted" ? "Aceito" : "Recusado";
+
+                  return (
+                    <div
+                      key={invite.id}
+                      className="rounded-2xl border border-emerald-500/10 bg-emerald-500/5 px-3 py-2"
+                    >
+                      <p className="text-xs font-black text-white">
+                        {isSender ? "Voce convidou" : "Voce recebeu convite de"} {otherName}
+                      </p>
+                      <p className={`${theme.muted} mt-1 text-xs`}>
+                        {getRunActivityLabel(invite.activity_type)} - {statusLabel}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -997,6 +1398,86 @@ export function CommunityCard({
         <p className="mt-4 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-100">
           {feedback}
         </p>
+      )}
+
+      {runInviteProfile && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Convidar ${runInviteProfile.display_name} para run`}
+        >
+          <div className="w-full max-w-md rounded-3xl border border-yellow-500/25 bg-zinc-950 p-5 shadow-2xl shadow-yellow-950/20">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase text-yellow-300">
+                  Convite de run
+                </p>
+                <h3 className="mt-1 text-xl font-black text-white">
+                  {runInviteProfile.display_name}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeRunInvite}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-lg font-black text-red-200 transition-all hover:bg-red-500/15"
+                aria-label="Fechar convite"
+              >
+                x
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <label className="block">
+                <span className="text-xs font-black uppercase text-zinc-500">
+                  Tipo de run
+                </span>
+                <select
+                  value={runInviteActivity}
+                  onChange={(event) => setRunInviteActivity(event.target.value as CommunityRunActivity)}
+                  className="mt-1 w-full rounded-2xl border border-yellow-500/20 bg-black px-4 py-3 text-sm font-black text-yellow-100 outline-none"
+                >
+                  {RUN_ACTIVITY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-black uppercase text-zinc-500">
+                  Observacao
+                </span>
+                <textarea
+                  value={runInviteNote}
+                  onChange={(event) => setRunInviteNote(event.target.value.slice(0, 160))}
+                  placeholder="Ex.: vou fazer agora, bora?"
+                  rows={3}
+                  className="mt-1 w-full resize-none rounded-2xl border border-yellow-500/20 bg-black px-4 py-3 text-sm font-bold text-white outline-none placeholder:text-zinc-600"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={closeRunInvite}
+                className="flex-1 rounded-2xl border border-zinc-700 bg-black px-4 py-3 text-sm font-black text-zinc-300 transition-all hover:bg-zinc-900"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={sendRunInvite}
+                className="flex-1 rounded-2xl bg-gradient-to-r from-yellow-300 to-amber-600 px-4 py-3 text-sm font-black text-black transition-all hover:scale-[1.02]"
+              >
+                Enviar convite
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeChatProfile && (
