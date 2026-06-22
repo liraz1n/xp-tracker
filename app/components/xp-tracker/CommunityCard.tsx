@@ -56,6 +56,15 @@ interface CommunityMessageRow {
   created_at: string;
 }
 
+interface CommunityBlockRow {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  blocker_name: string;
+  blocked_name: string;
+  created_at: string;
+}
+
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type CommunityView = "all" | "friends";
 
@@ -69,6 +78,14 @@ function formatChatTime(iso: string) {
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+function formatChatDay(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
   });
 }
 
@@ -89,7 +106,9 @@ function isMissingCommunityTable(error: { code?: string; message?: string } | nu
     error.code === "PGRST205" ||
     text.includes("community_profiles") ||
     text.includes("community_friend_requests") ||
-    text.includes("community_messages")
+    text.includes("community_messages") ||
+    text.includes("community_blocks") ||
+    text.includes("community_message_reports")
   );
 }
 
@@ -108,6 +127,7 @@ export function CommunityCard({
 }: CommunityCardProps) {
   const [profiles, setProfiles] = useState<CommunityProfileRow[]>([]);
   const [friendRequests, setFriendRequests] = useState<CommunityFriendRequestRow[]>([]);
+  const [blocks, setBlocks] = useState<CommunityBlockRow[]>([]);
   const [shareProfile, setShareProfile] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [communityView, setCommunityView] = useState<CommunityView>("all");
@@ -118,6 +138,7 @@ export function CommunityCard({
   const [chatLoading, setChatLoading] = useState(false);
   const [chatFeedback, setChatFeedback] = useState("");
   const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const badgeLabels = useMemo(
     () => badges.map((badge) => badge.label),
@@ -162,6 +183,40 @@ export function CommunityCard({
     );
   }
 
+  function getBlockForProfile(profileId: string) {
+    if (!user) return null;
+
+    return blocks.find(
+      (block) =>
+        (block.blocker_id === user.id && block.blocked_id === profileId) ||
+        (block.blocker_id === profileId && block.blocked_id === user.id)
+    );
+  }
+
+  async function loadBlocks() {
+    if (!user) {
+      setBlocks([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_blocks")
+      .select("id, blocker_id, blocked_id, blocker_name, blocked_name, created_at")
+      .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      if (!isMissingCommunityTable(error)) {
+        console.warn("Erro ao carregar bloqueios da comunidade:", error);
+      }
+
+      setBlocks([]);
+      return;
+    }
+
+    setBlocks((data as CommunityBlockRow[]) ?? []);
+  }
+
   async function loadFriendRequests() {
     if (!user) {
       setFriendRequests([]);
@@ -193,6 +248,7 @@ export function CommunityCard({
   async function loadCommunity() {
     if (!user) {
       setProfiles([]);
+      setBlocks([]);
       setShareProfile(false);
       setStatus("idle");
       return;
@@ -252,6 +308,7 @@ export function CommunityCard({
 
     setProfiles((data as CommunityProfileRow[]) ?? []);
     await loadFriendRequests();
+    await loadBlocks();
     setStatus("ready");
   }
 
@@ -431,6 +488,60 @@ export function CommunityCard({
     onFriendshipChanged?.();
   }
 
+  async function blockProfile(profile: CommunityProfileRow) {
+    if (!user || profile.user_id === user.id) return;
+
+    const confirmed = window.confirm(`Bloquear ${profile.display_name}? Essa pessoa não poderá trocar mensagens com você.`);
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("community_blocks")
+      .upsert({
+        blocker_id: user.id,
+        blocked_id: profile.user_id,
+        blocker_name: sanitizeCommunityName(userName),
+        blocked_name: sanitizeCommunityName(profile.display_name),
+      }, { onConflict: "blocker_id,blocked_id" });
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setFeedback("Bloqueios precisam do SQL 015 no Supabase.");
+      } else {
+        setFeedback("Não foi possível bloquear agora.");
+      }
+
+      console.warn("Erro ao bloquear jogador:", error);
+      return;
+    }
+
+    setFeedback(`${profile.display_name} foi bloqueado.`);
+    if (activeChatProfile?.user_id === profile.user_id) {
+      closeChat();
+    }
+    await loadBlocks();
+    onFriendshipChanged?.();
+  }
+
+  async function unblockProfile(block: CommunityBlockRow, profileName: string) {
+    if (!user || block.blocker_id !== user.id) return;
+
+    const { error } = await supabase
+      .from("community_blocks")
+      .delete()
+      .eq("id", block.id);
+
+    if (error) {
+      console.warn("Erro ao desbloquear jogador:", error);
+      setFeedback("Não foi possível desbloquear agora.");
+      return;
+    }
+
+    setFeedback(`${profileName} foi desbloqueado.`);
+    await loadBlocks();
+    onFriendshipChanged?.();
+  }
+
   async function loadChatMessages(
     profile: CommunityProfileRow,
     options: { silent?: boolean } = {}
@@ -479,6 +590,41 @@ export function CommunityCard({
       .is("read_at", null);
 
     onFriendshipChanged?.();
+  }
+
+  async function reportMessage(message: CommunityMessageRow) {
+    if (!user || message.sender_id === user.id) return;
+
+    const confirmed = window.confirm("Denunciar esta mensagem para revisão do admin?");
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("community_message_reports")
+      .insert({
+        message_id: message.id,
+        reporter_id: user.id,
+        reported_user_id: message.sender_id,
+        reporter_name: sanitizeCommunityName(userName),
+        reported_name: sanitizeCommunityName(message.sender_name),
+        message_body: message.body,
+        reason: "Mensagem denunciada pelo usuário.",
+      });
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setChatFeedback("Denúncias precisam do SQL 015 no Supabase.");
+      } else if (error.code === "23505") {
+        setChatFeedback("Você já denunciou esta mensagem.");
+      } else {
+        setChatFeedback("Não foi possível denunciar agora.");
+      }
+
+      console.warn("Erro ao denunciar mensagem:", error);
+      return;
+    }
+
+    setChatFeedback("Mensagem denunciada para revisão.");
   }
 
   function openChat(profile: CommunityProfileRow) {
@@ -563,6 +709,12 @@ export function CommunityCard({
     return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatProfile?.user_id, user?.id]);
+
+  useEffect(() => {
+    if (!activeChatProfile) return;
+
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [activeChatProfile, chatMessages.length]);
 
   useEffect(() => {
     if (!user || !shareProfile || status === "loading") return;
@@ -708,6 +860,7 @@ export function CommunityCard({
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {displayedProfiles.map((profile) => {
                 const request = getRequestForProfile(profile.user_id);
+                const block = getBlockForProfile(profile.user_id);
                 const isSelf = profile.user_id === user.id;
                 const isIncomingPending =
                   request?.status === "pending" && request.addressee_id === user.id;
@@ -715,6 +868,8 @@ export function CommunityCard({
                   request?.status === "pending" && request.requester_id === user.id;
                 const isFriend = request?.status === "accepted";
                 const wasDeclined = request?.status === "declined";
+                const isBlockedByMe = block?.blocker_id === user.id;
+                const hasBlockedMe = block?.blocked_id === user.id;
 
                 return (
                   <article
@@ -759,13 +914,36 @@ export function CommunityCard({
                             <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
                               Amigo
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => openChat(profile)}
-                              className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
-                            >
-                              Conversar
-                            </button>
+                            {!block && (
+                              <button
+                                type="button"
+                                onClick={() => openChat(profile)}
+                                className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
+                              >
+                                Conversar
+                              </button>
+                            )}
+                            {isBlockedByMe && block ? (
+                              <button
+                                type="button"
+                                onClick={() => unblockProfile(block, profile.display_name)}
+                                className="rounded-full border border-yellow-500/25 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-200 transition-all hover:bg-yellow-500/15"
+                              >
+                                Desbloquear
+                              </button>
+                            ) : hasBlockedMe ? (
+                              <span className="inline-flex rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200">
+                                Bloqueado
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => blockProfile(profile)}
+                                className="rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
+                              >
+                                Bloquear
+                              </button>
+                            )}
                             {request && (
                               <button
                                 type="button"
@@ -837,7 +1015,28 @@ export function CommunityCard({
                 <h3 className="mt-1 text-xl font-black text-white">
                   {activeChatProfile.display_name}
                 </h3>
+                {getBlockForProfile(activeChatProfile.user_id) && (
+                  <p className="mt-1 text-xs font-bold text-red-300">
+                    Conversa bloqueada. Desbloqueie para voltar a enviar mensagens.
+                  </p>
+                )}
               </div>
+
+              <button
+                type="button"
+                onClick={() => loadChatMessages(activeChatProfile)}
+                className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
+              >
+                Atualizar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => blockProfile(activeChatProfile)}
+                className="ml-auto rounded-full border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
+              >
+                Bloquear
+              </button>
 
               <button
                 type="button"
@@ -859,37 +1058,60 @@ export function CommunityCard({
                   Nenhuma mensagem ainda. Comece a conversa com calma.
                 </p>
               ) : (
-                chatMessages.map((message) => {
+                chatMessages.map((message, index) => {
                   const isMine = message.sender_id === user?.id;
+                  const dayLabel = formatChatDay(message.created_at);
+                  const previousDayLabel =
+                    index > 0 ? formatChatDay(chatMessages[index - 1].created_at) : "";
+                  const showDay = dayLabel !== previousDayLabel;
 
                   return (
-                    <div
-                      key={message.id}
-                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                    >
+                    <div key={message.id}>
+                      {showDay && (
+                        <div className="my-3 flex justify-center">
+                          <span className="rounded-full border border-zinc-700 bg-black/40 px-3 py-1 text-[10px] font-black uppercase text-zinc-500">
+                            {dayLabel}
+                          </span>
+                        </div>
+                      )}
+
                       <div
-                        className={`max-w-[82%] rounded-2xl border px-4 py-3 ${
-                          isMine
-                            ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-50"
-                            : "border-cyan-500/20 bg-cyan-500/10 text-cyan-50"
-                        }`}
+                        className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                       >
-                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                          {message.body}
-                        </p>
-                        <p className="mt-2 text-[10px] font-bold uppercase text-zinc-500">
-                          {formatChatTime(message.created_at)}
-                          {isMine && (
-                            <span className={message.read_at ? "text-emerald-300" : "text-zinc-500"}>
-                              {" "}• {message.read_at ? "Lida" : "Enviada"}
-                            </span>
+                        <div
+                          className={`max-w-[82%] rounded-2xl border px-4 py-3 ${
+                            isMine
+                              ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-50"
+                              : "border-cyan-500/20 bg-cyan-500/10 text-cyan-50"
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                            {message.body}
+                          </p>
+                          <p className="mt-2 text-[10px] font-bold uppercase text-zinc-500">
+                            {formatChatTime(message.created_at)}
+                            {isMine && (
+                              <span className={message.read_at ? "text-emerald-300" : "text-zinc-500"}>
+                                {" "}• {message.read_at ? "Lida" : "Enviada"}
+                              </span>
+                            )}
+                          </p>
+                          {!isMine && (
+                            <button
+                              type="button"
+                              onClick={() => reportMessage(message)}
+                              className="mt-2 text-[10px] font-black uppercase text-red-300/80 transition-all hover:text-red-200"
+                            >
+                              Denunciar
+                            </button>
                           )}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   );
                 })
               )}
+              <div ref={chatEndRef} />
             </div>
 
             <div className="border-t border-cyan-500/10 p-4">
@@ -916,7 +1138,7 @@ export function CommunityCard({
                 <button
                   type="button"
                   onClick={sendChatMessage}
-                  disabled={!chatDraft.trim()}
+                  disabled={!chatDraft.trim() || Boolean(getBlockForProfile(activeChatProfile.user_id))}
                   className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-5 py-3 text-sm font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                 >
                   Enviar

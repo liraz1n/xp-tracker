@@ -12,6 +12,8 @@ interface AdminPanelCardProps {
   totalXP: number;
   isSuperAdmin: boolean;
   adminUsers?: AdminUserOverview[];
+  socialReports?: AdminSocialReport[];
+  onReviewSocialReport?: (reportId: string) => Promise<void>;
   theme: {
     card: string;
     muted: string;
@@ -35,8 +37,27 @@ export interface AdminUserOverview {
   user_total_xp: number | null;
 }
 
+export interface AdminSocialReport {
+  id: string;
+  reporter_name: string;
+  reported_name: string;
+  message_body: string;
+  reason: string;
+  status: "open" | "reviewed";
+  created_at: string;
+}
+
 function formatXP(value: number) {
   return Math.round(value).toLocaleString("pt-BR");
+}
+
+function formatAdminDate(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function maskEmail(email?: string) {
@@ -57,6 +78,8 @@ export function AdminPanelCard({
   totalXP,
   isSuperAdmin,
   adminUsers = [],
+  socialReports = [],
+  onReviewSocialReport,
   theme,
 }: AdminPanelCardProps) {
   const [reconcileInput, setReconcileInput] = useState("");
@@ -251,6 +274,61 @@ export function AdminPanelCard({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {isSuperAdmin && (
+        <div className="mt-3 rounded-2xl border border-red-500/15 bg-red-500/5 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-black text-red-300">
+                Moderação social
+              </p>
+              <p className={`${theme.muted} mt-1 text-xs`}>
+                Denúncias de mensagens do chat entre amigos.
+              </p>
+            </div>
+            <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-black text-red-300">
+              {socialReports.length}
+            </span>
+          </div>
+
+          {socialReports.length === 0 ? (
+            <p className={`${theme.muted} rounded-xl border border-red-500/10 bg-black/20 p-3 text-xs`}>
+              Nenhuma denúncia aberta.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2">
+              {socialReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="rounded-xl border border-red-500/10 bg-black/25 p-3"
+                >
+                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="text-sm font-black text-red-200">
+                        {report.reported_name}
+                      </p>
+                      <p className={`${theme.muted} text-xs`}>
+                        Denunciado por {report.reporter_name} em {formatAdminDate(report.created_at)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onReviewSocialReport?.(report.id)}
+                      className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition-all hover:bg-emerald-500/15"
+                    >
+                      Marcar revisado
+                    </button>
+                  </div>
+
+                  <p className="mt-3 rounded-xl border border-red-500/10 bg-black/30 p-3 text-sm leading-relaxed text-zinc-200">
+                    {report.message_body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

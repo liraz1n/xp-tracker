@@ -26,7 +26,11 @@ import {
   type AppNotification,
 } from "~/components/xp-tracker/NotificationCenter";
 import { SuggestionBox } from "~/components/xp-tracker/SuggestionBox";
-import { AdminPanelCard, type AdminUserOverview } from "~/components/xp-tracker/AdminPanelCard";
+import {
+  AdminPanelCard,
+  type AdminSocialReport,
+  type AdminUserOverview,
+} from "~/components/xp-tracker/AdminPanelCard";
 import { FarmPlannerCard } from "~/components/xp-tracker/FarmPlannerCard";
 import { PaymentReturnCard } from "~/components/xp-tracker/PaymentReturnCard";
 import {
@@ -107,6 +111,7 @@ interface MobileDashboardSectionProps {
   defaultOpen?: boolean;
   collapsibleOnDesktop?: boolean;
   openSignal?: number;
+  badgeCount?: number;
   theme: {
     card: string;
     muted: string;
@@ -121,6 +126,7 @@ function MobileDashboardSection({
   defaultOpen = false,
   collapsibleOnDesktop = false,
   openSignal = 0,
+  badgeCount = 0,
   theme,
   children,
 }: MobileDashboardSectionProps) {
@@ -161,7 +167,7 @@ function MobileDashboardSection({
           </span>
 
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-yellow-500/20 bg-yellow-500/10 text-lg font-black text-yellow-300">
-            {open ? "-" : "+"}
+            {badgeCount > 0 ? badgeCount : open ? "-" : "+"}
           </span>
         </span>
       </button>
@@ -183,6 +189,7 @@ export default function Home() {
   const [historyEntryToDelete, setHistoryEntryToDelete] = useState<number | null>(null);
   const [historyEntryToEdit, setHistoryEntryToEdit] = useState<number | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserOverview[]>([]);
+  const [adminSocialReports, setAdminSocialReports] = useState<AdminSocialReport[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [lastReadHistoryCount, setLastReadHistoryCount] = useState(0);
   const [historyReadInitialized, setHistoryReadInitialized] = useState(false);
@@ -457,6 +464,51 @@ export default function Home() {
     ].slice(0, 8));
   }
 
+  async function loadAdminSocialReports() {
+    if (!tracker.billing.isSuperAdmin || !tracker.user) {
+      setAdminSocialReports([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_message_reports")
+      .select("id, reporter_name, reported_name, message_body, reason, status, created_at")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      const errorText = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+
+      if (
+        error.code !== "42P01" &&
+        error.code !== "PGRST205" &&
+        !errorText.includes("community_message_reports")
+      ) {
+        console.warn("Erro ao carregar denúncias sociais:", error);
+      }
+
+      setAdminSocialReports([]);
+      return;
+    }
+
+    setAdminSocialReports((data as AdminSocialReport[]) ?? []);
+  }
+
+  async function reviewAdminSocialReport(reportId: string) {
+    const { error } = await supabase
+      .from("community_message_reports")
+      .update({ status: "reviewed" })
+      .eq("id", reportId);
+
+    if (error) {
+      console.warn("Erro ao revisar denúncia:", error);
+      return;
+    }
+
+    await loadAdminSocialReports();
+  }
+
   const theme = {
     bg: tracker.darkMode ? "bg-black" : "bg-zinc-100",
     card: tracker.darkMode
@@ -538,6 +590,9 @@ export default function Home() {
     notificationKey && notificationKey !== lastReadNotificationKey
       ? notifications.length
       : 0;
+  const unreadCommunityMessageCount = communityNotifications.filter(
+    (notification) => notification.action === "community-chat"
+  ).length;
 
   useEffect(() => {
     if (!tracker.progressLoaded || historyReadInitialized) return;
@@ -629,6 +684,7 @@ export default function Home() {
     async function loadAdminUsers() {
       if (!tracker.billing.isSuperAdmin || !tracker.user) {
         setAdminUsers([]);
+        setAdminSocialReports([]);
         return;
       }
 
@@ -646,6 +702,7 @@ export default function Home() {
     }
 
     loadAdminUsers();
+    loadAdminSocialReports();
 
     return () => {
       cancelled = true;
@@ -808,6 +865,7 @@ export default function Home() {
               description="Veja jogadores que aceitaram compartilhar o proprio nivel."
               collapsibleOnDesktop
               openSignal={communityOpenSignal}
+              badgeCount={unreadCommunityMessageCount}
               theme={theme}
             >
               <div id="community-section">
@@ -916,6 +974,8 @@ export default function Home() {
                 totalXP={tracker.totalXP}
                 isSuperAdmin={tracker.billing.isSuperAdmin}
                 adminUsers={adminUsers}
+                socialReports={adminSocialReports}
+                onReviewSocialReport={reviewAdminSocialReport}
                 theme={theme}
               />
             </MobileDashboardSection>
