@@ -37,6 +37,7 @@ export function buildNotifications({
   xpToday,
   saveStatus,
   achievementNotifications = [],
+  communityNotifications = [],
 }: {
   billing: BillingState;
   currentXP: number;
@@ -45,6 +46,7 @@ export function buildNotifications({
   xpToday: number;
   saveStatus: "idle" | "saving" | "saved" | "error";
   achievementNotifications?: AppNotification[];
+  communityNotifications?: AppNotification[];
 }) {
   const progress =
     totalXP > 0
@@ -60,6 +62,7 @@ export function buildNotifications({
     billing.subscription?.plan === "premium_lifetime" || couponCode === "FOUNDERS";
 
   const notifications: Array<AppNotification | null> = [
+    ...communityNotifications,
     ...achievementNotifications,
     !isLifetimeUser &&
     billing.accessStatus === "trialing" &&

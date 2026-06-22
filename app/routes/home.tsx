@@ -52,6 +52,16 @@ interface StoredUiState {
   scrollY?: number;
 }
 
+interface CommunityFriendRequestNotificationRow {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  requester_name: string;
+  addressee_name: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  updated_at: string;
+}
+
 function readStoredUiState(): StoredUiState | null {
   if (typeof window === "undefined") return null;
 
@@ -161,6 +171,7 @@ export default function Home() {
   const [historyReadInitialized, setHistoryReadInitialized] = useState(false);
   const [lastReadNotificationKey, setLastReadNotificationKey] = useState("");
   const [achievementNotifications, setAchievementNotifications] = useState<AppNotification[]>([]);
+  const [communityNotifications, setCommunityNotifications] = useState<AppNotification[]>([]);
   const [achievementToast, setAchievementToast] = useState<AppNotification | null>(null);
   const completedAchievementKeys = useRef<Set<string> | null>(null);
   const achievementToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -312,6 +323,77 @@ export default function Home() {
     setNotificationsOpen(false);
   }
 
+  async function loadCommunityNotifications() {
+    if (!tracker.user || !tracker.progressLoaded) {
+      setCommunityNotifications([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_friend_requests")
+      .select(
+        "id, requester_id, addressee_id, requester_name, addressee_name, status, updated_at"
+      )
+      .or(`requester_id.eq.${tracker.user.id},addressee_id.eq.${tracker.user.id}`)
+      .in("status", ["pending", "accepted", "declined"])
+      .order("updated_at", { ascending: false })
+      .limit(12);
+
+    if (error) {
+      const errorText = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+
+      if (
+        error.code !== "42P01" &&
+        error.code !== "PGRST205" &&
+        !errorText.includes("community_friend_requests")
+      ) {
+        console.warn("Erro ao carregar notificações da comunidade:", error);
+      }
+
+      setCommunityNotifications([]);
+      return;
+    }
+
+    const rows = ((data as CommunityFriendRequestNotificationRow[]) ?? [])
+      .filter((request) => request.status !== "cancelled");
+
+    setCommunityNotifications(
+      rows
+        .map<AppNotification | null>((request) => {
+          const isIncoming = request.addressee_id === tracker.user?.id;
+          const isOutgoing = request.requester_id === tracker.user?.id;
+
+          if (request.status === "pending" && isIncoming) {
+            return {
+              title: "Novo pedido de amizade",
+              message: `${request.requester_name} quer se conectar com você na Comunidade.`,
+              tone: "cyan",
+            };
+          }
+
+          if (request.status === "accepted" && isOutgoing) {
+            return {
+              title: "Pedido de amizade aceito",
+              message: `${request.addressee_name} aceitou seu pedido de amizade.`,
+              tone: "emerald",
+            };
+          }
+
+          if (request.status === "declined" && isOutgoing) {
+            return {
+              title: "Pedido de amizade recusado",
+              message: `${request.addressee_name} recusou seu pedido de amizade.`,
+              tone: "yellow",
+            };
+          }
+
+          return null;
+        })
+        .filter((notification): notification is AppNotification => Boolean(notification))
+        .slice(0, 6)
+    );
+  }
+
   const theme = {
     bg: tracker.darkMode ? "bg-black" : "bg-zinc-100",
     card: tracker.darkMode
@@ -361,9 +443,11 @@ export default function Home() {
         xpToday,
         saveStatus: tracker.saveStatus,
         achievementNotifications,
+        communityNotifications,
       }),
     [
       achievementNotifications,
+      communityNotifications,
       tracker.billing,
       tracker.currentXP,
       tracker.totalXP,
@@ -398,6 +482,31 @@ export default function Home() {
     setLastReadHistoryCount(tracker.history.length);
     setHistoryReadInitialized(true);
   }, [historyReadInitialized, tracker.history.length, tracker.progressLoaded]);
+
+  useEffect(() => {
+    if (!tracker.user || !tracker.progressLoaded) {
+      setCommunityNotifications([]);
+      return;
+    }
+
+    loadCommunityNotifications();
+
+    const interval = window.setInterval(loadCommunityNotifications, 30000);
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        loadCommunityNotifications();
+      }
+    }
+
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracker.progressLoaded, tracker.user?.id]);
 
   useEffect(() => {
     if (!tracker.progressLoaded) return;
@@ -643,6 +752,7 @@ export default function Home() {
                 targetLevel={tracker.targetLevel}
                 percentageDisplay={tracker.percentageDisplay}
                 badges={profileBadges}
+                onFriendshipChanged={loadCommunityNotifications}
                 theme={theme}
               />
             </MobileDashboardSection>

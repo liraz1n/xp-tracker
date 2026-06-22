@@ -10,6 +10,7 @@ interface CommunityCardProps {
   targetLevel: number;
   percentageDisplay: string;
   badges: ProfileBadge[];
+  onFriendshipChanged?: () => void;
   theme: {
     card: string;
     muted: string;
@@ -27,6 +28,18 @@ interface CommunityProfileRow {
   share_profile: boolean;
   accepted_at: string | null;
   updated_at: string;
+}
+
+interface CommunityFriendRequestRow {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  requester_name: string;
+  addressee_name: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  created_at: string;
+  updated_at: string;
+  responded_at: string | null;
 }
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
@@ -50,7 +63,8 @@ function isMissingCommunityTable(error: { code?: string; message?: string } | nu
   return (
     error.code === "42P01" ||
     error.code === "PGRST205" ||
-    text.includes("community_profiles")
+    text.includes("community_profiles") ||
+    text.includes("community_friend_requests")
   );
 }
 
@@ -61,9 +75,11 @@ export function CommunityCard({
   targetLevel,
   percentageDisplay,
   badges,
+  onFriendshipChanged,
   theme,
 }: CommunityCardProps) {
   const [profiles, setProfiles] = useState<CommunityProfileRow[]>([]);
+  const [friendRequests, setFriendRequests] = useState<CommunityFriendRequestRow[]>([]);
   const [shareProfile, setShareProfile] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [feedback, setFeedback] = useState("");
@@ -85,6 +101,44 @@ export function CommunityCard({
 
       return b.progress_percent - a.progress_percent;
     });
+
+  function getRequestForProfile(profileId: string) {
+    if (!user) return null;
+
+    return friendRequests.find(
+      (request) =>
+        (request.requester_id === user.id && request.addressee_id === profileId) ||
+        (request.requester_id === profileId && request.addressee_id === user.id)
+    );
+  }
+
+  async function loadFriendRequests() {
+    if (!user) {
+      setFriendRequests([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_friend_requests")
+      .select(
+        "id, requester_id, addressee_id, requester_name, addressee_name, status, created_at, updated_at, responded_at"
+      )
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setFeedback("Pedidos de amizade precisam do SQL 012 no Supabase.");
+      } else {
+        console.warn("Erro ao carregar pedidos de amizade:", error);
+      }
+
+      setFriendRequests([]);
+      return;
+    }
+
+    setFriendRequests((data as CommunityFriendRequestRow[]) ?? []);
+  }
 
   async function loadCommunity() {
     if (!user) {
@@ -114,7 +168,7 @@ export function CommunityCard({
 
       console.warn("Erro ao carregar perfil da comunidade:", ownError);
       setStatus("error");
-      setFeedback("Nao foi possivel carregar a Comunidade agora.");
+      setFeedback("Não foi possível carregar a Comunidade agora.");
       return;
     }
 
@@ -124,6 +178,7 @@ export function CommunityCard({
 
     if (!ownShareEnabled) {
       setProfiles(ownProfile ? [ownProfile as CommunityProfileRow] : []);
+      setFriendRequests([]);
       setStatus("ready");
       return;
     }
@@ -141,11 +196,12 @@ export function CommunityCard({
     if (error) {
       console.warn("Erro ao carregar jogadores da comunidade:", error);
       setStatus("error");
-      setFeedback("Nao foi possivel carregar os jogadores agora.");
+      setFeedback("Não foi possível carregar os jogadores agora.");
       return;
     }
 
     setProfiles((data as CommunityProfileRow[]) ?? []);
+    await loadFriendRequests();
     setStatus("ready");
   }
 
@@ -173,7 +229,7 @@ export function CommunityCard({
       if (isMissingCommunityTable(error)) {
         setFeedback("A Comunidade ainda precisa do SQL 011 no Supabase.");
       } else {
-        setFeedback("Nao foi possivel salvar sua escolha agora.");
+        setFeedback("Não foi possível salvar sua escolha agora.");
       }
 
       console.warn("Erro ao salvar perfil da comunidade:", error);
@@ -198,7 +254,7 @@ export function CommunityCard({
     if (!saved) return;
 
     setShareProfile(true);
-    setFeedback("Comunidade ativada. Seu nivel agora fica visivel para outros participantes.");
+    setFeedback("Comunidade ativada. Seu nível agora fica visível para outros participantes.");
     await loadCommunity();
   }
 
@@ -220,8 +276,86 @@ export function CommunityCard({
           : profile
       )
     );
-    setFeedback("Seu nivel ficou privado. Para ver outros jogadores, ative novamente.");
+    setFeedback("Seu nível ficou privado. Para ver outros jogadores, ative novamente.");
+    setFriendRequests([]);
     setStatus("ready");
+  }
+
+  async function sendFriendRequest(profile: CommunityProfileRow) {
+    if (!user || profile.user_id === user.id) return;
+
+    setFeedback("");
+
+    const existingRequest = getRequestForProfile(profile.user_id);
+    const payload = {
+      requester_id: user.id,
+      addressee_id: profile.user_id,
+      requester_name: sanitizeCommunityName(userName),
+      addressee_name: sanitizeCommunityName(profile.display_name),
+      status: "pending" as const,
+      responded_at: null,
+    };
+
+    if (existingRequest) {
+      const { error } = await supabase
+        .from("community_friend_requests")
+        .update(payload)
+        .eq("id", existingRequest.id);
+
+      if (error) {
+        console.warn("Erro ao reenviar pedido de amizade:", error);
+        setFeedback("Não foi possível enviar o pedido agora.");
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from("community_friend_requests")
+        .insert(payload);
+
+      if (error) {
+        if (isMissingCommunityTable(error)) {
+          setFeedback("Pedidos de amizade precisam do SQL 012 no Supabase.");
+        } else {
+          setFeedback("Não foi possível enviar o pedido agora.");
+        }
+
+        console.warn("Erro ao enviar pedido de amizade:", error);
+        return;
+      }
+    }
+
+    setFeedback(`Pedido enviado para ${profile.display_name}.`);
+    await loadFriendRequests();
+    onFriendshipChanged?.();
+  }
+
+  async function respondToFriendRequest(
+    request: CommunityFriendRequestRow,
+    nextStatus: "accepted" | "declined"
+  ) {
+    if (!user || request.addressee_id !== user.id) return;
+
+    const { error } = await supabase
+      .from("community_friend_requests")
+      .update({
+        status: nextStatus,
+        responded_at: new Date().toISOString(),
+      })
+      .eq("id", request.id);
+
+    if (error) {
+      console.warn("Erro ao responder pedido de amizade:", error);
+      setFeedback("Não foi possível responder o pedido agora.");
+      return;
+    }
+
+    setFeedback(
+      nextStatus === "accepted"
+        ? `${request.requester_name} agora é seu amigo.`
+        : `Pedido de ${request.requester_name} recusado.`
+    );
+    await loadFriendRequests();
+    onFriendshipChanged?.();
   }
 
   useEffect(() => {
@@ -343,40 +477,92 @@ export function CommunityCard({
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {visibleProfiles.map((profile) => (
-                <article
-                  key={profile.user_id}
-                  className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className={`${theme.text} truncate text-base font-black`}>
-                        {profile.display_name}
-                      </h3>
-                      <p className={`${theme.muted} mt-1 text-xs`}>
-                        Nivel {profile.current_level} para {profile.target_level}
-                      </p>
-                    </div>
+              {visibleProfiles.map((profile) => {
+                const request = getRequestForProfile(profile.user_id);
+                const isSelf = profile.user_id === user.id;
+                const isIncomingPending =
+                  request?.status === "pending" && request.addressee_id === user.id;
+                const isOutgoingPending =
+                  request?.status === "pending" && request.requester_id === user.id;
+                const isFriend = request?.status === "accepted";
+                const wasDeclined = request?.status === "declined";
 
-                    <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
-                      {formatPercent(Number(profile.progress_percent) || 0)}
-                    </span>
-                  </div>
+                return (
+                  <article
+                    key={profile.user_id}
+                    className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-4"
+                  >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className={`${theme.text} truncate text-base font-black`}>
+                            {profile.display_name}
+                          </h3>
+                          <p className={`${theme.muted} mt-1 text-xs`}>
+                          Nível {profile.current_level} para {profile.target_level}
+                          </p>
+                        </div>
 
-                  {profile.badges && profile.badges.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {profile.badges.map((badge) => (
-                        <span
-                          key={badge}
-                          className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase text-emerald-200"
-                        >
-                          {badge}
+                        <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                          {formatPercent(Number(profile.progress_percent) || 0)}
                         </span>
-                      ))}
-                    </div>
-                  )}
-                </article>
-              ))}
+                      </div>
+
+                      {profile.badges && profile.badges.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {profile.badges.map((badge) => (
+                            <span
+                              key={badge}
+                              className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase text-emerald-200"
+                            >
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="mt-4">
+                        {isSelf ? (
+                          <span className="inline-flex rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
+                            Você
+                          </span>
+                        ) : isFriend ? (
+                          <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                            Amigo
+                          </span>
+                        ) : isIncomingPending && request ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => respondToFriendRequest(request, "accepted")}
+                              className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white transition-all hover:scale-[1.02]"
+                            >
+                              Aceitar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => respondToFriendRequest(request, "declined")}
+                              className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
+                            >
+                              Recusar
+                            </button>
+                          </div>
+                        ) : isOutgoingPending ? (
+                          <span className="inline-flex rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200">
+                            Pedido enviado
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => sendFriendRequest(profile)}
+                            className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition-all hover:bg-emerald-500/15"
+                          >
+                            {wasDeclined ? "Enviar novamente" : "Adicionar amigo"}
+                          </button>
+                        )}
+                      </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
