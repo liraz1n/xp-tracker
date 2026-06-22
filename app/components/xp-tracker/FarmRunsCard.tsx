@@ -316,6 +316,14 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xpByLevel: xpForExactLevel(33, 67920),
   },
   {
+    id: "cripta-n1-34-5",
+    category: "Cripta",
+    name: "Cripta Nível 1 até 34",
+    detail: "5 jogadores",
+    players: 5,
+    xpByLevel: xpForExactLevel(34, 73246),
+  },
+  {
     id: "cripta-n1-27-4",
     category: "Cripta",
     name: "Cripta Nível 1 até 27",
@@ -738,6 +746,7 @@ const QUICK_RUN_ORDER: Partial<Record<QuickRunTab, Partial<Record<number, string
       "cripta-n1-31-5",
       "cripta-n1-32-5",
       "cripta-n1-33-5",
+      "cripta-n1-34-5",
     ],
   },
   "cripta-2": {

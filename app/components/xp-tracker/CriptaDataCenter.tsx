@@ -26,6 +26,7 @@ const CRIPTA_DATA = [
   { cripta: "Cripta 1", players: 5, level: 31, xp: 58290 },
   { cripta: "Cripta 1", players: 5, level: 32, xp: 62942 },
   { cripta: "Cripta 1", players: 5, level: 33, xp: 67920 },
+  { cripta: "Cripta 1", players: 5, level: 34, xp: 73246 },
   { cripta: "Cripta 2", players: 4, level: 10, xp: 19164 },
   { cripta: "Cripta 2", players: 4, level: 11, xp: 22106 },
   { cripta: "Cripta 2", players: 4, level: 12, xp: 25253 },
