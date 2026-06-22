@@ -42,11 +42,31 @@ interface CommunityFriendRequestRow {
   responded_at: string | null;
 }
 
+interface CommunityMessageRow {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  sender_name: string;
+  recipient_name: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type CommunityView = "all" | "friends";
 
 function formatPercent(value: number) {
   return `${value.toFixed(2)}%`;
+}
+
+function formatChatTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function sanitizeCommunityName(name: string) {
@@ -65,7 +85,8 @@ function isMissingCommunityTable(error: { code?: string; message?: string } | nu
     error.code === "42P01" ||
     error.code === "PGRST205" ||
     text.includes("community_profiles") ||
-    text.includes("community_friend_requests")
+    text.includes("community_friend_requests") ||
+    text.includes("community_messages")
   );
 }
 
@@ -85,6 +106,11 @@ export function CommunityCard({
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [communityView, setCommunityView] = useState<CommunityView>("all");
   const [feedback, setFeedback] = useState("");
+  const [activeChatProfile, setActiveChatProfile] = useState<CommunityProfileRow | null>(null);
+  const [chatMessages, setChatMessages] = useState<CommunityMessageRow[]>([]);
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatFeedback, setChatFeedback] = useState("");
   const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const badgeLabels = useMemo(
@@ -399,6 +425,100 @@ export function CommunityCard({
     onFriendshipChanged?.();
   }
 
+  async function loadChatMessages(profile: CommunityProfileRow) {
+    if (!user) return;
+
+    setChatLoading(true);
+    setChatFeedback("");
+
+    const { data, error } = await supabase
+      .from("community_messages")
+      .select("id, sender_id, recipient_id, sender_name, recipient_name, body, read_at, created_at")
+      .or(
+        `and(sender_id.eq.${user.id},recipient_id.eq.${profile.user_id}),and(sender_id.eq.${profile.user_id},recipient_id.eq.${user.id})`
+      )
+      .order("created_at", { ascending: true })
+      .limit(80);
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setChatFeedback("O chat precisa do SQL 014 no Supabase.");
+      } else {
+        setChatFeedback("Não foi possível carregar a conversa agora.");
+      }
+
+      console.warn("Erro ao carregar conversa:", error);
+      setChatMessages([]);
+      setChatLoading(false);
+      return;
+    }
+
+    setChatMessages((data as CommunityMessageRow[]) ?? []);
+    setChatLoading(false);
+
+    await supabase
+      .from("community_messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("sender_id", profile.user_id)
+      .eq("recipient_id", user.id)
+      .is("read_at", null);
+
+    onFriendshipChanged?.();
+  }
+
+  function openChat(profile: CommunityProfileRow) {
+    setActiveChatProfile(profile);
+    setChatDraft("");
+    loadChatMessages(profile);
+  }
+
+  function closeChat() {
+    setActiveChatProfile(null);
+    setChatMessages([]);
+    setChatDraft("");
+    setChatFeedback("");
+  }
+
+  async function sendChatMessage() {
+    if (!user || !activeChatProfile) return;
+
+    const body = chatDraft.trim();
+
+    if (!body) return;
+
+    if (body.length > 500) {
+      setChatFeedback("Mensagem muito longa. Use até 500 caracteres.");
+      return;
+    }
+
+    setChatFeedback("");
+
+    const { error } = await supabase
+      .from("community_messages")
+      .insert({
+        sender_id: user.id,
+        recipient_id: activeChatProfile.user_id,
+        sender_name: sanitizeCommunityName(userName),
+        recipient_name: sanitizeCommunityName(activeChatProfile.display_name),
+        body,
+      });
+
+    if (error) {
+      if (isMissingCommunityTable(error)) {
+        setChatFeedback("O chat precisa do SQL 014 no Supabase.");
+      } else {
+        setChatFeedback("Não foi possível enviar a mensagem agora.");
+      }
+
+      console.warn("Erro ao enviar mensagem:", error);
+      return;
+    }
+
+    setChatDraft("");
+    await loadChatMessages(activeChatProfile);
+    onFriendshipChanged?.();
+  }
+
   useEffect(() => {
     loadCommunity();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -599,6 +719,13 @@ export function CommunityCard({
                             <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
                               Amigo
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => openChat(profile)}
+                              className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
+                            >
+                              Conversar
+                            </button>
                             {request && (
                               <button
                                 type="button"
@@ -652,6 +779,107 @@ export function CommunityCard({
         <p className="mt-4 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-100">
           {feedback}
         </p>
+      )}
+
+      {activeChatProfile && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Conversa com ${activeChatProfile.display_name}`}
+        >
+          <div className="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-cyan-500/25 bg-zinc-950 shadow-2xl shadow-cyan-950/30">
+            <div className="flex items-start justify-between gap-3 border-b border-cyan-500/10 p-4">
+              <div>
+                <p className="text-xs font-black uppercase text-cyan-300">
+                  Chat entre amigos
+                </p>
+                <h3 className="mt-1 text-xl font-black text-white">
+                  {activeChatProfile.display_name}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeChat}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-lg font-black text-red-200 transition-all hover:bg-red-500/15"
+                aria-label="Fechar conversa"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+              {chatLoading ? (
+                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-4 text-sm font-bold text-cyan-100">
+                  Carregando conversa...
+                </p>
+              ) : chatMessages.length === 0 ? (
+                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-4 text-sm font-bold text-cyan-100">
+                  Nenhuma mensagem ainda. Comece a conversa com calma.
+                </p>
+              ) : (
+                chatMessages.map((message) => {
+                  const isMine = message.sender_id === user?.id;
+
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[82%] rounded-2xl border px-4 py-3 ${
+                          isMine
+                            ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-50"
+                            : "border-cyan-500/20 bg-cyan-500/10 text-cyan-50"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                          {message.body}
+                        </p>
+                        <p className="mt-2 text-[10px] font-bold uppercase text-zinc-500">
+                          {formatChatTime(message.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="border-t border-cyan-500/10 p-4">
+              {chatFeedback && (
+                <p className="mb-3 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-100">
+                  {chatFeedback}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <textarea
+                  value={chatDraft}
+                  onChange={(event) => setChatDraft(event.target.value.slice(0, 500))}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      sendChatMessage();
+                    }
+                  }}
+                  placeholder="Escreva uma mensagem..."
+                  rows={2}
+                  className="min-h-[56px] flex-1 resize-none rounded-2xl border border-cyan-500/20 bg-black px-4 py-3 text-sm font-bold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-cyan-300"
+                />
+                <button
+                  type="button"
+                  onClick={sendChatMessage}
+                  disabled={!chatDraft.trim()}
+                  className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-5 py-3 text-sm font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

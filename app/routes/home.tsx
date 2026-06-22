@@ -62,6 +62,15 @@ interface CommunityFriendRequestNotificationRow {
   updated_at: string;
 }
 
+interface CommunityMessageNotificationRow {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  sender_name: string;
+  body: string;
+  created_at: string;
+}
+
 function readStoredUiState(): StoredUiState | null {
   if (typeof window === "undefined") return null;
 
@@ -357,41 +366,70 @@ export default function Home() {
     const rows = ((data as CommunityFriendRequestNotificationRow[]) ?? [])
       .filter((request) => request.status !== "cancelled");
 
-    setCommunityNotifications(
-      rows
-        .map<AppNotification | null>((request) => {
-          const isIncoming = request.addressee_id === tracker.user?.id;
-          const isOutgoing = request.requester_id === tracker.user?.id;
+    const friendshipNotifications = rows
+      .map<AppNotification | null>((request) => {
+        const isIncoming = request.addressee_id === tracker.user?.id;
+        const isOutgoing = request.requester_id === tracker.user?.id;
 
-          if (request.status === "pending" && isIncoming) {
-            return {
-              title: "Novo pedido de amizade",
-              message: `${request.requester_name} quer se conectar com você na Comunidade.`,
-              tone: "cyan",
-            };
-          }
+        if (request.status === "pending" && isIncoming) {
+          return {
+            title: "Novo pedido de amizade",
+            message: `${request.requester_name} quer se conectar com você na Comunidade.`,
+            tone: "cyan",
+          };
+        }
 
-          if (request.status === "accepted" && isOutgoing) {
-            return {
-              title: "Pedido de amizade aceito",
-              message: `${request.addressee_name} aceitou seu pedido de amizade.`,
-              tone: "emerald",
-            };
-          }
+        if (request.status === "accepted" && isOutgoing) {
+          return {
+            title: "Pedido de amizade aceito",
+            message: `${request.addressee_name} aceitou seu pedido de amizade.`,
+            tone: "emerald",
+          };
+        }
 
-          if (request.status === "declined" && isOutgoing) {
-            return {
-              title: "Pedido de amizade recusado",
-              message: `${request.addressee_name} recusou seu pedido de amizade.`,
-              tone: "yellow",
-            };
-          }
+        if (request.status === "declined" && isOutgoing) {
+          return {
+            title: "Pedido de amizade recusado",
+            message: `${request.addressee_name} recusou seu pedido de amizade.`,
+            tone: "yellow",
+          };
+        }
 
-          return null;
-        })
-        .filter((notification): notification is AppNotification => Boolean(notification))
-        .slice(0, 6)
-    );
+        return null;
+      })
+      .filter((notification): notification is AppNotification => Boolean(notification));
+
+    const { data: messageData, error: messageError } = await supabase
+      .from("community_messages")
+      .select("id, sender_id, recipient_id, sender_name, body, created_at")
+      .eq("recipient_id", tracker.user.id)
+      .is("read_at", null)
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    if (messageError) {
+      const errorText = `${messageError.code ?? ""} ${messageError.message ?? ""}`.toLowerCase();
+
+      if (
+        messageError.code !== "42P01" &&
+        messageError.code !== "PGRST205" &&
+        !errorText.includes("community_messages")
+      ) {
+        console.warn("Erro ao carregar mensagens da comunidade:", messageError);
+      }
+    }
+
+    const messageNotifications = ((messageData as CommunityMessageNotificationRow[]) ?? [])
+      .map<AppNotification>((message) => ({
+        title: "Nova mensagem",
+        message: `${message.sender_name}: ${message.body.slice(0, 80)}${message.body.length > 80 ? "..." : ""}`,
+        tone: "cyan",
+      }));
+
+    setCommunityNotifications([
+      ...messageNotifications,
+      ...friendshipNotifications,
+    ].slice(0, 8));
   }
 
   const theme = {
