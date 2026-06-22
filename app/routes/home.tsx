@@ -37,6 +37,7 @@ import { SiteFooter } from "~/components/xp-tracker/SiteFooter";
 import { SubscriptionCard } from "~/components/xp-tracker/SubscriptionCard";
 import { SubscriptionPanel } from "~/components/xp-tracker/SubscriptionPanel";
 import { TeletofusLink } from "~/components/xp-tracker/TeletofusLink";
+import { CommunityCard } from "~/components/xp-tracker/CommunityCard";
 import { useXpTracker, type HistoryEntry } from "~/hooks/useXpTracker";
 import { getLocalDateKey } from "~/utils/dateKeys";
 
@@ -627,6 +628,25 @@ export default function Home() {
             barPulsing={tracker.barPulsing}
             theme={theme}
           />
+
+          {!shouldShowOnboarding && !premiumLocked && (
+            <MobileDashboardSection
+              title="Comunidade"
+              description="Veja jogadores que aceitaram compartilhar o proprio nivel."
+              collapsibleOnDesktop
+              theme={theme}
+            >
+              <CommunityCard
+                user={tracker.user}
+                userName={tracker.userName ?? "Jogador XP"}
+                currentLevel={tracker.currentLevel}
+                targetLevel={tracker.targetLevel}
+                percentageDisplay={tracker.percentageDisplay}
+                badges={profileBadges}
+                theme={theme}
+              />
+            </MobileDashboardSection>
+          )}
 
           {!shouldShowOnboarding && !premiumLocked && (
             <FarmRunsCard
