@@ -106,6 +106,7 @@ interface MobileDashboardSectionProps {
   description: string;
   defaultOpen?: boolean;
   collapsibleOnDesktop?: boolean;
+  openSignal?: number;
   theme: {
     card: string;
     muted: string;
@@ -119,6 +120,7 @@ function MobileDashboardSection({
   description,
   defaultOpen = false,
   collapsibleOnDesktop = false,
+  openSignal = 0,
   theme,
   children,
 }: MobileDashboardSectionProps) {
@@ -131,6 +133,12 @@ function MobileDashboardSection({
       ? "block"
       : "hidden"
     : `${open ? "block" : "hidden"} md:block`;
+
+  useEffect(() => {
+    if (openSignal > 0) {
+      setOpen(true);
+    }
+  }, [openSignal]);
 
   return (
     <section className={collapsibleOnDesktop ? "mb-4 md:mb-5" : "md:contents"}>
@@ -181,6 +189,8 @@ export default function Home() {
   const [lastReadNotificationKey, setLastReadNotificationKey] = useState("");
   const [achievementNotifications, setAchievementNotifications] = useState<AppNotification[]>([]);
   const [communityNotifications, setCommunityNotifications] = useState<AppNotification[]>([]);
+  const [communityChatTargetId, setCommunityChatTargetId] = useState<string | null>(null);
+  const [communityOpenSignal, setCommunityOpenSignal] = useState(0);
   const [achievementToast, setAchievementToast] = useState<AppNotification | null>(null);
   const completedAchievementKeys = useRef<Set<string> | null>(null);
   const achievementToastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -332,6 +342,18 @@ export default function Home() {
     setNotificationsOpen(false);
   }
 
+  function openCommunityChatFromNotification(userId: string) {
+    setCommunityChatTargetId(userId);
+    setCommunityOpenSignal((value) => value + 1);
+    setNotificationsOpen(false);
+
+    window.setTimeout(() => {
+      document
+        .getElementById("community-section")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
   async function loadCommunityNotifications() {
     if (!tracker.user || !tracker.progressLoaded) {
       setCommunityNotifications([]);
@@ -424,6 +446,9 @@ export default function Home() {
         title: "Nova mensagem",
         message: `${message.sender_name}: ${message.body.slice(0, 80)}${message.body.length > 80 ? "..." : ""}`,
         tone: "cyan",
+        action: "community-chat",
+        actionLabel: "Abrir conversa",
+        communityUserId: message.sender_id,
       }));
 
     setCommunityNotifications([
@@ -529,7 +554,7 @@ export default function Home() {
 
     loadCommunityNotifications();
 
-    const interval = window.setInterval(loadCommunityNotifications, 30000);
+    const interval = window.setInterval(loadCommunityNotifications, 8000);
 
     function refreshWhenVisible() {
       if (document.visibilityState === "visible") {
@@ -734,6 +759,7 @@ export default function Home() {
             onToggleNotifications={() => toggleNotifications(notificationKey)}
             onCloseNotifications={closeNotifications}
             onOpenSubscription={() => setShowSubscriptionPanel(true)}
+            onOpenCommunityChat={openCommunityChatFromNotification}
             onOpenSettings={() => setShowSettings(true)}
             onRenameUser={tracker.updateDisplayName}
             onLoginWithGoogle={tracker.loginWithGoogle}
@@ -781,18 +807,24 @@ export default function Home() {
               title="Comunidade"
               description="Veja jogadores que aceitaram compartilhar o proprio nivel."
               collapsibleOnDesktop
+              openSignal={communityOpenSignal}
               theme={theme}
             >
-              <CommunityCard
-                user={tracker.user}
-                userName={tracker.userName ?? "Jogador XP"}
-                currentLevel={tracker.currentLevel}
-                targetLevel={tracker.targetLevel}
-                percentageDisplay={tracker.percentageDisplay}
-                badges={profileBadges}
-                onFriendshipChanged={loadCommunityNotifications}
-                theme={theme}
-              />
+              <div id="community-section">
+                <CommunityCard
+                  user={tracker.user}
+                  userName={tracker.userName ?? "Jogador XP"}
+                  currentLevel={tracker.currentLevel}
+                  targetLevel={tracker.targetLevel}
+                  percentageDisplay={tracker.percentageDisplay}
+                  badges={profileBadges}
+                  openChatUserId={communityChatTargetId}
+                  openChatSignal={communityOpenSignal}
+                  onChatOpened={() => setCommunityChatTargetId(null)}
+                  onFriendshipChanged={loadCommunityNotifications}
+                  theme={theme}
+                />
+              </div>
             </MobileDashboardSection>
           )}
 

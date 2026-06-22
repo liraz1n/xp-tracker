@@ -6,8 +6,9 @@ export interface AppNotification {
   title: string;
   message: string;
   tone: "yellow" | "emerald" | "cyan" | "red";
-  action?: "subscription";
+  action?: "subscription" | "community-chat";
   actionLabel?: string;
+  communityUserId?: string;
 }
 
 interface NotificationDropdownProps {
@@ -17,6 +18,7 @@ interface NotificationDropdownProps {
   onToggle: () => void;
   onClose: () => void;
   onOpenSubscription: () => void;
+  onOpenCommunityChat: (userId: string) => void;
   buttonClassName: string;
   labelClassName: string;
   theme: {
@@ -151,6 +153,7 @@ export function NotificationDropdown({
   onToggle,
   onClose,
   onOpenSubscription,
+  onOpenCommunityChat,
   buttonClassName,
   labelClassName,
   theme,
@@ -242,6 +245,18 @@ export function NotificationDropdown({
                         className="mt-3 rounded-xl bg-gradient-to-r from-yellow-300 to-amber-600 px-3 py-2 text-xs font-black text-black transition-all hover:scale-[1.02]"
                       >
                         {notification.actionLabel ?? "Abrir plano"}
+                      </button>
+                    )}
+                    {notification.action === "community-chat" && notification.communityUserId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenCommunityChat(notification.communityUserId!);
+                        }}
+                        className="mt-3 rounded-xl bg-gradient-to-r from-cyan-300 to-emerald-500 px-3 py-2 text-xs font-black text-black transition-all hover:scale-[1.02]"
+                      >
+                        {notification.actionLabel ?? "Abrir conversa"}
                       </button>
                     )}
                   </div>

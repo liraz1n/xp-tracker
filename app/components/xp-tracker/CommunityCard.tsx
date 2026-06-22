@@ -10,6 +10,9 @@ interface CommunityCardProps {
   targetLevel: number;
   percentageDisplay: string;
   badges: ProfileBadge[];
+  openChatUserId?: string | null;
+  openChatSignal?: number;
+  onChatOpened?: () => void;
   onFriendshipChanged?: () => void;
   theme: {
     card: string;
@@ -97,6 +100,9 @@ export function CommunityCard({
   targetLevel,
   percentageDisplay,
   badges,
+  openChatUserId,
+  openChatSignal = 0,
+  onChatOpened,
   onFriendshipChanged,
   theme,
 }: CommunityCardProps) {
@@ -425,10 +431,15 @@ export function CommunityCard({
     onFriendshipChanged?.();
   }
 
-  async function loadChatMessages(profile: CommunityProfileRow) {
+  async function loadChatMessages(
+    profile: CommunityProfileRow,
+    options: { silent?: boolean } = {}
+  ) {
     if (!user) return;
 
-    setChatLoading(true);
+    if (!options.silent) {
+      setChatLoading(true);
+    }
     setChatFeedback("");
 
     const { data, error } = await supabase
@@ -448,13 +459,17 @@ export function CommunityCard({
       }
 
       console.warn("Erro ao carregar conversa:", error);
-      setChatMessages([]);
-      setChatLoading(false);
+      if (!options.silent) {
+        setChatMessages([]);
+        setChatLoading(false);
+      }
       return;
     }
 
     setChatMessages((data as CommunityMessageRow[]) ?? []);
-    setChatLoading(false);
+    if (!options.silent) {
+      setChatLoading(false);
+    }
 
     await supabase
       .from("community_messages")
@@ -470,6 +485,7 @@ export function CommunityCard({
     setActiveChatProfile(profile);
     setChatDraft("");
     loadChatMessages(profile);
+    onChatOpened?.();
   }
 
   function closeChat() {
@@ -523,6 +539,30 @@ export function CommunityCard({
     loadCommunity();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!openChatUserId || openChatSignal === 0) return;
+
+    const profile = profiles.find((item) => item.user_id === openChatUserId);
+    const request = getRequestForProfile(openChatUserId);
+
+    if (!profile || request?.status !== "accepted") return;
+
+    setCommunityView("friends");
+    openChat(profile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openChatSignal, openChatUserId, profiles, friendRequests]);
+
+  useEffect(() => {
+    if (!activeChatProfile || !user) return;
+
+    const interval = window.setInterval(() => {
+      loadChatMessages(activeChatProfile, { silent: true });
+    }, 2500);
+
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChatProfile?.user_id, user?.id]);
 
   useEffect(() => {
     if (!user || !shareProfile || status === "loading") return;
@@ -839,6 +879,11 @@ export function CommunityCard({
                         </p>
                         <p className="mt-2 text-[10px] font-bold uppercase text-zinc-500">
                           {formatChatTime(message.created_at)}
+                          {isMine && (
+                            <span className={message.read_at ? "text-emerald-300" : "text-zinc-500"}>
+                              {" "}• {message.read_at ? "Lida" : "Enviada"}
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
