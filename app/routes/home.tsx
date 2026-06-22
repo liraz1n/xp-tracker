@@ -441,6 +441,8 @@ export default function Home() {
             title: "Novo pedido de amizade",
             message: `${request.requester_name} quer se conectar com você na Comunidade.`,
             tone: "cyan",
+            action: "community",
+            actionLabel: "Responder pedido",
           };
         }
 
@@ -449,6 +451,8 @@ export default function Home() {
             title: "Pedido de amizade aceito",
             message: `${request.addressee_name} aceitou seu pedido de amizade.`,
             tone: "emerald",
+            action: "community",
+            actionLabel: "Abrir Comunidade",
           };
         }
 
@@ -457,6 +461,8 @@ export default function Home() {
             title: "Pedido de amizade recusado",
             message: `${request.addressee_name} recusou seu pedido de amizade.`,
             tone: "yellow",
+            action: "community",
+            actionLabel: "Abrir Comunidade",
           };
         }
 

@@ -1111,9 +1111,80 @@ export function CommunityCard({
 
     const interval = window.setInterval(() => {
       loadChatMessages(activeChatProfile, { silent: true });
-    }, 2500);
+    }, 5000);
 
     return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChatProfile?.user_id, user?.id]);
+
+  useEffect(() => {
+    if (!activeChatProfile || !user) return;
+
+    const friendId = activeChatProfile.user_id;
+    const refreshChat = () => {
+      loadChatMessages(activeChatProfile, { silent: true });
+    };
+    const isActiveMessage = (row: Partial<CommunityMessageRow>) =>
+      (row.sender_id === user.id && row.recipient_id === friendId) ||
+      (row.sender_id === friendId && row.recipient_id === user.id);
+    const isActiveTyping = (row: Partial<CommunityTypingStatusRow>) =>
+      row.user_id === friendId && row.recipient_id === user.id;
+
+    const channel = supabase
+      .channel(`community-chat-${user.id}-${friendId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "community_messages",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as Partial<CommunityMessageRow>;
+
+          if (isActiveMessage(row)) {
+            refreshChat();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "community_messages",
+          filter: `sender_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as Partial<CommunityMessageRow>;
+
+          if (isActiveMessage(row)) {
+            refreshChat();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "community_typing_status",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as Partial<CommunityTypingStatusRow>;
+
+          if (isActiveTyping(row)) {
+            loadTypingStatus(activeChatProfile);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatProfile?.user_id, user?.id]);
 
@@ -1704,18 +1775,18 @@ export function CommunityCard({
 
       {activeChatProfile && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-1.5 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-label={`Conversa com ${activeChatProfile.display_name}`}
         >
-          <div className="flex h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-cyan-500/25 bg-zinc-950 shadow-2xl shadow-cyan-950/30 sm:max-h-[82vh] sm:rounded-3xl">
-            <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-cyan-500/10 p-3 sm:flex sm:items-start sm:justify-between sm:gap-3 sm:p-4">
+          <div className="flex h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-cyan-500/25 bg-zinc-950 shadow-2xl shadow-cyan-950/30 sm:h-[82vh] sm:rounded-3xl">
+            <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-cyan-500/10 p-2.5 sm:flex sm:items-start sm:justify-between sm:gap-3 sm:p-4">
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase text-cyan-300">
+                <p className="text-[10px] font-black uppercase text-cyan-300 sm:text-xs">
                   Chat entre amigos
                 </p>
-                <h3 className="mt-1 truncate text-lg font-black text-white sm:text-xl">
+                <h3 className="mt-0.5 truncate text-base font-black text-white sm:mt-1 sm:text-xl">
                   {activeChatProfile.display_name}
                 </h3>
                 {getBlockForProfile(activeChatProfile.user_id) && (
@@ -1729,7 +1800,7 @@ export function CommunityCard({
                 <button
                   type="button"
                   onClick={() => loadChatMessages(activeChatProfile)}
-                  className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-2 text-[10px] font-black text-cyan-200 transition-all hover:bg-cyan-500/15 sm:px-3 sm:text-xs"
+                  className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-1.5 text-[9px] font-black text-cyan-200 transition-all hover:bg-cyan-500/15 sm:px-3 sm:py-2 sm:text-xs"
                 >
                   Atualizar
                 </button>
@@ -1737,7 +1808,7 @@ export function CommunityCard({
                 <button
                   type="button"
                   onClick={() => blockProfile(activeChatProfile)}
-                  className="rounded-full border border-red-500/25 bg-red-500/10 px-2.5 py-2 text-[10px] font-black text-red-200 transition-all hover:bg-red-500/15 sm:px-3 sm:text-xs"
+                  className="rounded-full border border-red-500/25 bg-red-500/10 px-2 py-1.5 text-[9px] font-black text-red-200 transition-all hover:bg-red-500/15 sm:px-3 sm:py-2 sm:text-xs"
                 >
                   Bloquear
                 </button>
@@ -1745,7 +1816,7 @@ export function CommunityCard({
                 <button
                   type="button"
                   onClick={closeChat}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-base font-black text-red-200 transition-all hover:bg-red-500/15 sm:h-10 sm:w-10 sm:text-lg"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-sm font-black text-red-200 transition-all hover:bg-red-500/15 sm:h-10 sm:w-10 sm:text-lg"
                   aria-label="Fechar conversa"
                 >
                   ×
@@ -1753,7 +1824,7 @@ export function CommunityCard({
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 sm:space-y-3 sm:p-4">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2.5 sm:space-y-3 sm:p-4">
               {chatLoading ? (
                 <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100 sm:p-4 sm:text-sm">
                   Carregando conversa...
@@ -1819,10 +1890,10 @@ export function CommunityCard({
               <div ref={chatEndRef} />
             </div>
 
-            <div className="border-t border-cyan-500/10 p-3 sm:p-4">
+            <div className="border-t border-cyan-500/10 p-2.5 sm:p-4">
               {typingStatus && (
                 <p className="mb-2 text-xs font-black text-cyan-300">
-                  {typingStatus.display_name} esta digitando...
+                  {typingStatus.display_name} está digitando...
                 </p>
               )}
 
@@ -1844,13 +1915,13 @@ export function CommunityCard({
                   }}
                   placeholder="Escreva uma mensagem..."
                   rows={1}
-                  className="min-h-[44px] flex-1 resize-none rounded-2xl border border-cyan-500/20 bg-black px-3 py-2.5 text-sm font-bold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-cyan-300 sm:min-h-[56px] sm:px-4 sm:py-3"
+                  className="min-h-[42px] flex-1 resize-none rounded-2xl border border-cyan-500/20 bg-black px-3 py-2 text-sm font-bold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-cyan-300 sm:min-h-[56px] sm:px-4 sm:py-3"
                 />
                 <button
                   type="button"
                   onClick={sendChatMessage}
                   disabled={!chatDraft.trim() || Boolean(getBlockForProfile(activeChatProfile.user_id))}
-                  className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-4 py-2.5 text-xs font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:px-5 sm:py-3 sm:text-sm"
+                  className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-3 py-2 text-xs font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   Enviar
                 </button>
