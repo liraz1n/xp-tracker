@@ -43,6 +43,7 @@ interface CommunityFriendRequestRow {
 }
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
+type CommunityView = "all" | "friends";
 
 function formatPercent(value: number) {
   return `${value.toFixed(2)}%`;
@@ -82,6 +83,7 @@ export function CommunityCard({
   const [friendRequests, setFriendRequests] = useState<CommunityFriendRequestRow[]>([]);
   const [shareProfile, setShareProfile] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
+  const [communityView, setCommunityView] = useState<CommunityView>("all");
   const [feedback, setFeedback] = useState("");
   const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -101,6 +103,22 @@ export function CommunityCard({
 
       return b.progress_percent - a.progress_percent;
     });
+  const acceptedFriendIds = useMemo(() => {
+    if (!user) return new Set<string>();
+
+    return new Set(
+      friendRequests
+        .filter((request) => request.status === "accepted")
+        .map((request) =>
+          request.requester_id === user.id ? request.addressee_id : request.requester_id
+        )
+    );
+  }, [friendRequests, user]);
+  const displayedProfiles = visibleProfiles.filter((profile) => {
+    if (communityView === "all") return true;
+
+    return acceptedFriendIds.has(profile.user_id);
+  });
 
   function getRequestForProfile(profileId: string) {
     if (!user) return null;
@@ -358,6 +376,29 @@ export function CommunityCard({
     onFriendshipChanged?.();
   }
 
+  async function removeFriend(request: CommunityFriendRequestRow, profileName: string) {
+    if (!user || request.status !== "accepted") return;
+
+    const confirmed = window.confirm(`Remover ${profileName} da sua lista de amigos?`);
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("community_friend_requests")
+      .delete()
+      .eq("id", request.id);
+
+    if (error) {
+      console.warn("Erro ao remover amigo:", error);
+      setFeedback("Não foi possível remover esse amigo agora.");
+      return;
+    }
+
+    setFeedback(`${profileName} foi removido da sua lista de amigos.`);
+    await loadFriendRequests();
+    onFriendshipChanged?.();
+  }
+
   useEffect(() => {
     loadCommunity();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -405,19 +446,19 @@ export function CommunityCard({
             Jogadores do XP Tracker
           </h2>
           <p className={`${theme.muted} mt-2 max-w-2xl text-sm leading-relaxed`}>
-            Veja o nivel de outros jogadores que tambem aceitaram compartilhar o
-            proprio nivel. Se voce deixar seu nivel privado, a lista tambem fica
-            bloqueada para voce.
+            Veja o nível de outros jogadores que também aceitaram compartilhar o
+            próprio nível. Se você deixar seu nível privado, a lista também fica
+            bloqueada para você.
           </p>
         </div>
 
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm">
           <p className="font-black text-emerald-200">
-            {shareProfile ? "Participando" : "Nivel privado"}
+            {shareProfile ? "Participando" : "Nível privado"}
           </p>
           <p className="mt-1 text-xs text-emerald-100/70">
             {shareProfile
-              ? "Visibilidade reciproca ativa."
+              ? "Visibilidade recíproca ativa."
               : "Aceite para ver e aparecer."}
           </p>
         </div>
@@ -434,9 +475,9 @@ export function CommunityCard({
               Termo rapido de visibilidade
             </p>
             <p className={`${theme.muted} mt-2 text-sm leading-relaxed`}>
-              Ao ativar a Comunidade, seu nome ou nick, nivel atual, progresso
-              para o proximo nivel e selos ficam visiveis para outros jogadores
-              que tambem ativaram a Comunidade. Voce pode desativar quando quiser.
+              Ao ativar a Comunidade, seu nome ou nick, nível atual, progresso
+              para o próximo nível e selos ficam visíveis para outros jogadores
+              que também ativaram a Comunidade. Você pode desativar quando quiser.
             </p>
           </div>
 
@@ -454,10 +495,10 @@ export function CommunityCard({
           <div className="flex flex-col gap-3 rounded-2xl border border-emerald-500/15 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-black text-emerald-200">
-                Seu perfil esta visivel
+                Seu perfil está visível
               </p>
               <p className={`${theme.muted} mt-1 text-xs`}>
-                {sanitizeCommunityName(userName)} - nivel {currentLevel} para {targetLevel}
+                {sanitizeCommunityName(userName)} - nível {currentLevel} para {targetLevel}
               </p>
             </div>
 
@@ -467,17 +508,45 @@ export function CommunityCard({
               disabled={status === "loading"}
               className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-2 text-xs font-black text-red-200 transition-all hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Ocultar meu nivel
+              Ocultar meu nível
             </button>
           </div>
 
-          {visibleProfiles.length === 0 ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["all", `Todos (${Math.max(visibleProfiles.length - 1, 0)})`],
+                ["friends", `Amigos (${acceptedFriendIds.size})`],
+              ] as const).map(([view, label]) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => setCommunityView(view)}
+                  className={`rounded-full border px-4 py-2 text-xs font-black transition-all ${
+                    communityView === view
+                      ? "border-yellow-400 bg-yellow-400/15 text-yellow-200"
+                      : "border-emerald-500/15 bg-black/20 text-zinc-400 hover:text-emerald-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <p className={`${theme.muted} text-xs`}>
+              Amigos já ficam preparados para o chat da Comunidade.
+            </p>
+          </div>
+
+          {displayedProfiles.length === 0 ? (
             <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/10 p-4 text-sm font-bold text-yellow-100">
-              Ainda nao ha outros jogadores visiveis. Quando alguem aceitar, aparece aqui.
+              {communityView === "friends"
+                ? "Você ainda não tem amigos adicionados. Envie um pedido pela aba Todos."
+                : "Ainda não há outros jogadores visíveis. Quando alguém aceitar, aparece aqui."}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {visibleProfiles.map((profile) => {
+              {displayedProfiles.map((profile) => {
                 const request = getRequestForProfile(profile.user_id);
                 const isSelf = profile.user_id === user.id;
                 const isIncomingPending =
@@ -526,9 +595,20 @@ export function CommunityCard({
                             Você
                           </span>
                         ) : isFriend ? (
-                          <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
-                            Amigo
-                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-200">
+                              Amigo
+                            </span>
+                            {request && (
+                              <button
+                                type="button"
+                                onClick={() => removeFriend(request, profile.display_name)}
+                                className="rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
+                              >
+                                Remover
+                              </button>
+                            )}
+                          </div>
                         ) : isIncomingPending && request ? (
                           <div className="flex flex-wrap gap-2">
                             <button
