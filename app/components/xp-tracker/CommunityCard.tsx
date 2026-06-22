@@ -56,6 +56,18 @@ interface CommunityMessageRow {
   created_at: string;
 }
 
+interface CommunityUnreadMessageRow {
+  sender_id: string;
+}
+
+interface CommunityTypingStatusRow {
+  user_id: string;
+  recipient_id: string;
+  display_name: string;
+  is_typing: boolean;
+  updated_at: string;
+}
+
 interface CommunityBlockRow {
   id: string;
   blocker_id: string;
@@ -91,7 +103,7 @@ interface CommunityRunInviteRow {
 }
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
-type CommunityView = "all" | "friends";
+type CommunityView = "all" | "friends" | "seeking" | "recent";
 
 const RUN_ACTIVITY_OPTIONS: Array<{ value: CommunityRunActivity; label: string }> = [
   { value: "qualquer", label: "Qualquer run" },
@@ -147,7 +159,9 @@ function isMissingCommunityTable(error: { code?: string; message?: string } | nu
     text.includes("community_blocks") ||
     text.includes("community_message_reports") ||
     text.includes("community_run_status") ||
-    text.includes("community_run_invites")
+    text.includes("community_run_invites") ||
+    text.includes("community_typing_status") ||
+    text.includes("community_social_logs")
   );
 }
 
@@ -169,6 +183,8 @@ export function CommunityCard({
   const [blocks, setBlocks] = useState<CommunityBlockRow[]>([]);
   const [runStatuses, setRunStatuses] = useState<CommunityRunStatusRow[]>([]);
   const [runInvites, setRunInvites] = useState<CommunityRunInviteRow[]>([]);
+  const [unreadMessageCounts, setUnreadMessageCounts] = useState<Record<string, number>>({});
+  const [typingStatus, setTypingStatus] = useState<CommunityTypingStatusRow | null>(null);
   const [shareProfile, setShareProfile] = useState(false);
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [communityView, setCommunityView] = useState<CommunityView>("all");
@@ -184,6 +200,7 @@ export function CommunityCard({
   const [chatLoading, setChatLoading] = useState(false);
   const [chatFeedback, setChatFeedback] = useState("");
   const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const badgeLabels = useMemo(
@@ -222,9 +239,40 @@ export function CommunityCard({
     .slice(0, 6);
   const displayedProfiles = visibleProfiles.filter((profile) => {
     if (communityView === "all") return true;
+    if (communityView === "seeking") {
+      return profile.user_id !== user?.id && Boolean(getRunStatusForProfile(profile.user_id));
+    }
+    if (communityView === "recent") {
+      const timestamp = new Date(profile.updated_at).getTime();
+      return Number.isFinite(timestamp) && Date.now() - timestamp <= 1000 * 60 * 60 * 24 * 7;
+    }
 
     return acceptedFriendIds.has(profile.user_id);
   });
+
+  async function logSocialAction(
+    actionType: string,
+    targetId: string | null,
+    targetName: string,
+    metadata: Record<string, string | number | boolean | null> = {}
+  ) {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("community_social_logs")
+      .insert({
+        actor_id: user.id,
+        target_id: targetId,
+        actor_name: sanitizeCommunityName(userName),
+        target_name: sanitizeCommunityName(targetName),
+        action_type: actionType,
+        metadata,
+      });
+
+    if (error && !isMissingCommunityTable(error)) {
+      console.warn("Erro ao registrar log social:", error);
+    }
+  }
 
   function getRequestForProfile(profileId: string) {
     if (!user) return null;
@@ -249,6 +297,19 @@ export function CommunityCard({
   function getRunStatusForProfile(profileId: string) {
     return runStatuses.find(
       (runStatus) => runStatus.user_id === profileId && runStatus.looking_for_run
+    );
+  }
+
+  function getPendingRunInviteForProfile(profileId: string) {
+    if (!user) return null;
+
+    return runInvites.find(
+      (invite) =>
+        invite.status === "pending" &&
+        (
+          (invite.sender_id === user.id && invite.recipient_id === profileId) ||
+          (invite.sender_id === profileId && invite.recipient_id === user.id)
+        )
     );
   }
 
@@ -307,6 +368,85 @@ export function CommunityCard({
     }
 
     setRunInvites((data as CommunityRunInviteRow[]) ?? []);
+  }
+
+  async function loadUnreadMessageCounts() {
+    if (!user) {
+      setUnreadMessageCounts({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("community_messages")
+      .select("sender_id")
+      .eq("recipient_id", user.id)
+      .is("read_at", null);
+
+    if (error) {
+      if (!isMissingCommunityTable(error)) {
+        console.warn("Erro ao carregar mensagens nao lidas:", error);
+      }
+
+      setUnreadMessageCounts({});
+      return;
+    }
+
+    const counts = ((data as CommunityUnreadMessageRow[]) ?? []).reduce<Record<string, number>>(
+      (acc, row) => {
+        acc[row.sender_id] = (acc[row.sender_id] ?? 0) + 1;
+        return acc;
+      },
+      {}
+    );
+
+    setUnreadMessageCounts(counts);
+  }
+
+  async function loadTypingStatus(profile: CommunityProfileRow) {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("community_typing_status")
+      .select("user_id, recipient_id, display_name, is_typing, updated_at")
+      .eq("user_id", profile.user_id)
+      .eq("recipient_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      if (!isMissingCommunityTable(error)) {
+        console.warn("Erro ao carregar digitando:", error);
+      }
+
+      setTypingStatus(null);
+      return;
+    }
+
+    const row = data as CommunityTypingStatusRow | null;
+    const isFresh = row
+      ? Date.now() - new Date(row.updated_at).getTime() <= 5000
+      : false;
+
+    setTypingStatus(row?.is_typing && isFresh ? row : null);
+  }
+
+  async function updateTypingStatus(profile: CommunityProfileRow, isTyping: boolean) {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("community_typing_status")
+      .upsert(
+        {
+          user_id: user.id,
+          recipient_id: profile.user_id,
+          display_name: sanitizeCommunityName(userName),
+          is_typing: isTyping,
+        },
+        { onConflict: "user_id,recipient_id" }
+      );
+
+    if (error && !isMissingCommunityTable(error)) {
+      console.warn("Erro ao atualizar digitando:", error);
+    }
   }
 
   async function loadBlocks() {
@@ -431,6 +571,7 @@ export function CommunityCard({
     await loadBlocks();
     await loadRunStatuses();
     await loadRunInvites();
+    await loadUnreadMessageCounts();
     setStatus("ready");
   }
 
@@ -546,6 +687,12 @@ export function CommunityCard({
         ? `Voce esta procurando grupo para ${getRunActivityLabel(runStatusActivity)}.`
         : "Voce saiu da procura de grupo."
     );
+    await logSocialAction(
+      nextLookingForRun ? "run_status_enabled" : "run_status_disabled",
+      null,
+      "Comunidade",
+      { activity_type: runStatusActivity }
+    );
     await loadRunStatuses();
     onFriendshipChanged?.();
   }
@@ -591,6 +738,9 @@ export function CommunityCard({
     }
 
     setFeedback(`Convite enviado para ${runInviteProfile.display_name}.`);
+    await logSocialAction("run_invite_sent", runInviteProfile.user_id, runInviteProfile.display_name, {
+      activity_type: runInviteActivity,
+    });
     closeRunInvite();
     await loadRunInvites();
     onFriendshipChanged?.();
@@ -620,6 +770,12 @@ export function CommunityCard({
       nextStatus === "accepted"
         ? `Voce aceitou a run de ${invite.sender_name}.`
         : `Voce recusou a run de ${invite.sender_name}.`
+    );
+    await logSocialAction(
+      nextStatus === "accepted" ? "run_invite_accepted" : "run_invite_declined",
+      invite.sender_id,
+      invite.sender_name,
+      { activity_type: invite.activity_type }
     );
     await loadRunInvites();
     onFriendshipChanged?.();
@@ -669,6 +825,7 @@ export function CommunityCard({
     }
 
     setFeedback(`Pedido enviado para ${profile.display_name}.`);
+    await logSocialAction("friend_request_sent", profile.user_id, profile.display_name);
     await loadFriendRequests();
     onFriendshipChanged?.();
   }
@@ -721,6 +878,7 @@ export function CommunityCard({
     }
 
     setFeedback(`${profileName} foi removido da sua lista de amigos.`);
+    await logSocialAction("friend_removed", null, profileName);
     await loadFriendRequests();
     onFriendshipChanged?.();
   }
@@ -753,6 +911,7 @@ export function CommunityCard({
     }
 
     setFeedback(`${profile.display_name} foi bloqueado.`);
+    await logSocialAction("user_blocked", profile.user_id, profile.display_name);
     if (activeChatProfile?.user_id === profile.user_id) {
       closeChat();
     }
@@ -775,6 +934,7 @@ export function CommunityCard({
     }
 
     setFeedback(`${profileName} foi desbloqueado.`);
+    await logSocialAction("user_unblocked", block.blocked_id, profileName);
     await loadBlocks();
     onFriendshipChanged?.();
   }
@@ -826,6 +986,8 @@ export function CommunityCard({
       .eq("recipient_id", user.id)
       .is("read_at", null);
 
+    await loadUnreadMessageCounts();
+    await loadTypingStatus(profile);
     onFriendshipChanged?.();
   }
 
@@ -862,20 +1024,26 @@ export function CommunityCard({
     }
 
     setChatFeedback("Mensagem denunciada para revisão.");
+    await logSocialAction("message_reported", message.sender_id, message.sender_name);
   }
 
   function openChat(profile: CommunityProfileRow) {
     setActiveChatProfile(profile);
     setChatDraft("");
     loadChatMessages(profile);
+    loadTypingStatus(profile);
     onChatOpened?.();
   }
 
   function closeChat() {
+    if (activeChatProfile) {
+      updateTypingStatus(activeChatProfile, false);
+    }
     setActiveChatProfile(null);
     setChatMessages([]);
     setChatDraft("");
     setChatFeedback("");
+    setTypingStatus(null);
   }
 
   async function sendChatMessage() {
@@ -914,6 +1082,8 @@ export function CommunityCard({
     }
 
     setChatDraft("");
+    await updateTypingStatus(activeChatProfile, false);
+    await logSocialAction("message_sent", activeChatProfile.user_id, activeChatProfile.display_name);
     await loadChatMessages(activeChatProfile);
     onFriendshipChanged?.();
   }
@@ -946,6 +1116,30 @@ export function CommunityCard({
     return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatProfile?.user_id, user?.id]);
+
+  useEffect(() => {
+    if (!activeChatProfile || !user) return;
+
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+
+    const isTyping = chatDraft.trim().length > 0;
+    updateTypingStatus(activeChatProfile, isTyping);
+
+    if (isTyping) {
+      typingTimeout.current = setTimeout(() => {
+        updateTypingStatus(activeChatProfile, false);
+      }, 3500);
+    }
+
+    return () => {
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChatProfile?.user_id, chatDraft, user?.id]);
 
   useEffect(() => {
     if (!activeChatProfile) return;
@@ -1163,6 +1357,8 @@ export function CommunityCard({
               {([
                 ["all", `Todos (${Math.max(visibleProfiles.length - 1, 0)})`],
                 ["friends", `Amigos (${acceptedFriendIds.size})`],
+                ["seeking", `Procurando (${runStatuses.filter((item) => item.looking_for_run && item.user_id !== user.id).length})`],
+                ["recent", "Recentes"],
               ] as const).map(([view, label]) => (
                 <button
                   key={view}
@@ -1180,7 +1376,7 @@ export function CommunityCard({
             </div>
 
             <p className={`${theme.muted} text-xs`}>
-              Amigos já ficam preparados para o chat da Comunidade.
+              Amigos ficam prontos para chat, convites de run e status social.
             </p>
           </div>
 
@@ -1195,6 +1391,7 @@ export function CommunityCard({
               {displayedProfiles.map((profile) => {
                 const request = getRequestForProfile(profile.user_id);
                 const block = getBlockForProfile(profile.user_id);
+                const pendingRunInvite = getPendingRunInviteForProfile(profile.user_id);
                 const isSelf = profile.user_id === user.id;
                 const isIncomingPending =
                   request?.status === "pending" && request.addressee_id === user.id;
@@ -1252,6 +1449,26 @@ export function CommunityCard({
                         </div>
                       )}
 
+                      {!isSelf && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {isFriend && (
+                            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase text-emerald-200">
+                              Amigo conectado
+                            </span>
+                          )}
+                          {(unreadMessageCounts[profile.user_id] ?? 0) > 0 && (
+                            <span className="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-1 text-[10px] font-black uppercase text-yellow-200">
+                              {unreadMessageCounts[profile.user_id]} nao lida
+                            </span>
+                          )}
+                          {pendingRunInvite && (
+                            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[10px] font-black uppercase text-cyan-200">
+                              {pendingRunInvite.sender_id === user.id ? "Convite enviado" : "Convite recebido"}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="mt-4">
                         {isSelf ? (
                           <span className="inline-flex rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-black text-yellow-300">
@@ -1271,7 +1488,7 @@ export function CommunityCard({
                                 Conversar
                               </button>
                             )}
-                            {!block && (
+                            {!block && !pendingRunInvite && (
                               <button
                                 type="button"
                                 onClick={() => openRunInvite(profile)}
@@ -1279,6 +1496,11 @@ export function CommunityCard({
                               >
                                 Convidar run
                               </button>
+                            )}
+                            {!block && pendingRunInvite && (
+                              <span className="inline-flex rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-200">
+                                {pendingRunInvite.sender_id === user.id ? "Run convidada" : "Run pendente"}
+                              </span>
                             )}
                             {isBlockedByMe && block ? (
                               <button
@@ -1598,6 +1820,12 @@ export function CommunityCard({
             </div>
 
             <div className="border-t border-cyan-500/10 p-3 sm:p-4">
+              {typingStatus && (
+                <p className="mb-2 text-xs font-black text-cyan-300">
+                  {typingStatus.display_name} esta digitando...
+                </p>
+              )}
+
               {chatFeedback && (
                 <p className="mb-2 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-3 py-2 text-xs font-bold text-yellow-100 sm:mb-3 sm:px-4 sm:py-3 sm:text-sm">
                   {chatFeedback}

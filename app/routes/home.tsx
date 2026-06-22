@@ -28,6 +28,8 @@ import {
 import { SuggestionBox } from "~/components/xp-tracker/SuggestionBox";
 import {
   AdminPanelCard,
+  type AdminSocialLog,
+  type AdminSocialMetric,
   type AdminSocialReport,
   type AdminUserOverview,
 } from "~/components/xp-tracker/AdminPanelCard";
@@ -211,6 +213,8 @@ export default function Home() {
   const [historyEntryToEdit, setHistoryEntryToEdit] = useState<number | null>(null);
   const [adminUsers, setAdminUsers] = useState<AdminUserOverview[]>([]);
   const [adminSocialReports, setAdminSocialReports] = useState<AdminSocialReport[]>([]);
+  const [adminSocialMetrics, setAdminSocialMetrics] = useState<AdminSocialMetric[]>([]);
+  const [adminSocialLogs, setAdminSocialLogs] = useState<AdminSocialLog[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [lastReadHistoryCount, setLastReadHistoryCount] = useState(0);
   const [historyReadInitialized, setHistoryReadInitialized] = useState(false);
@@ -588,6 +592,52 @@ export default function Home() {
     setAdminSocialReports((data as AdminSocialReport[]) ?? []);
   }
 
+  async function loadAdminSocialOverview() {
+    if (!tracker.billing.isSuperAdmin || !tracker.user) {
+      setAdminSocialMetrics([]);
+      setAdminSocialLogs([]);
+      return;
+    }
+
+    const { data: metricsData, error: metricsError } = await supabase
+      .rpc("get_admin_social_overview");
+
+    if (metricsError) {
+      const errorText = `${metricsError.code ?? ""} ${metricsError.message ?? ""}`.toLowerCase();
+
+      if (
+        metricsError.code !== "42883" &&
+        metricsError.code !== "PGRST202" &&
+        !errorText.includes("get_admin_social_overview")
+      ) {
+        console.warn("Erro ao carregar metricas sociais:", metricsError);
+      }
+
+      setAdminSocialMetrics([]);
+    } else {
+      setAdminSocialMetrics((metricsData as AdminSocialMetric[]) ?? []);
+    }
+
+    const { data: logsData, error: logsError } = await supabase
+      .rpc("get_admin_social_logs");
+
+    if (logsError) {
+      const errorText = `${logsError.code ?? ""} ${logsError.message ?? ""}`.toLowerCase();
+
+      if (
+        logsError.code !== "42883" &&
+        logsError.code !== "PGRST202" &&
+        !errorText.includes("get_admin_social_logs")
+      ) {
+        console.warn("Erro ao carregar logs sociais:", logsError);
+      }
+
+      setAdminSocialLogs([]);
+    } else {
+      setAdminSocialLogs((logsData as AdminSocialLog[]) ?? []);
+    }
+  }
+
   async function reviewAdminSocialReport(reportId: string) {
     const { error } = await supabase
       .from("community_message_reports")
@@ -776,6 +826,8 @@ export default function Home() {
       if (!tracker.billing.isSuperAdmin || !tracker.user) {
         setAdminUsers([]);
         setAdminSocialReports([]);
+        setAdminSocialMetrics([]);
+        setAdminSocialLogs([]);
         return;
       }
 
@@ -794,6 +846,7 @@ export default function Home() {
 
     loadAdminUsers();
     loadAdminSocialReports();
+    loadAdminSocialOverview();
 
     return () => {
       cancelled = true;
@@ -1067,6 +1120,8 @@ export default function Home() {
                 isSuperAdmin={tracker.billing.isSuperAdmin}
                 adminUsers={adminUsers}
                 socialReports={adminSocialReports}
+                socialMetrics={adminSocialMetrics}
+                socialLogs={adminSocialLogs}
                 onReviewSocialReport={reviewAdminSocialReport}
                 theme={theme}
               />

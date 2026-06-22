@@ -13,6 +13,8 @@ interface AdminPanelCardProps {
   isSuperAdmin: boolean;
   adminUsers?: AdminUserOverview[];
   socialReports?: AdminSocialReport[];
+  socialMetrics?: AdminSocialMetric[];
+  socialLogs?: AdminSocialLog[];
   onReviewSocialReport?: (reportId: string) => Promise<void>;
   theme: {
     card: string;
@@ -47,6 +49,48 @@ export interface AdminSocialReport {
   created_at: string;
 }
 
+export interface AdminSocialMetric {
+  metric_name: string;
+  result: number;
+}
+
+export interface AdminSocialLog {
+  id: string;
+  actor_name: string;
+  target_name: string;
+  action_type: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+const SOCIAL_METRIC_LABELS: Record<string, string> = {
+  community_profiles: "Perfis visiveis",
+  accepted_friendships: "Amizades",
+  open_friend_requests: "Pedidos abertos",
+  messages_sent: "Mensagens",
+  unread_messages: "Nao lidas",
+  looking_for_run: "Procurando run",
+  pending_run_invites: "Convites pendentes",
+  blocked_pairs: "Bloqueios",
+  open_reports: "Denuncias abertas",
+};
+
+const SOCIAL_ACTION_LABELS: Record<string, string> = {
+  friend_request_sent: "Pedido de amizade enviado",
+  friend_request_accepted: "Pedido de amizade aceito",
+  friend_request_declined: "Pedido de amizade recusado",
+  friend_removed: "Amizade removida",
+  user_blocked: "Usuario bloqueado",
+  user_unblocked: "Usuario desbloqueado",
+  message_sent: "Mensagem enviada",
+  message_reported: "Mensagem denunciada",
+  run_status_enabled: "Procurando grupo ativado",
+  run_status_disabled: "Procurando grupo desativado",
+  run_invite_sent: "Convite de run enviado",
+  run_invite_accepted: "Convite de run aceito",
+  run_invite_declined: "Convite de run recusado",
+};
+
 function formatXP(value: number) {
   return Math.round(value).toLocaleString("pt-BR");
 }
@@ -79,6 +123,8 @@ export function AdminPanelCard({
   isSuperAdmin,
   adminUsers = [],
   socialReports = [],
+  socialMetrics = [],
+  socialLogs = [],
   onReviewSocialReport,
   theme,
 }: AdminPanelCardProps) {
@@ -274,6 +320,69 @@ export function AdminPanelCard({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {isSuperAdmin && (
+        <div className="mt-3 rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="font-black text-cyan-300">
+                Saude social
+              </p>
+              <p className={`${theme.muted} mt-1 text-xs`}>
+                Comunidade, amizade, chat, convites e seguranca social.
+              </p>
+            </div>
+            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-300">
+              {socialMetrics.length}
+            </span>
+          </div>
+
+          {socialMetrics.length === 0 ? (
+            <p className={`${theme.muted} rounded-xl border border-cyan-500/10 bg-black/20 p-3 text-xs`}>
+              Rode o SQL 017 para liberar as metricas sociais.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
+              {socialMetrics.map((metric) => (
+                <div
+                  key={metric.metric_name}
+                  className="rounded-xl border border-cyan-500/10 bg-black/25 p-3"
+                >
+                  <p className={`${theme.muted} text-[11px] font-black uppercase`}>
+                    {SOCIAL_METRIC_LABELS[metric.metric_name] ?? metric.metric_name}
+                  </p>
+                  <p className="mt-1 text-lg font-black text-cyan-300">
+                    {metric.result}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {socialLogs.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-cyan-500/10 bg-black/20 p-3">
+              <p className="mb-2 text-sm font-black text-cyan-200">
+                Ultimos eventos sociais
+              </p>
+              <div className="space-y-2">
+                {socialLogs.slice(0, 8).map((log) => (
+                  <div
+                    key={log.id}
+                    className="rounded-xl border border-cyan-500/10 bg-black/30 px-3 py-2"
+                  >
+                    <p className="text-xs font-black text-white">
+                      {SOCIAL_ACTION_LABELS[log.action_type] ?? log.action_type}
+                    </p>
+                    <p className={`${theme.muted} mt-1 text-xs`}>
+                      {log.actor_name} {"->"} {log.target_name} em {formatAdminDate(log.created_at)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
