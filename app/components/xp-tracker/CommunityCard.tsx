@@ -1001,18 +1001,18 @@ export function CommunityCard({
 
       {activeChatProfile && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-label={`Conversa com ${activeChatProfile.display_name}`}
         >
-          <div className="flex max-h-[82vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-cyan-500/25 bg-zinc-950 shadow-2xl shadow-cyan-950/30">
-            <div className="flex items-start justify-between gap-3 border-b border-cyan-500/10 p-4">
-              <div>
+          <div className="flex h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-cyan-500/25 bg-zinc-950 shadow-2xl shadow-cyan-950/30 sm:max-h-[82vh] sm:rounded-3xl">
+            <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-cyan-500/10 p-3 sm:flex sm:items-start sm:justify-between sm:gap-3 sm:p-4">
+              <div className="min-w-0">
                 <p className="text-xs font-black uppercase text-cyan-300">
                   Chat entre amigos
                 </p>
-                <h3 className="mt-1 text-xl font-black text-white">
+                <h3 className="mt-1 truncate text-lg font-black text-white sm:text-xl">
                   {activeChatProfile.display_name}
                 </h3>
                 {getBlockForProfile(activeChatProfile.user_id) && (
@@ -1022,39 +1022,41 @@ export function CommunityCard({
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={() => loadChatMessages(activeChatProfile)}
-                className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-200 transition-all hover:bg-cyan-500/15"
-              >
-                Atualizar
-              </button>
+              <div className="flex shrink-0 items-start justify-end gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => loadChatMessages(activeChatProfile)}
+                  className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-2 text-[10px] font-black text-cyan-200 transition-all hover:bg-cyan-500/15 sm:px-3 sm:text-xs"
+                >
+                  Atualizar
+                </button>
 
-              <button
-                type="button"
-                onClick={() => blockProfile(activeChatProfile)}
-                className="ml-auto rounded-full border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black text-red-200 transition-all hover:bg-red-500/15"
-              >
-                Bloquear
-              </button>
+                <button
+                  type="button"
+                  onClick={() => blockProfile(activeChatProfile)}
+                  className="rounded-full border border-red-500/25 bg-red-500/10 px-2.5 py-2 text-[10px] font-black text-red-200 transition-all hover:bg-red-500/15 sm:px-3 sm:text-xs"
+                >
+                  Bloquear
+                </button>
 
-              <button
-                type="button"
-                onClick={closeChat}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-lg font-black text-red-200 transition-all hover:bg-red-500/15"
-                aria-label="Fechar conversa"
-              >
-                ×
-              </button>
+                <button
+                  type="button"
+                  onClick={closeChat}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-500/25 bg-red-500/10 text-base font-black text-red-200 transition-all hover:bg-red-500/15 sm:h-10 sm:w-10 sm:text-lg"
+                  aria-label="Fechar conversa"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 sm:space-y-3 sm:p-4">
               {chatLoading ? (
-                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-4 text-sm font-bold text-cyan-100">
+                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100 sm:p-4 sm:text-sm">
                   Carregando conversa...
                 </p>
               ) : chatMessages.length === 0 ? (
-                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-4 text-sm font-bold text-cyan-100">
+                <p className="rounded-2xl border border-cyan-500/15 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100 sm:p-4 sm:text-sm">
                   Nenhuma mensagem ainda. Comece a conversa com calma.
                 </p>
               ) : (
@@ -1079,7 +1081,7 @@ export function CommunityCard({
                         className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[82%] rounded-2xl border px-4 py-3 ${
+                          className={`max-w-[88%] rounded-2xl border px-3 py-2.5 sm:max-w-[82%] sm:px-4 sm:py-3 ${
                             isMine
                               ? "border-yellow-500/20 bg-yellow-500/10 text-yellow-50"
                               : "border-cyan-500/20 bg-cyan-500/10 text-cyan-50"
@@ -1114,14 +1116,14 @@ export function CommunityCard({
               <div ref={chatEndRef} />
             </div>
 
-            <div className="border-t border-cyan-500/10 p-4">
+            <div className="border-t border-cyan-500/10 p-3 sm:p-4">
               {chatFeedback && (
-                <p className="mb-3 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-4 py-3 text-sm font-bold text-yellow-100">
+                <p className="mb-2 rounded-2xl border border-yellow-500/15 bg-yellow-500/10 px-3 py-2 text-xs font-bold text-yellow-100 sm:mb-3 sm:px-4 sm:py-3 sm:text-sm">
                   {chatFeedback}
                 </p>
               )}
 
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-row gap-2">
                 <textarea
                   value={chatDraft}
                   onChange={(event) => setChatDraft(event.target.value.slice(0, 500))}
@@ -1132,14 +1134,14 @@ export function CommunityCard({
                     }
                   }}
                   placeholder="Escreva uma mensagem..."
-                  rows={2}
-                  className="min-h-[56px] flex-1 resize-none rounded-2xl border border-cyan-500/20 bg-black px-4 py-3 text-sm font-bold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-cyan-300"
+                  rows={1}
+                  className="min-h-[44px] flex-1 resize-none rounded-2xl border border-cyan-500/20 bg-black px-3 py-2.5 text-sm font-bold text-white outline-none transition-all placeholder:text-zinc-600 focus:border-cyan-300 sm:min-h-[56px] sm:px-4 sm:py-3"
                 />
                 <button
                   type="button"
                   onClick={sendChatMessage}
                   disabled={!chatDraft.trim() || Boolean(getBlockForProfile(activeChatProfile.user_id))}
-                  className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-5 py-3 text-sm font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                  className="rounded-2xl bg-gradient-to-r from-cyan-400 to-emerald-500 px-4 py-2.5 text-xs font-black text-zinc-950 transition-all hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:px-5 sm:py-3 sm:text-sm"
                 >
                   Enviar
                 </button>
