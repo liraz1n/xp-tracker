@@ -640,12 +640,20 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     xp: 876,
   },
   {
+    id: "templo-oasis-1",
+    category: "Masmorra",
+    name: "Templo do Oásis",
+    detail: "1 jogador",
+    players: 1,
+    xp: 15789,
+  },
+  {
     id: "templo-oasis-2",
     category: "Masmorra",
     name: "Templo do Oásis",
-    detail: "2 jogadores (10.780 a 10.800 XP)",
+    detail: "2 jogadores",
     players: 2,
-    xp: 10800,
+    xp: 15789,
   },
 ];
 

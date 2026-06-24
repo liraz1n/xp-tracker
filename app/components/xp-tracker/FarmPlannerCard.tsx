@@ -21,6 +21,8 @@ const PLANNER_ACTIVITIES = [
   { type: "masmorra", name: "Deserto", detail: "4 jogadores", xp: 9737, minutes: 6 },
   { type: "masmorra", name: "Cemitério", detail: "4 jogadores", xp: 8537, minutes: 6 },
   { type: "masmorra", name: "Deserto", detail: "5 jogadores", xp: 7890, minutes: 6 },
+  { type: "masmorra", name: "Templo do Oásis", detail: "1 jogador", xp: 15789, minutes: 6 },
+  { type: "masmorra", name: "Templo do Oásis", detail: "2 jogadores", xp: 15789, minutes: 6 },
 ] as const;
 
 function formatXP(value: number) {
