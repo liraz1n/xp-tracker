@@ -161,9 +161,6 @@ export function DashboardHeader({
           />
         </a>
 
-        <p className={`${theme.muted} mt-2 text-base md:text-lg`}>
-          Acompanhe XP, runs e evolução do seu personagem
-        </p>
       </div>
 
       <div className="flex flex-col md:items-end gap-3">
