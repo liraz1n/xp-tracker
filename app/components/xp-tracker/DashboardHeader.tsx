@@ -152,12 +152,16 @@ export function DashboardHeader({
         <a
           href="/"
           aria-label="Voltar para o início"
-          className="inline-block text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 bg-clip-text text-transparent transition-all hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+          className="inline-block transition-all hover:brightness-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
         >
-          XP TRACKER
+          <img
+            src="/assets/xp-tracker-logo-header.jpg"
+            alt="XP Tracker"
+            className="h-auto w-[300px] max-w-full sm:w-[390px] md:w-[520px]"
+          />
         </a>
 
-        <p className={`${theme.muted} mt-1.5 md:mt-2 text-base md:text-lg`}>
+        <p className={`${theme.muted} mt-2 text-base md:text-lg`}>
           Acompanhe XP, runs e evolução do seu personagem
         </p>
       </div>

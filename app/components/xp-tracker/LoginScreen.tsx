@@ -23,9 +23,13 @@ export function LoginScreen({ onLogin, onGuestLogin }: LoginScreenProps) {
               Bem-vindo ao seu painel de evolução
             </p>
 
-            <h1 className="text-6xl font-black bg-gradient-to-r from-yellow-300 via-yellow-500 to-amber-700 bg-clip-text text-transparent mb-6">
-              XP TRACKER
-            </h1>
+            <div className="mb-6">
+              <img
+                src="/assets/xp-tracker-logo-main.jpg"
+                alt="XP Tracker"
+                className="h-auto w-48 max-w-full sm:w-56 md:w-64"
+              />
+            </div>
 
             <p className="text-zinc-400 text-lg mb-8">
               Acompanhe suas metas, histórico, progresso, marcos e estimativas em uma dashboard premium.
