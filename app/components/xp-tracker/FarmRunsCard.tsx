@@ -565,7 +565,7 @@ const FARM_ACTIVITIES: FarmActivity[] = [
     category: "Masmorra",
     name: "Deserto",
     detail: "5 jogadores",
-    xp: 7890,
+    xp: 10127,
   },
   {
     id: "templo-altheryn-4",

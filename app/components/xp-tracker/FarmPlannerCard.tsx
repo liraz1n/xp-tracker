@@ -20,7 +20,7 @@ const PLANNER_ACTIVITIES = [
   { type: "cripta", name: "Cripta 1 até 33", detail: "4 jogadores", xp: 67990, minutes: 22 },
   { type: "masmorra", name: "Deserto", detail: "4 jogadores", xp: 9737, minutes: 6 },
   { type: "masmorra", name: "Cemitério", detail: "4 jogadores", xp: 8537, minutes: 6 },
-  { type: "masmorra", name: "Deserto", detail: "5 jogadores", xp: 7890, minutes: 6 },
+  { type: "masmorra", name: "Deserto", detail: "5 jogadores", xp: 10127, minutes: 6 },
   { type: "masmorra", name: "Templo do Oásis", detail: "1 jogador", xp: 15789, minutes: 6 },
   { type: "masmorra", name: "Templo do Oásis", detail: "2 jogadores", xp: 15789, minutes: 6 },
 ] as const;

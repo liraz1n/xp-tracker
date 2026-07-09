@@ -56,7 +56,7 @@ const LEVEL_UP_RUN_OPTIONS = [
   { label: "Masmorra Templo do Oasis", detail: "1 jogador", xp: 15789 },
   { label: "Masmorra Templo do Oasis", detail: "2 jogadores", xp: 15789 },
   { label: "Masmorra Deserto", detail: "4 jogadores", xp: 9737 },
-  { label: "Masmorra Deserto", detail: "5 jogadores", xp: 7890 },
+  { label: "Masmorra Deserto", detail: "5 jogadores", xp: 10127 },
   { label: "Masmorra Cemiterio", detail: "4 jogadores", xp: 8537 },
   { label: "Masmorra Pantano", detail: "4 jogadores", xp: 2937 },
 ];
